@@ -55,9 +55,9 @@ export default function LoginPage() {
       <div className="max-w-7xl w-full mx-auto flex items-center justify-between py-2">
         <Link href="/" className="flex items-center gap-3 group">
           <picture>
-            <source srcSet="/Charcoal Headphone Bear Mascot.webp" type="image/webp" />
+            <source srcSet="/logo.webp" type="image/webp" />
             <img
-              src="/Charcoal Headphone Bear Mascot.png"
+              src="/logo.png"
               alt="Toy Creator Emblem"
               className="w-9 h-9 object-contain group-hover:scale-105 transition-transform"
             />

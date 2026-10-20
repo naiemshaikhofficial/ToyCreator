@@ -139,9 +139,9 @@ export function Header() {
             <div className="h-16 px-5 flex items-center justify-between border-b border-[#242424]">
               <div className="flex items-center gap-2.5">
                 <picture>
-                  <source srcSet="/Charcoal Headphone Bear Mascot.webp" type="image/webp" />
+                  <source srcSet="/logo.webp" type="image/webp" />
                   <img
-                    src="/Charcoal Headphone Bear Mascot.png"
+                    src="/logo.png"
                     alt="Toy Creator Emblem"
                     className="w-8 h-8 object-contain"
                   />

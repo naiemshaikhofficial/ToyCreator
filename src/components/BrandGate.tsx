@@ -15,9 +15,9 @@ export function BrandGate({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen bg-[#121212] flex flex-col items-center justify-center text-white">
         <div className="relative mb-4">
           <picture>
-            <source srcSet="/Charcoal Headphone Bear Mascot.webp" type="image/webp" />
+            <source srcSet="/logo.webp" type="image/webp" />
             <img
-              src="/Charcoal Headphone Bear Mascot.png"
+              src="/logo.png"
               alt="Toy Creator"
               className="w-16 h-16 object-contain animate-pulse"
             />
@@ -46,9 +46,9 @@ export function BrandGate({ children }: { children: React.ReactNode }) {
         <div className="max-w-4xl w-full mx-auto flex items-center justify-between py-3 border-b border-zinc-800">
           <div className="flex items-center gap-3">
             <picture>
-              <source srcSet="/Charcoal Headphone Bear Mascot.webp" type="image/webp" />
+              <source srcSet="/logo.webp" type="image/webp" />
               <img
-                src="/Charcoal Headphone Bear Mascot.png"
+                src="/logo.png"
                 alt="Toy Creator Emblem"
                 className="w-8 h-8 object-contain"
               />

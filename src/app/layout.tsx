@@ -6,8 +6,14 @@ export const metadata: Metadata = {
   title: "Toy Creator — Audio Developer & Publisher Portal",
   description: "Dedicated creator portal for music plugin developers, VST creators, sample pack producers, and audio publishers. Create. Publish. Earn.",
   icons: {
-    icon: "/favicon.ico",
-    apple: "/Icon.png",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
 };
 

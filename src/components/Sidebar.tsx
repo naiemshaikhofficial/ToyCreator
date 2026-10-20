@@ -45,9 +45,9 @@ export function Sidebar() {
       <div className="h-18 px-5 flex items-center justify-between border-b border-[#242424]">
         <Link href="/dashboard" className="flex items-center gap-3 group">
           <picture className="flex-shrink-0">
-            <source srcSet="/Charcoal Headphone Bear Mascot.webp" type="image/webp" />
+            <source srcSet="/logo.webp" type="image/webp" />
             <img
-              src="/Charcoal Headphone Bear Mascot.png"
+              src="/logo.png"
               alt="Toy Creator Emblem"
               className="w-9 h-9 object-contain filter drop-shadow-sm group-hover:scale-105 transition-transform"
             />

@@ -155,7 +155,7 @@ export default function ProfilePage() {
               </label>
               <input
                 type="text"
-                placeholder="https://... or /Charcoal Headphone Bear Mascot.webp"
+                placeholder="https://... or /logo.webp"
                 value={logoUrl}
                 onChange={(e) => setLogoUrl(e.target.value)}
                 className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"

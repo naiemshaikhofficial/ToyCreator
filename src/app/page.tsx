@@ -30,9 +30,9 @@ export default function HomePage() {
       <nav className="h-20 border-b border-[#222222] px-6 sm:px-12 flex items-center justify-between max-w-7xl w-full mx-auto">
         <div className="flex items-center gap-3">
           <picture className="flex-shrink-0">
-            <source srcSet="/Charcoal Headphone Bear Mascot.webp" type="image/webp" />
+            <source srcSet="/logo.webp" type="image/webp" />
             <img
-              src="/Charcoal Headphone Bear Mascot.png"
+              src="/logo.png"
               alt="Toy Creator Emblem"
               className="w-10 h-10 object-contain"
             />
