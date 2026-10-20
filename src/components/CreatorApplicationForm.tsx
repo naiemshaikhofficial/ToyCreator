@@ -4,11 +4,14 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Send, CheckCircle2, Building2, Mail, Globe, Sparkles, Loader2, ArrowLeft, Headphones } from 'lucide-react';
 import { createDeveloperTicket } from '@/lib/supabase/actions';
+import { TurnstileWidget } from '@/components/TurnstileWidget';
+import { validateTurnstileAction } from '@/actions/authActions';
 
 export function CreatorApplicationForm({ initialEmail = '', onBack }: { initialEmail?: string; onBack?: () => void }) {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -27,10 +30,20 @@ export function CreatorApplicationForm({ initialEmail = '', onBack }: { initialE
       return;
     }
 
+    if (!turnstileToken) {
+      setErrorMsg('Security verification required. Please complete Cloudflare Turnstile before submitting.');
+      return;
+    }
+
     setIsSubmitting(true);
     setErrorMsg('');
 
     try {
+      const turnstileCheck = await validateTurnstileAction(turnstileToken);
+      if (!turnstileCheck.success) {
+        setTurnstileToken(null);
+        throw new Error(turnstileCheck.error || 'Security verification failed. Please try again.');
+      }
       // 1. Submit priority ticket in Supabase
       await createDeveloperTicket({
         name: `${formData.name} (${formData.brandName})`,
@@ -238,11 +251,20 @@ export function CreatorApplicationForm({ initialEmail = '', onBack }: { initialE
           />
         </div>
 
+        {/* Cloudflare Turnstile */}
+        <TurnstileWidget
+          onSuccess={(token) => {
+            setTurnstileToken(token);
+            setErrorMsg('');
+          }}
+          onExpire={() => setTurnstileToken(null)}
+        />
+
         <div className="pt-2">
           <button
             type="submit"
-            disabled={isSubmitting}
-            className="w-full btn-primary py-3.5 font-bold text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-lg"
+            disabled={isSubmitting || !turnstileToken}
+            className="w-full btn-primary py-3.5 font-bold text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
               <>

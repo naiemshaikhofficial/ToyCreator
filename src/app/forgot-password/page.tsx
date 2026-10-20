@@ -3,27 +3,50 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { Mail, ArrowRight, Loader2, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { LogoIcon } from '@/components/Logo';
+import { ButtonSpinner } from '@/components/ui/ButtonSpinner';
+import { TurnstileWidget } from '@/components/TurnstileWidget';
+import { validateTurnstileAction } from '@/actions/authActions';
+import { ChevronLeft, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [isResetEmailSent, setIsResetEmailSent] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
+
+    if (!email.trim() || !email.includes('@')) {
+      setErrorMsg('Please enter a valid email address.');
+      return;
+    }
+
+    if (!turnstileToken) {
+      setErrorMsg('Security verification required. Please complete Cloudflare Turnstile before submitting.');
+      return;
+    }
+
     setLoading(true);
     setErrorMsg('');
 
     try {
+      const turnstileCheck = await validateTurnstileAction(turnstileToken);
+      if (!turnstileCheck.success) {
+        setTurnstileToken(null);
+        throw new Error(turnstileCheck.error || 'Security verification failed. Please try again.');
+      }
+
       const supabase = getSupabaseBrowserClient();
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: `${window.location.origin}/dashboard/settings`,
       });
 
       if (error) throw new Error(error.message);
-      setSuccess(true);
+      setIsResetEmailSent(true);
     } catch (err: any) {
       console.error('Password reset error:', err);
       setErrorMsg(err.message || 'Could not send reset link. Please check your email.');
@@ -33,87 +56,117 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#121212] text-white flex flex-col justify-between p-4 sm:p-6 selection:bg-white selection:text-black font-sans">
-      <div className="max-w-7xl w-full mx-auto flex items-center justify-between py-2">
-        <Link href="/login" className="flex items-center gap-2 text-xs text-zinc-400 hover:text-white transition-colors">
-          <ArrowLeft className="w-3.5 h-3.5" />
+    <div className="min-h-screen bg-[#121212] text-white flex items-center justify-center px-4 py-8 sm:py-14 font-sans selection:bg-white selection:text-black">
+      <div className="w-full max-w-[460px] bg-[#161616] border border-[#262626] rounded-2xl p-7 sm:p-10 shadow-2xl space-y-6 relative transition-all">
+        {/* Top Back to Sign In Link */}
+        <Link
+          href="/login"
+          className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white font-bold transition-colors uppercase tracking-wider cursor-pointer"
+        >
+          <ChevronLeft className="w-4 h-4" />
           <span>Back to Sign In</span>
         </Link>
-      </div>
 
-      <div className="max-w-md w-full mx-auto my-8">
-        <div className="bg-[#181818] border border-[#2a2a2a] rounded-2xl p-7 sm:p-9 shadow-2xl relative overflow-hidden">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold tracking-tight text-white">Reset Brand Password</h1>
-            <p className="text-xs text-zinc-400 mt-1">
-              Enter your registered developer email to receive a secure recovery link.
-            </p>
-          </div>
-
-          {errorMsg && (
-            <div className="mb-5 p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <span>{errorMsg}</span>
+        {isResetEmailSent ? (
+          <div className="flex flex-col items-center text-center space-y-6 py-2 animate-in fade-in">
+            <div className="w-16 h-16 rounded-full bg-[#202020] border border-[#2e2e2e] flex items-center justify-center relative">
+              <CheckCircle2 className="w-8 h-8 text-white font-bold" />
             </div>
-          )}
 
-          {success ? (
-            <div className="p-5 bg-[#202020] border border-zinc-700/60 rounded-xl text-center space-y-3">
-              <CheckCircle2 className="w-8 h-8 text-white mx-auto" />
-              <p className="text-sm font-semibold text-white">Recovery Link Sent</p>
-              <p className="text-xs text-zinc-300">
-                Check your inbox at <span className="text-white font-mono">{email}</span> for instructions to reset your developer credentials.
+            <div className="space-y-2">
+              <h1 className="text-2xl font-extrabold text-white tracking-tight">
+                Reset link sent
+              </h1>
+              <p className="text-xs text-zinc-400 leading-relaxed max-w-sm">
+                We sent a secure password reset link to{' '}
+                <span className="font-semibold text-white">{email}</span>. Click the link in the email to set a new password.
               </p>
+            </div>
+
+            <div className="w-full space-y-3 pt-2">
               <Link
                 href="/login"
-                className="inline-block mt-2 text-xs text-zinc-300 hover:text-white font-medium underline"
+                className="w-full py-3.5 bg-white hover:bg-zinc-200 text-black font-extrabold text-xs rounded-full tracking-wider uppercase transition-all flex items-center justify-center shadow-lg"
               >
-                Return to Sign In &rarr;
+                Back to Sign In
               </Link>
             </div>
-          ) : (
-            <form onSubmit={handleReset} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                  Developer Email
-                </label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3" />
-                  <input
-                    type="email"
-                    required
-                    placeholder="developer@yourbrand.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:border-[#42454e] transition-colors"
-                  />
+          </div>
+        ) : (
+          <>
+            <div className="flex flex-col items-center text-center space-y-3">
+              <Link href="/" prefetch={true} className="hover:opacity-80 transition-opacity">
+                <LogoIcon size={48} />
+              </Link>
+
+              <h1 className="text-2xl font-extrabold text-white tracking-tight">
+                Reset your password
+              </h1>
+              <p className="text-xs text-zinc-400 max-w-sm leading-relaxed">
+                Enter your registered brand developer email address and we'll send you a recovery link.
+              </p>
+            </div>
+
+            {errorMsg && (
+              <div className="bg-[#ff4053] text-black font-extrabold p-3.5 rounded-2xl text-xs text-center space-y-2 shadow-lg animate-in fade-in">
+                <div className="flex items-center justify-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-black flex-shrink-0" />
+                  <span>{errorMsg}</span>
                 </div>
               </div>
+            )}
+
+            <form onSubmit={handleReset} className="space-y-4">
+              <div className="space-y-1">
+                <label className="block text-[12px] font-semibold text-zinc-300">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  required
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  className="w-full h-11 bg-[#181818] border border-[#282828] hover:border-[#383838] focus:border-zinc-300 text-white text-[13px] px-3.5 rounded-md outline-none transition-colors placeholder:text-zinc-500 shadow-sm touch-manipulation select-text"
+                />
+              </div>
+
+              {/* Cloudflare Turnstile */}
+              <TurnstileWidget
+                onSuccess={(token) => {
+                  setTurnstileToken(token);
+                  setErrorMsg('');
+                }}
+                onExpire={() => setTurnstileToken(null)}
+              />
 
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full btn-primary py-3 font-semibold text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 mt-2 shadow-lg"
+                disabled={loading || !turnstileToken}
+                className="w-full py-3.5 bg-white hover:bg-zinc-200 active:bg-zinc-300 active:scale-[0.99] text-black font-extrabold text-xs rounded-full tracking-wider uppercase transition-all shadow-lg cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation"
               >
                 {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Sending link...</span>
-                  </>
+                  <ButtonSpinner size={16} variant="dark" />
                 ) : (
-                  <>
-                    <span>Send Recovery Link</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
+                  <span>Send Reset Link</span>
                 )}
               </button>
             </form>
-          )}
-        </div>
-      </div>
 
-      <div className="text-center text-xs text-zinc-500 py-4">
-        Toy Creator • Powered by ProducerToy Audio Infrastructure
+            <div className="pt-3 text-center text-xs text-zinc-400 border-t border-[#262626]">
+              <span>Remember your password? </span>
+              <Link
+                href="/login"
+                className="text-white hover:underline font-bold transition-colors ml-1 cursor-pointer"
+              >
+                Sign in
+              </Link>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

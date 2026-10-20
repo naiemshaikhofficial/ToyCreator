@@ -5,14 +5,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useBrand } from '@/context/BrandContext';
-import {
-  Lock,
-  Mail,
-  ArrowRight,
-  Loader2,
-  AlertCircle,
-  ShieldCheck,
-} from 'lucide-react';
+import { LogoIcon } from '@/components/Logo';
+import { ButtonSpinner } from '@/components/ui/ButtonSpinner';
+import { TurnstileWidget } from '@/components/TurnstileWidget';
+import { validateTurnstileAction } from '@/actions/authActions';
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,22 +17,55 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
+
+    if (!email.trim() || !email.includes('@')) {
+      setErrorMsg('Please enter a valid email address.');
+      return;
+    }
+
+    if (!password) {
+      setErrorMsg('Please enter your password.');
+      return;
+    }
+
+    // Cloudflare Turnstile Bot Verification Check
+    if (!turnstileToken) {
+      setErrorMsg('Security verification required. Please complete Cloudflare Turnstile before signing in.');
+      return;
+    }
+
     setLoading(true);
     setErrorMsg('');
 
     try {
+      // Validate Turnstile on server
+      const turnstileCheck = await validateTurnstileAction(turnstileToken);
+      if (!turnstileCheck.success) {
+        setTurnstileToken(null);
+        throw new Error(turnstileCheck.error || 'Security verification failed. Please complete the captcha again.');
+      }
+
       const supabase = getSupabaseBrowserClient();
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password,
       });
 
       if (error) {
+        const msg = error.message.toLowerCase();
+        if (msg.includes('invalid login credentials') || msg.includes('invalid credentials')) {
+          throw new Error('Incorrect email or password. Please verify your credentials.');
+        } else if (msg.includes('email not confirmed')) {
+          throw new Error('Please confirm your email address before signing in.');
+        }
         throw new Error(error.message);
       }
 
@@ -50,153 +80,141 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#121212] text-white flex flex-col justify-between p-4 sm:p-6 selection:bg-white selection:text-black font-sans">
-      {/* Top Brand Bar */}
-      <div className="max-w-7xl w-full mx-auto flex items-center justify-between py-2">
-        <Link href="/" className="flex items-center gap-3 group">
-          <picture>
-            <source srcSet="/logo.webp" type="image/webp" />
-            <img
-              src="/logo.png"
-              alt="Toy Creator Emblem"
-              className="w-9 h-9 object-contain group-hover:scale-105 transition-transform"
-            />
-          </picture>
-          <div className="flex flex-col">
-            <span className="font-extrabold text-sm tracking-tight text-white uppercase">
-              Toy Creator
-            </span>
-            <span className="text-[10px] font-semibold text-zinc-400 tracking-wider uppercase">
-              by ProducerToy
-            </span>
-          </div>
-        </Link>
+    <div className="min-h-screen bg-[#121212] text-white flex items-center justify-center px-4 py-8 sm:py-14 font-sans selection:bg-white selection:text-black">
+      {/* Dark Auth Card Container (#161616 background, border #262626, rounded-2xl) */}
+      <div className="w-full max-w-[460px] bg-[#161616] border border-[#262626] rounded-2xl p-7 sm:p-10 shadow-2xl space-y-6 relative transition-all">
+        {/* Header Logo + Title */}
+        <div className="flex flex-col items-center text-center space-y-3">
+          <Link href="/" prefetch={true} className="hover:opacity-80 transition-opacity">
+            <LogoIcon size={48} />
+          </Link>
 
-        <a
-          href="https://producertoy.com"
-          target="_blank"
-          rel="noreferrer"
-          className="text-xs text-zinc-400 hover:text-white transition-colors"
-        >
-          ProducerToy Marketplace &rarr;
-        </a>
-      </div>
+          <h1 className="text-2xl font-extrabold text-white tracking-tight">
+            Sign in to Toy Creator
+          </h1>
+          <p className="text-xs text-zinc-400 max-w-sm leading-relaxed">
+            Authorized Brand Developer &amp; Audio Publisher Portal
+          </p>
+        </div>
 
-      {/* Main Card */}
-      <div className="max-w-md w-full mx-auto my-8">
-        <div className="bg-[#181818] border border-[#2a2a2a] rounded-2xl p-7 sm:p-9 shadow-2xl relative overflow-hidden">
-          {/* Heading */}
-          <div className="mb-6">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#242424] border border-white/5 text-[11px] font-semibold text-zinc-300 mb-3">
-              <ShieldCheck className="w-3.5 h-3.5 text-zinc-300" />
-              <span>Registered Brand Access</span>
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">Brand Developer Sign In</h1>
-            <p className="text-xs text-zinc-400 mt-1">
-              Sign in with your authorized ProducerToy brand credentials
-            </p>
-          </div>
-
-          {errorMsg && (
-            <div className="mb-5 p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-start gap-2.5 leading-relaxed">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+        {/* Error Banner Matching ProducerToy */}
+        {errorMsg && (
+          <div className="bg-[#ff4053] text-black font-extrabold p-3.5 rounded-2xl text-xs text-center space-y-2 shadow-lg animate-in fade-in">
+            <div className="flex items-center justify-center gap-2">
+              <AlertCircle className="w-4 h-4 text-black flex-shrink-0" />
               <span>{errorMsg}</span>
             </div>
-          )}
+          </div>
+        )}
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                Developer / Brand Email
+        <form onSubmit={handleLogin} className="space-y-4">
+          {/* Email Address */}
+          <div className="space-y-1">
+            <label className="block text-[12px] font-semibold text-zinc-300">
+              Email Address
+            </label>
+            <input
+              type="email"
+              required
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@example.com"
+              className="w-full h-11 bg-[#181818] border border-[#282828] hover:border-[#383838] focus:border-zinc-300 text-white text-[13px] px-3.5 rounded-md outline-none transition-colors placeholder:text-zinc-500 shadow-sm touch-manipulation select-text"
+            />
+          </div>
+
+          {/* Password */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <label className="block text-[12px] font-semibold text-zinc-300">
+                Password
               </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3" />
-                <input
-                  type="email"
-                  required
-                  autoComplete="email"
-                  placeholder="developer@yourbrand.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:border-[#42454e] transition-colors"
-                />
-              </div>
+              <Link
+                href="/forgot-password"
+                className="text-xs text-zinc-400 hover:text-white transition-colors"
+              >
+                Forgot password?
+              </Link>
             </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider">
-                  Password
-                </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-xs text-zinc-400 hover:text-white transition-colors"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3" />
-                <input
-                  type="password"
-                  required
-                  autoComplete="current-password"
-                  placeholder="••••••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:border-[#42454e] transition-colors"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full btn-primary py-3 font-semibold text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 mt-2 shadow-lg"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Authenticating...</span>
-                </>
-              ) : (
-                <>
-                  <span>Sign In to Toy Creator</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Quick Access for Owner / Reviewer Testing */}
-          <div className="mt-6 pt-5 border-t border-[#262626]">
-            <p className="text-[11px] text-zinc-400 mb-2 font-medium">Quick Fill Authorized Owner:</p>
-            <div className="space-y-1.5">
+            <div className="relative flex items-center">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••••••"
+                style={{ paddingLeft: '14px', paddingRight: '44px' }}
+                className="w-full h-11 bg-[#181818] border border-[#282828] hover:border-[#383838] focus:border-zinc-300 text-white text-[13px] rounded-md outline-none transition-colors placeholder:text-zinc-500 shadow-sm touch-manipulation select-text"
+              />
               <button
                 type="button"
-                onClick={() => {
-                  setEmail('naiemshaikhofficial@gmail.com');
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  zIndex: 10,
                 }}
-                className="w-full text-left px-3 py-2 rounded-lg bg-[#202020] hover:bg-[#282828] border border-[#2e2e2e] text-xs text-zinc-300 flex items-center justify-between transition-colors"
+                className="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer touch-manipulation"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                <span className="font-mono text-[11px]">naiemshaikhofficial@gmail.com</span>
-                <span className="text-[10px] text-zinc-300 font-semibold uppercase">Producer Toy Owner</span>
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
 
-          <div className="mt-6 text-center text-xs text-zinc-400">
+          {/* Cloudflare Turnstile Verification Widget */}
+          <TurnstileWidget
+            onSuccess={(token) => {
+              setTurnstileToken(token);
+              setErrorMsg('');
+            }}
+            onExpire={() => setTurnstileToken(null)}
+          />
+
+          {/* Submit Button Matching ProducerToy */}
+          <button
+            type="submit"
+            disabled={loading || !turnstileToken}
+            className="w-full py-3.5 bg-white hover:bg-zinc-200 active:bg-zinc-300 active:scale-[0.99] text-black font-extrabold text-xs rounded-full tracking-wider uppercase transition-all shadow-lg cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation mt-2"
+          >
+            {loading ? (
+              <ButtonSpinner size={16} variant="dark" />
+            ) : (
+              <span>Sign In to Toy Creator</span>
+            )}
+          </button>
+        </form>
+
+        {/* Bottom Footer Actions */}
+        <div className="pt-4 text-center text-xs text-zinc-400 border-t border-[#262626] space-y-2.5">
+          <p>
             Want to publish audio tools?{' '}
-            <Link href="/signup" className="text-white hover:text-zinc-200 font-semibold underline underline-offset-4">
+            <Link
+              href="/signup"
+              className="text-white hover:underline font-bold transition-colors ml-1 cursor-pointer"
+            >
               Apply for Brand Access &rarr;
             </Link>
-          </div>
+          </p>
+          <p className="text-[11px] text-zinc-500">
+            <a
+              href="https://producertoy.com"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-zinc-300 transition-colors"
+            >
+              ProducerToy Marketplace &rarr;
+            </a>
+          </p>
         </div>
-      </div>
-
-      {/* Footer */}
-      <div className="text-center text-xs text-zinc-500 py-4">
-        Toy Creator • Powered by ProducerToy Audio Infrastructure
       </div>
     </div>
   );
