@@ -49,7 +49,7 @@ export default function PayoutsPage() {
     (acc, p) => acc + (parseFloat(p.amount_paid) || 0),
     0
   );
-  const netEarnings = totalGross * 0.85;
+  const netEarnings = totalGross * 0.70;
 
   const totalPaidOut = payouts
     .filter((p) => p.status === 'completed')

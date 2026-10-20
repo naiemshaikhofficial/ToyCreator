@@ -39,8 +39,8 @@ export default function EarningsPage() {
     (acc, p) => acc + (parseFloat(p.amount_paid) || 0),
     0
   );
-  const platformFee = totalGross * 0.15;
-  const netEarnings = totalGross * 0.85;
+  const platformFee = totalGross * 0.30;
+  const netEarnings = totalGross * 0.70;
 
   const totalPaidOut = payouts
     .filter((p) => p.status === 'completed')
@@ -94,10 +94,10 @@ export default function EarningsPage() {
           <p className="text-[11px] text-zinc-400 mt-1">Covers CDN, gateways & licensing</p>
         </div>
 
-        {/* Net Creator Earnings (85%) */}
+        {/* Net Creator Earnings (70%) */}
         <div className="toy-card p-5">
           <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-            Net Creator Retain (85%)
+            Net Creator Retain (70%)
           </p>
           <p className="text-2xl font-black text-white font-mono mt-1">
             ${netEarnings.toFixed(2)}
@@ -123,10 +123,10 @@ export default function EarningsPage() {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="toy-badge toy-badge-charcoal">ProducerToy Creator Guarantee</span>
-              <span className="text-xs font-bold text-white">Guaranteed 85% Developer Revenue</span>
+              <span className="text-xs font-bold text-white">Guaranteed 70% Developer Revenue</span>
             </div>
             <p className="text-xs text-zinc-300 max-w-2xl leading-relaxed">
-              Unlike legacy plugin distribution portals that take 30% to 50%, Toy Creator ensures developers retain 85% of net revenues. ProducerToy's 15% platform fee covers worldwide PCI payment gateway fees, multi-gigabyte edge CDN file hosting, continuous anti-piracy licensing servers, and global sales tax / VAT compliance.
+              Unlike legacy plugin distribution portals that take 50%, Toy Creator ensures developers retain 70% of net revenues. ProducerToy's 30% platform fee covers worldwide PCI payment gateway fees, multi-gigabyte edge CDN file hosting, continuous anti-piracy licensing servers, and global sales tax / VAT compliance.
             </p>
           </div>
 
@@ -157,16 +157,16 @@ export default function EarningsPage() {
                   <th className="py-2.5 px-3">Transaction</th>
                   <th className="py-2.5 px-3">Product</th>
                   <th className="py-2.5 px-3 text-right">Gross Price</th>
-                  <th className="py-2.5 px-3 text-right">Fee (15%)</th>
-                  <th className="py-2.5 px-3 text-right">Your Net (85%)</th>
+                  <th className="py-2.5 px-3 text-right">Fee (30%)</th>
+                  <th className="py-2.5 px-3 text-right">Your Net (70%)</th>
                   <th className="py-2.5 px-3 text-right">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#222222]">
                 {purchases.map((p) => {
                   const gross = parseFloat(p.amount_paid) || 0;
-                  const fee = gross * 0.15;
-                  const net = gross * 0.85;
+                  const fee = gross * 0.30;
+                  const net = gross * 0.70;
                   return (
                     <tr key={p.id} className="hover:bg-[#1a1a1a] transition-colors">
                       <td className="py-3 px-3 font-mono text-zinc-300">

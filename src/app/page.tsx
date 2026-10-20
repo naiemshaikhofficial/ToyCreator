@@ -35,7 +35,7 @@ export default function HomePage() {
   }, [user, isRegisteredBrand, isLoading, router]);
 
   const grossRevenue = productPrice * monthlySales;
-  const creatorEarnings = grossRevenue * 0.85;
+  const creatorEarnings = grossRevenue * 0.70;
   const industryTraditionalEarnings = grossRevenue * 0.5;
 
   const faqs = [
@@ -44,8 +44,8 @@ export default function HomePage() {
       a: 'Toy Creator supports Audio Plugins (VST3, AU, AAX, CLAP for Windows and macOS), Sample Packs & Sound Libraries (24-bit WAV, AIFF, MIDI), Synth Presets (Serum, Diva, Vital, Phase Plant), and DAW Project Templates.',
     },
     {
-      q: 'How does the 85% creator revenue split work?',
-      a: 'You retain 85% of net product sales. ProducerToy covers all global payment gateway fees, fraud protection, VAT/sales tax compliance, and cloud CDN hosting.',
+      q: 'How does the 70% creator revenue split work?',
+      a: 'You retain 70% of net product sales. ProducerToy covers all global payment gateway fees, fraud protection, VAT/sales tax compliance, and cloud CDN hosting.',
     },
     {
       q: 'Can I generate and protect software license keys?',
@@ -107,7 +107,7 @@ export default function HomePage() {
           <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
           <span className="font-semibold text-white">The Creator Economy for Audio</span>
           <span className="text-zinc-600">•</span>
-          <span className="text-zinc-400">Keep 85% of Every Sale</span>
+          <span className="text-zinc-400">Keep 70% of Every Sale</span>
         </div>
 
         {/* Hero Heading */}
@@ -167,7 +167,7 @@ export default function HomePage() {
               </h2>
             </div>
             <div className="px-3 py-1 rounded-full bg-[#202020] border border-[#303030] text-xs font-semibold text-zinc-300">
-              85% / 15% Split
+              70% / 30% Split
             </div>
           </div>
 
@@ -224,7 +224,7 @@ export default function HomePage() {
 
               <div className="pt-4 border-t border-[#202020] mt-4 flex items-center justify-between text-xs text-zinc-400">
                 <span>Gross: ${grossRevenue.toLocaleString()}</span>
-                <span>ProducerToy Fee: 15%</span>
+                <span>ProducerToy Fee: 30%</span>
               </div>
             </div>
           </div>

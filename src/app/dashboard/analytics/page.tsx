@@ -51,7 +51,7 @@ export default function AnalyticsPage() {
     (acc, p) => acc + (parseFloat(p.amount_paid) || 0),
     0
   );
-  const netEarnings = totalGross * 0.85;
+  const netEarnings = totalGross * 0.70;
 
   const revenueTrend = [
     { name: 'Week 1', revenue: Math.round(totalGross * 0.18) || 350, sales: 12 },
@@ -115,7 +115,7 @@ export default function AnalyticsPage() {
 
         <div className="toy-card p-5">
           <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-            Creator Net Share (85%)
+            Creator Net Share (70%)
           </p>
           <p className="text-2xl font-black text-zinc-200 font-mono mt-1">
             ${netEarnings.toFixed(2)}

@@ -108,7 +108,7 @@ export interface CreatorProfile {
   payout_method: string;
   payout_email: string;
   tax_status: 'Verified (W-8BEN)' | 'Under Review' | 'Not Submitted';
-  commission_rate: number; // e.g., 0.15 for 15% marketplace fee, 85% creator payout
+  commission_rate: number; // e.g., 0.30 for 30% marketplace fee, 70% creator payout
   stats: {
     total_sales_count: number;
     gross_revenue: number;

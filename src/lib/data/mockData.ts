@@ -23,7 +23,7 @@ export const INITIAL_CREATOR_PROFILE: CreatorProfile = {
   payout_method: 'Stripe Connect',
   payout_email: 'payouts@producertoy.com',
   tax_status: 'Verified (W-8BEN)',
-  commission_rate: 0.15, // 15% marketplace fee, 85% creator retain
+  commission_rate: 0.30, // 30% marketplace fee, 70% creator retain
   stats: {
     total_sales_count: 1420,
     gross_revenue: 28450.0,
@@ -401,14 +401,14 @@ export const INITIAL_DOCUMENTS: LegalDocument[] = [
   },
   {
     id: 'doc_02',
-    title: '85/15 Creator Revenue Share Schedule',
+    title: '70/30 Creator Revenue Share Schedule',
     category: 'Revenue Share',
     version: 'v1.2',
     status: 'Active',
     signed_at: '2026-08-01T12:00:00Z',
     effective_date: 'August 1, 2026',
     file_url: '#',
-    description: 'Guarantees creator retains 85% of net product sales. 15% marketplace platform fee covers payment gateway processing, CDN delivery, and licensing servers.',
+    description: 'Guarantees creator retains 70% of net product sales. 30% marketplace platform fee covers payment gateway processing, CDN delivery, and licensing servers.',
   },
   {
     id: 'doc_03',

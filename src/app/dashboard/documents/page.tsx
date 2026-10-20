@@ -24,12 +24,12 @@ export default function DocumentsPage() {
     },
     {
       id: 'doc_02',
-      title: '85/15 Developer Revenue Share Schedule',
+      title: '70/30 Developer Revenue Share Schedule',
       category: 'Revenue Share',
       version: 'v1.2 (Active)',
       status: 'Active',
       effectiveDate: 'Standard Schedule',
-      description: 'Contractual guarantee that developer retains 85% of net product sales. 15% marketplace platform fee covers payment processing, multi-gigabyte CDN bandwidth, and hardware activation servers.',
+      description: 'Contractual guarantee that developer retains 70% of net product sales. 30% marketplace platform fee covers payment processing, multi-gigabyte CDN bandwidth, and hardware activation servers.',
     },
     {
       id: 'doc_03',

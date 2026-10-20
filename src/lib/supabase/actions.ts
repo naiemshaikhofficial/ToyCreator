@@ -78,7 +78,7 @@ export async function getCurrentUserBrand(): Promise<{
         status: 'active',
         payout_email: user.email,
         payout_method: 'Stripe Connect',
-        revenue_share_percent: 85,
+        revenue_share_percent: 70,
         created_at: new Date().toISOString(),
         brands: ptBrand as BrandData,
       };
@@ -145,7 +145,7 @@ export async function registerBrandForUser({
       status: 'active',
       payout_email: payoutEmail || null,
       payout_method: 'Stripe Connect',
-      revenue_share_percent: 85,
+      revenue_share_percent: 70,
     })
     .select('*, brands(*)')
     .single();

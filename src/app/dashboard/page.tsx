@@ -63,7 +63,7 @@ export default function DashboardOverviewPage() {
     (acc, p) => acc + (parseFloat(p.amount_paid) || 0),
     0
   );
-  const netEarnings = totalGrossRevenue * 0.85;
+  const netEarnings = totalGrossRevenue * 0.70;
   const activeProductsCount = products.filter((p) => p.is_active).length;
   const activeDeviceSeats = activations.filter((a) => a.is_active).length;
 
@@ -135,10 +135,10 @@ export default function DashboardOverviewPage() {
           </div>
         </div>
 
-        {/* Net Brand Earnings (85%) */}
+        {/* Net Brand Earnings (70%) */}
         <div className="toy-card p-5">
           <div className="flex items-center justify-between text-zinc-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Net Earnings (85%)</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Net Earnings (70%)</span>
             <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
               <TrendingUp className="w-4 h-4" />
             </div>
@@ -147,7 +147,7 @@ export default function DashboardOverviewPage() {
             ${netEarnings.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div className="text-[11px] text-zinc-400 mt-1">
-            Creator share after 15% platform split
+            Creator share after 30% platform split
           </div>
         </div>
 

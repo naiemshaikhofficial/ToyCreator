@@ -114,10 +114,10 @@ export default function OrdersPage() {
 
         <div className="toy-card p-4">
           <p className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
-            Net Creator Share (85%)
+            Net Creator Share (70%)
           </p>
           <p className="text-xl font-bold text-zinc-200 font-mono mt-1">
-            ${(totalAmount * 0.85).toFixed(2)}
+            ${(totalAmount * 0.70).toFixed(2)}
           </p>
         </div>
       </div>
