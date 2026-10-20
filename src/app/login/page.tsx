@@ -11,9 +11,7 @@ import {
   ArrowRight,
   Loader2,
   AlertCircle,
-  Building2,
   ShieldCheck,
-  CheckCircle2,
 } from 'lucide-react';
 
 export default function LoginPage() {
@@ -52,7 +50,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#121212] text-white flex flex-col justify-between p-4 sm:p-6 selection:bg-white selection:text-black">
+    <div className="min-h-screen bg-[#121212] text-white flex flex-col justify-between p-4 sm:p-6 selection:bg-white selection:text-black font-sans">
       {/* Top Brand Bar */}
       <div className="max-w-7xl w-full mx-auto flex items-center justify-between py-2">
         <Link href="/" className="flex items-center gap-3 group">
@@ -87,18 +85,15 @@ export default function LoginPage() {
       {/* Main Card */}
       <div className="max-w-md w-full mx-auto my-8">
         <div className="bg-[#181818] border border-[#2a2a2a] rounded-2xl p-7 sm:p-9 shadow-2xl relative overflow-hidden">
-          {/* Subtle Glow */}
-          <div className="absolute -top-20 -right-20 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-
           {/* Heading */}
           <div className="mb-6">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#222222] border border-white/5 text-[11px] font-semibold text-indigo-400 mb-3">
-              <ShieldCheck className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#242424] border border-white/5 text-[11px] font-semibold text-zinc-300 mb-3">
+              <ShieldCheck className="w-3.5 h-3.5 text-zinc-300" />
               <span>Registered Brand Access</span>
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-white">Brand Developer Sign In</h1>
             <p className="text-xs text-zinc-400 mt-1">
-              Sign in with your authorized ProducerToy brand account
+              Sign in with your authorized ProducerToy brand credentials
             </p>
           </div>
 
@@ -123,7 +118,7 @@ export default function LoginPage() {
                   placeholder="developer@yourbrand.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:border-indigo-500 transition-colors"
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:border-[#42454e] transition-colors"
                 />
               </div>
             </div>
@@ -135,7 +130,7 @@ export default function LoginPage() {
                 </label>
                 <Link
                   href="/forgot-password"
-                  className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                  className="text-xs text-zinc-400 hover:text-white transition-colors"
                 >
                   Forgot password?
                 </Link>
@@ -149,7 +144,7 @@ export default function LoginPage() {
                   placeholder="••••••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:border-indigo-500 transition-colors"
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:border-[#42454e] transition-colors"
                 />
               </div>
             </div>
@@ -157,12 +152,12 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full btn-accent py-3 font-semibold text-sm rounded-xl flex items-center justify-center gap-2 mt-2 shadow-lg"
+              className="w-full btn-primary py-3 font-semibold text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 mt-2 shadow-lg"
             >
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Authenticating Brand...
+                  <span>Authenticating...</span>
                 </>
               ) : (
                 <>
@@ -173,9 +168,9 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Quick Connect for Owner / Reviewer Testing */}
+          {/* Quick Access for Owner / Reviewer Testing */}
           <div className="mt-6 pt-5 border-t border-[#262626]">
-            <p className="text-[11px] text-zinc-400 mb-2 font-medium">Quick Access for Registered Accounts:</p>
+            <p className="text-[11px] text-zinc-400 mb-2 font-medium">Quick Fill Authorized Owner:</p>
             <div className="space-y-1.5">
               <button
                 type="button"
@@ -185,22 +180,22 @@ export default function LoginPage() {
                 className="w-full text-left px-3 py-2 rounded-lg bg-[#202020] hover:bg-[#282828] border border-[#2e2e2e] text-xs text-zinc-300 flex items-center justify-between transition-colors"
               >
                 <span className="font-mono text-[11px]">naiemshaikhofficial@gmail.com</span>
-                <span className="text-[10px] text-indigo-400 font-semibold uppercase">Producer Toy Owner</span>
+                <span className="text-[10px] text-zinc-300 font-semibold uppercase">Producer Toy Owner</span>
               </button>
             </div>
           </div>
 
           <div className="mt-6 text-center text-xs text-zinc-400">
-            Don't have a registered brand yet?{' '}
-            <Link href="/signup" className="text-white hover:text-indigo-400 font-semibold underline underline-offset-4">
-              Register Brand &rarr;
+            Want to publish audio tools?{' '}
+            <Link href="/signup" className="text-white hover:text-zinc-200 font-semibold underline underline-offset-4">
+              Apply for Brand Access &rarr;
             </Link>
           </div>
         </div>
       </div>
 
       {/* Footer */}
-      <div className="text-center text-xs text-zinc-400 py-4">
+      <div className="text-center text-xs text-zinc-500 py-4">
         Toy Creator • Powered by ProducerToy Audio Infrastructure
       </div>
     </div>

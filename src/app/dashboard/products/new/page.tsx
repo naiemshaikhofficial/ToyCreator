@@ -7,17 +7,13 @@ import { useBrand } from '@/context/BrandContext';
 import { createBrandProduct } from '@/lib/supabase/actions';
 import {
   ArrowLeft,
-  Sparkles,
   Package,
   DollarSign,
   Cpu,
-  Layers,
-  KeyRound,
   FileCode,
   Loader2,
-  CheckCircle,
   AlertCircle,
-  HelpCircle,
+  Plus,
 } from 'lucide-react';
 
 export default function NewProductPage() {
@@ -45,7 +41,6 @@ export default function NewProductPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Auto-generate slug and plugin identifier from name
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setName(val);
@@ -108,7 +103,7 @@ export default function NewProductPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6 font-sans">
       {/* Back button */}
       <div>
         <Link
@@ -139,7 +134,7 @@ export default function NewProductPage() {
         {/* Section 1: Basic Product Information */}
         <div className="toy-card p-6 space-y-4">
           <div className="flex items-center gap-2 border-b border-[#2a2a2a] pb-3">
-            <Package className="w-4 h-4 text-indigo-400" />
+            <Package className="w-4 h-4 text-zinc-300" />
             <h2 className="text-sm font-bold text-white uppercase tracking-wider">
               Product Overview
             </h2>
@@ -148,7 +143,7 @@ export default function NewProductPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                Product Title <span className="text-indigo-400">*</span>
+                Product Title <span className="text-zinc-400">*</span>
               </label>
               <input
                 type="text"
@@ -156,13 +151,13 @@ export default function NewProductPage() {
                 placeholder="e.g. ProVerb Algorithmic Reverb, 808 Heatwave"
                 value={name}
                 onChange={handleNameChange}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
               />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                URL Slug <span className="text-indigo-400">*</span>
+                URL Slug <span className="text-zinc-400">*</span>
               </label>
               <input
                 type="text"
@@ -170,7 +165,7 @@ export default function NewProductPage() {
                 placeholder="proverb-algorithmic-reverb"
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-zinc-300 focus:border-indigo-500 transition-colors"
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-zinc-300 focus:border-[#42454e] transition-colors"
               />
             </div>
           </div>
@@ -178,12 +173,12 @@ export default function NewProductPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                Product Type <span className="text-indigo-400">*</span>
+                Product Type <span className="text-zinc-400">*</span>
               </label>
               <select
                 value={productType}
                 onChange={(e) => setProductType(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
               >
                 <option value="plugin">Audio Plugin (VST/AU/AAX)</option>
                 <option value="sample_pack">Sample Pack & Loops</option>
@@ -194,7 +189,7 @@ export default function NewProductPage() {
 
             <div>
               <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                Price (USD) <span className="text-indigo-400">*</span>
+                Price (USD) <span className="text-zinc-400">*</span>
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-2.5 text-zinc-500 text-xs">$</span>
@@ -205,7 +200,7 @@ export default function NewProductPage() {
                   placeholder="29.00 (Enter 0 for Free)"
                   value={priceUsd}
                   onChange={(e) => setPriceUsd(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-7 pr-3 py-2.5 text-xs font-mono text-white focus:border-indigo-500 transition-colors"
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-7 pr-3 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
                 />
               </div>
             </div>
@@ -222,7 +217,7 @@ export default function NewProductPage() {
                   placeholder="49.00 (Optional strike-through)"
                   value={originalPriceUsd}
                   onChange={(e) => setOriginalPriceUsd(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-7 pr-3 py-2.5 text-xs font-mono text-white focus:border-indigo-500 transition-colors"
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-7 pr-3 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
                 />
               </div>
             </div>
@@ -237,7 +232,7 @@ export default function NewProductPage() {
               placeholder="Crisp 1-sentence product summary displayed in marketplace store cards..."
               value={shortDesc}
               onChange={(e) => setShortDesc(e.target.value)}
-              className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+              className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
             />
           </div>
 
@@ -250,7 +245,7 @@ export default function NewProductPage() {
               placeholder="Detailed audio engine features, technical specifications, installation guide..."
               value={fullDesc}
               onChange={(e) => setFullDesc(e.target.value)}
-              className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl p-3.5 text-xs text-white focus:border-indigo-500 transition-colors resize-y"
+              className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl p-3.5 text-xs text-white focus:border-[#42454e] transition-colors resize-y"
             />
           </div>
         </div>
@@ -259,7 +254,7 @@ export default function NewProductPage() {
         {productType === 'plugin' && (
           <div className="toy-card p-6 space-y-4">
             <div className="flex items-center gap-2 border-b border-[#2a2a2a] pb-3">
-              <Cpu className="w-4 h-4 text-emerald-400" />
+              <Cpu className="w-4 h-4 text-zinc-300" />
               <h2 className="text-sm font-bold text-white uppercase tracking-wider">
                 VST Architecture & Hardware Licensing
               </h2>
@@ -275,9 +270,9 @@ export default function NewProductPage() {
                   placeholder="com.brand.pluginname"
                   value={pluginIdentifier}
                   onChange={(e) => setPluginIdentifier(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-zinc-300 focus:border-indigo-500 transition-colors"
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-zinc-300 focus:border-[#42454e] transition-colors"
                 />
-                <span className="text-[10px] text-zinc-400 mt-1 block">
+                <span className="text-[10px] text-zinc-500 mt-1 block">
                   Used by the ProducerToy licensing server for hardware challenge-response pairing
                 </span>
               </div>
@@ -290,7 +285,7 @@ export default function NewProductPage() {
                   type="text"
                   value={vstFormat}
                   onChange={(e) => setVstFormat(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
                 />
               </div>
             </div>
@@ -306,11 +301,8 @@ export default function NewProductPage() {
                   max="10"
                   value={maxSeats}
                   onChange={(e) => setMaxSeats(parseInt(e.target.value) || 3)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-indigo-500 transition-colors"
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
                 />
-                <span className="text-[10px] text-zinc-400 mt-1 block">
-                  Number of studio computers a customer can simultaneously activate
-                </span>
               </div>
 
               <div>
@@ -323,11 +315,8 @@ export default function NewProductPage() {
                   max="90"
                   value={offlineGraceDays}
                   onChange={(e) => setOfflineGraceDays(parseInt(e.target.value) || 14)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-indigo-500 transition-colors"
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
                 />
-                <span className="text-[10px] text-zinc-400 mt-1 block">
-                  Days plugin can run on customer machine without phone-home verification
-                </span>
               </div>
             </div>
 
@@ -339,7 +328,7 @@ export default function NewProductPage() {
                 type="text"
                 value={supportedDaws}
                 onChange={(e) => setSupportedDaws(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
               />
             </div>
           </div>
@@ -348,7 +337,7 @@ export default function NewProductPage() {
         {/* Section 3: Media & Distribution URLs */}
         <div className="toy-card p-6 space-y-4">
           <div className="flex items-center gap-2 border-b border-[#2a2a2a] pb-3">
-            <FileCode className="w-4 h-4 text-sky-400" />
+            <FileCode className="w-4 h-4 text-zinc-300" />
             <h2 className="text-sm font-bold text-white uppercase tracking-wider">
               Media & Distribution Links
             </h2>
@@ -364,7 +353,7 @@ export default function NewProductPage() {
                 placeholder="https://.../cover.png or /Icon.webp"
                 value={coverImage}
                 onChange={(e) => setCoverImage(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
               />
             </div>
 
@@ -377,7 +366,7 @@ export default function NewProductPage() {
                 placeholder="https://.../demo-track.mp3"
                 value={demoAudioUrl}
                 onChange={(e) => setDemoAudioUrl(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
               />
             </div>
           </div>
@@ -391,9 +380,9 @@ export default function NewProductPage() {
               placeholder="https://... (Google Drive, Cloudflare R2, or S3 secure link)"
               value={downloadUrl}
               onChange={(e) => setDownloadUrl(e.target.value)}
-              className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+              className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
             />
-            <span className="text-[10px] text-zinc-400 mt-1 block">
+            <span className="text-[10px] text-zinc-500 mt-1 block">
               Provided securely to verified customers after completed purchase
             </span>
           </div>
@@ -404,7 +393,7 @@ export default function NewProductPage() {
               id="isActive"
               checked={isActive}
               onChange={(e) => setIsActive(e.target.checked)}
-              className="w-4 h-4 rounded bg-[#121212] border-[#2e2e2e] text-indigo-600 focus:ring-indigo-500"
+              className="w-4 h-4 rounded bg-[#121212] border-[#2e2e2e] text-[#34363d] focus:ring-zinc-600"
             />
             <label htmlFor="isActive" className="text-xs text-zinc-300 font-medium cursor-pointer">
               Publish immediately to ProducerToy Marketplace catalog
@@ -423,7 +412,7 @@ export default function NewProductPage() {
           <button
             type="submit"
             disabled={loading}
-            className="btn-accent px-6 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-lg"
+            className="btn-primary px-6 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-lg uppercase tracking-wider"
           >
             {loading ? (
               <>
@@ -432,7 +421,7 @@ export default function NewProductPage() {
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4" />
+                <Plus className="w-4 h-4" />
                 <span>Publish Product</span>
               </>
             )}

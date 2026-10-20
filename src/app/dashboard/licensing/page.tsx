@@ -11,11 +11,8 @@ import {
   ShieldAlert,
   Search,
   RefreshCw,
-  Power,
   Cpu,
   CheckCircle,
-  Clock,
-  AlertTriangle,
 } from 'lucide-react';
 
 export default function LicensingPage() {
@@ -78,7 +75,7 @@ export default function LicensingPage() {
   const revokedCount = activations.filter((a) => !a.is_active).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -100,8 +97,8 @@ export default function LicensingPage() {
       </div>
 
       {successMsg && (
-        <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-xs flex items-center gap-2">
-          <CheckCircle className="w-4 h-4 flex-shrink-0" />
+        <div className="p-4 bg-[#202020] border border-zinc-700/60 rounded-xl text-white text-xs flex items-center gap-2">
+          <CheckCircle className="w-4 h-4 text-zinc-300 flex-shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
@@ -111,7 +108,7 @@ export default function LicensingPage() {
         <div className="toy-card p-5">
           <div className="flex items-center justify-between text-zinc-400 mb-1">
             <span className="text-xs font-semibold uppercase tracking-wider">Active Studio Seats</span>
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <ShieldCheck className="w-4 h-4 text-zinc-300" />
           </div>
           <p className="text-2xl font-black text-white font-mono">{activeCount}</p>
           <p className="text-[11px] text-zinc-400 mt-1">Currently authorized hardware rigs</p>
@@ -129,10 +126,10 @@ export default function LicensingPage() {
         <div className="toy-card p-5">
           <div className="flex items-center justify-between text-zinc-400 mb-1">
             <span className="text-xs font-semibold uppercase tracking-wider">Licensing Protocol</span>
-            <Cpu className="w-4 h-4 text-indigo-400" />
+            <Cpu className="w-4 h-4 text-zinc-300" />
           </div>
           <p className="text-sm font-bold text-white mt-1">JUCE Native Hardware Hash</p>
-          <p className="text-[11px] text-indigo-300/80 mt-1">ECDSA Challenge-Response</p>
+          <p className="text-[11px] text-zinc-400 mt-1">ECDSA Challenge-Response</p>
         </div>
       </div>
 
@@ -144,7 +141,7 @@ export default function LicensingPage() {
           placeholder="Search by computer name, hardware SHA-256 hash, product, or operating system..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-[#181818] border border-[#2a2a2a] rounded-xl pl-10 pr-4 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+          className="w-full bg-[#181818] border border-[#2a2a2a] rounded-xl pl-10 pr-4 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
         />
       </div>
 
@@ -229,7 +226,7 @@ export default function LicensingPage() {
                     <td className="py-3.5 px-4 text-right">
                       <span
                         className={`toy-badge ${
-                          a.is_active ? 'toy-badge-emerald' : 'bg-red-500/10 text-red-400 border-red-500/20'
+                          a.is_active ? 'toy-badge-charcoal' : 'bg-zinc-800 text-zinc-500'
                         }`}
                       >
                         {a.is_active ? 'Active Seat' : 'Revoked'}
@@ -242,7 +239,7 @@ export default function LicensingPage() {
                         <button
                           onClick={() => handleRevoke(a.id, a.device_name)}
                           disabled={revokingId === a.id}
-                          className="px-2.5 py-1 rounded-md text-[11px] font-semibold text-red-400 hover:text-white bg-red-500/10 hover:bg-red-600 transition-colors border border-red-500/20"
+                          className="px-2.5 py-1 rounded-md text-[11px] font-semibold text-zinc-300 hover:text-white bg-[#252525] hover:bg-[#34363d] transition-colors border border-zinc-700"
                           title="Revoke workstation license seat"
                         >
                           Revoke

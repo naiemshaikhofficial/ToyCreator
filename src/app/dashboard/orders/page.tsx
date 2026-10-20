@@ -7,13 +7,6 @@ import {
   ShoppingCart,
   Search,
   Download,
-  Filter,
-  DollarSign,
-  User,
-  CreditCard,
-  Key,
-  ShieldCheck,
-  Package,
 } from 'lucide-react';
 
 export default function OrdersPage() {
@@ -77,7 +70,7 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -114,7 +107,7 @@ export default function OrdersPage() {
           <p className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
             Gross Sales
           </p>
-          <p className="text-xl font-bold text-emerald-400 font-mono mt-1">
+          <p className="text-xl font-bold text-white font-mono mt-1">
             ${totalAmount.toFixed(2)}
           </p>
         </div>
@@ -123,7 +116,7 @@ export default function OrdersPage() {
           <p className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
             Net Creator Share (85%)
           </p>
-          <p className="text-xl font-bold text-indigo-400 font-mono mt-1">
+          <p className="text-xl font-bold text-zinc-200 font-mono mt-1">
             ${(totalAmount * 0.85).toFixed(2)}
           </p>
         </div>
@@ -137,7 +130,7 @@ export default function OrdersPage() {
           placeholder="Search by customer name, email, order ID, product, or serial key..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-[#181818] border border-[#2a2a2a] rounded-xl pl-10 pr-4 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+          className="w-full bg-[#181818] border border-[#2a2a2a] rounded-xl pl-10 pr-4 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
         />
       </div>
 
@@ -189,7 +182,7 @@ export default function OrdersPage() {
                     </td>
                     <td className="py-3 px-4">
                       {ord.serial_key ? (
-                        <span className="font-mono text-[10px] bg-zinc-800 text-indigo-300 px-2 py-0.5 rounded border border-white/5">
+                        <span className="font-mono text-[10px] bg-zinc-800 text-zinc-200 px-2 py-0.5 rounded border border-white/5">
                           {ord.serial_key}
                         </span>
                       ) : (
@@ -200,7 +193,7 @@ export default function OrdersPage() {
                       ${parseFloat(ord.amount_paid || 0).toFixed(2)}
                     </td>
                     <td className="py-3 px-4 text-right">
-                      <span className="toy-badge toy-badge-emerald">
+                      <span className="toy-badge toy-badge-charcoal">
                         Paid
                       </span>
                     </td>

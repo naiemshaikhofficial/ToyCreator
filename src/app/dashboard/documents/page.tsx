@@ -7,9 +7,6 @@ import {
   Download,
   ShieldCheck,
   CheckCircle2,
-  ExternalLink,
-  Lock,
-  Building,
 } from 'lucide-react';
 
 export default function DocumentsPage() {
@@ -55,7 +52,7 @@ export default function DocumentsPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Header */}
       <div>
         <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
@@ -67,9 +64,9 @@ export default function DocumentsPage() {
       </div>
 
       {/* Compliance Status Card */}
-      <div className="toy-card p-6 bg-gradient-to-r from-[#181818] via-[#1a1a1a] to-[#161616] border border-[#2a2a2a] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="toy-card p-6 bg-[#181818] border border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-[#242424] border border-zinc-700/60 flex items-center justify-center text-zinc-300 flex-shrink-0">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
@@ -80,7 +77,7 @@ export default function DocumentsPage() {
           </div>
         </div>
 
-        <span className="toy-badge toy-badge-emerald self-start sm:self-auto">
+        <span className="toy-badge toy-badge-charcoal self-start sm:self-auto">
           Verified Developer
         </span>
       </div>
@@ -91,9 +88,9 @@ export default function DocumentsPage() {
           <div key={doc.id} className="toy-card p-5 flex flex-col justify-between space-y-4">
             <div>
               <div className="flex items-start justify-between gap-3 mb-2">
-                <span className="toy-badge toy-badge-violet">{doc.category}</span>
-                <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1 font-semibold">
-                  <CheckCircle2 className="w-3 h-3" />
+                <span className="toy-badge toy-badge-zinc">{doc.category}</span>
+                <span className="text-[10px] font-mono text-zinc-300 flex items-center gap-1 font-semibold">
+                  <CheckCircle2 className="w-3 h-3 text-zinc-300" />
                   {doc.status}
                 </span>
               </div>

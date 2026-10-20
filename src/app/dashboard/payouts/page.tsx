@@ -8,14 +8,9 @@ import {
   CreditCard,
   DollarSign,
   ArrowUpRight,
-  Clock,
   CheckCircle2,
   AlertCircle,
-  Building2,
-  ExternalLink,
-  ShieldCheck,
   Loader2,
-  Plus,
 } from 'lucide-react';
 
 export default function PayoutsPage() {
@@ -114,7 +109,7 @@ export default function PayoutsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -132,7 +127,7 @@ export default function PayoutsPage() {
             setShowModal(true);
           }}
           disabled={availableBalance < 10}
-          className="btn-accent px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 self-start sm:self-auto shadow-lg disabled:opacity-50"
+          className="btn-primary px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 self-start sm:self-auto shadow-sm disabled:opacity-50"
         >
           <ArrowUpRight className="w-4 h-4" />
           <span>Request Payout</span>
@@ -140,8 +135,8 @@ export default function PayoutsPage() {
       </div>
 
       {statusMsg && (
-        <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-xs flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+        <div className="p-4 bg-[#202020] border border-zinc-700/60 rounded-xl text-white text-xs flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-zinc-300 flex-shrink-0" />
           <span>{statusMsg}</span>
         </div>
       )}
@@ -152,7 +147,7 @@ export default function PayoutsPage() {
           <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
             Available Balance
           </p>
-          <p className="text-2xl font-black text-emerald-400 font-mono mt-1">
+          <p className="text-2xl font-black text-white font-mono mt-1">
             ${availableBalance.toFixed(2)}
           </p>
           <span className="text-[11px] text-zinc-400">Ready to transfer to bank</span>
@@ -162,7 +157,7 @@ export default function PayoutsPage() {
           <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
             Lifetime Paid Out
           </p>
-          <p className="text-2xl font-black text-white font-mono mt-1">
+          <p className="text-2xl font-black text-zinc-300 font-mono mt-1">
             ${totalPaidOut.toFixed(2)}
           </p>
           <span className="text-[11px] text-zinc-400">Successfully disbursed</span>
@@ -234,15 +229,7 @@ export default function PayoutsPage() {
                       ${parseFloat(p.net_amount || p.amount).toFixed(2)}
                     </td>
                     <td className="py-3 px-4 text-right">
-                      <span
-                        className={`toy-badge ${
-                          p.status === 'completed'
-                            ? 'toy-badge-emerald'
-                            : p.status === 'processing'
-                            ? 'toy-badge-cyan'
-                            : 'toy-badge-amber'
-                        } capitalize`}
-                      >
+                      <span className="toy-badge toy-badge-charcoal capitalize">
                         {p.status}
                       </span>
                     </td>
@@ -284,7 +271,7 @@ export default function PayoutsPage() {
                     required
                     value={requestAmount}
                     onChange={(e) => setRequestAmount(e.target.value)}
-                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-7 pr-3 py-2.5 text-sm font-mono text-white focus:border-indigo-500 transition-colors"
+                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-7 pr-3 py-2.5 text-sm font-mono text-white focus:border-[#42454e] transition-colors"
                   />
                 </div>
                 <div className="flex justify-between text-[11px] text-zinc-400 mt-1">
@@ -292,7 +279,7 @@ export default function PayoutsPage() {
                   <button
                     type="button"
                     onClick={() => setRequestAmount(availableBalance.toFixed(2))}
-                    className="text-indigo-400 hover:underline"
+                    className="text-zinc-300 hover:text-white underline"
                   >
                     Max
                   </button>
@@ -320,12 +307,12 @@ export default function PayoutsPage() {
                 <button
                   type="submit"
                   disabled={requesting}
-                  className="btn-accent px-5 py-2 text-xs font-semibold flex items-center gap-1.5"
+                  className="btn-primary px-5 py-2 text-xs font-semibold flex items-center gap-1.5"
                 >
                   {requesting ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      Submitting...
+                      <span>Submitting...</span>
                     </>
                   ) : (
                     <span>Confirm Payout</span>

@@ -6,12 +6,6 @@ import { getBrandProducts, getBrandPurchases } from '@/lib/supabase/actions';
 import {
   BarChart3,
   TrendingUp,
-  DollarSign,
-  ShoppingCart,
-  Users,
-  PieChart as PieIcon,
-  Globe2,
-  Calendar,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -59,7 +53,6 @@ export default function AnalyticsPage() {
   );
   const netEarnings = totalGross * 0.85;
 
-  // Chart data
   const revenueTrend = [
     { name: 'Week 1', revenue: Math.round(totalGross * 0.18) || 350, sales: 12 },
     { name: 'Week 2', revenue: Math.round(totalGross * 0.22) || 480, sales: 16 },
@@ -81,7 +74,7 @@ export default function AnalyticsPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -99,7 +92,7 @@ export default function AnalyticsPage() {
               key={t}
               onClick={() => setTimeRange(t)}
               className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${
-                timeRange === t ? 'bg-[#262626] text-white shadow-sm' : 'text-zinc-400 hover:text-white'
+                timeRange === t ? 'bg-[#34363d] text-white shadow-sm' : 'text-zinc-400 hover:text-white'
               }`}
             >
               {t.toUpperCase()}
@@ -117,14 +110,14 @@ export default function AnalyticsPage() {
           <p className="text-2xl font-black text-white font-mono mt-1">
             ${totalGross.toFixed(2)}
           </p>
-          <span className="text-[11px] text-emerald-400 font-medium">Verified Payments</span>
+          <span className="text-[11px] text-zinc-400 font-medium">Verified Payments</span>
         </div>
 
         <div className="toy-card p-5">
           <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
             Creator Net Share (85%)
           </p>
-          <p className="text-2xl font-black text-indigo-400 font-mono mt-1">
+          <p className="text-2xl font-black text-zinc-200 font-mono mt-1">
             ${netEarnings.toFixed(2)}
           </p>
           <span className="text-[11px] text-zinc-400">Paid out automatically</span>
@@ -162,16 +155,16 @@ export default function AnalyticsPage() {
               </h2>
               <p className="text-xs text-zinc-400">Monthly revenue trends</p>
             </div>
-            <TrendingUp className="w-4 h-4 text-indigo-400" />
+            <TrendingUp className="w-4 h-4 text-zinc-300" />
           </div>
 
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={revenueTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="analyticsRevGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0} />
+                  <linearGradient id="analyticsCharcoalGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ffffff" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#ffffff" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#252525" vertical={false} />
@@ -190,10 +183,10 @@ export default function AnalyticsPage() {
                 <Area
                   type="monotone"
                   dataKey="revenue"
-                  stroke="#6366f1"
+                  stroke="#ffffff"
                   strokeWidth={2}
                   fillOpacity={1}
-                  fill="url(#analyticsRevGrad)"
+                  fill="url(#analyticsCharcoalGrad)"
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -209,7 +202,7 @@ export default function AnalyticsPage() {
               </h2>
               <p className="text-xs text-zinc-400">Leading audio plugins and sound collections</p>
             </div>
-            <BarChart3 className="w-4 h-4 text-sky-400" />
+            <BarChart3 className="w-4 h-4 text-zinc-300" />
           </div>
 
           <div className="h-64 w-full">
@@ -228,7 +221,7 @@ export default function AnalyticsPage() {
                   }}
                   formatter={(val: any) => [`$${val}`, 'Revenue']}
                 />
-                <Bar dataKey="revenue" fill="#38bdf8" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="revenue" fill="#34363d" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

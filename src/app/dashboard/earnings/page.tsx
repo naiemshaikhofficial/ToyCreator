@@ -5,16 +5,7 @@ import Link from 'next/link';
 import { useBrand } from '@/context/BrandContext';
 import { getBrandPurchases, getBrandPayouts } from '@/lib/supabase/actions';
 import {
-  Coins,
-  DollarSign,
-  TrendingUp,
-  Percent,
-  CheckCircle,
-  Clock,
-  ArrowRight,
-  ShieldCheck,
   CreditCard,
-  Building,
 } from 'lucide-react';
 
 export default function EarningsPage() {
@@ -58,7 +49,7 @@ export default function EarningsPage() {
   const availableBalance = Math.max(0, netEarnings - totalPaidOut);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -72,7 +63,7 @@ export default function EarningsPage() {
 
         <Link
           href="/dashboard/payouts"
-          className="btn-accent px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 self-start sm:self-auto shadow-lg"
+          className="btn-primary px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 self-start sm:self-auto shadow-sm"
         >
           <CreditCard className="w-4 h-4" />
           <span>Manage Payouts</span>
@@ -108,10 +99,10 @@ export default function EarningsPage() {
           <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
             Net Creator Retain (85%)
           </p>
-          <p className="text-2xl font-black text-emerald-400 font-mono mt-1">
+          <p className="text-2xl font-black text-white font-mono mt-1">
             ${netEarnings.toFixed(2)}
           </p>
-          <p className="text-[11px] text-emerald-400/80 mt-1">Your guaranteed publisher share</p>
+          <p className="text-[11px] text-zinc-400 mt-1">Your guaranteed publisher share</p>
         </div>
 
         {/* Available Balance */}
@@ -119,19 +110,19 @@ export default function EarningsPage() {
           <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
             Available for Payout
           </p>
-          <p className="text-2xl font-black text-indigo-400 font-mono mt-1">
+          <p className="text-2xl font-black text-zinc-200 font-mono mt-1">
             ${availableBalance.toFixed(2)}
           </p>
-          <p className="text-[11px] text-indigo-300 mt-1">Ready for transfer</p>
+          <p className="text-[11px] text-zinc-400 mt-1">Ready for transfer</p>
         </div>
       </div>
 
       {/* Explanatory Banner: The 85/15 Audio Developer Split */}
-      <div className="toy-card p-6 bg-gradient-to-r from-[#1a1a1a] via-[#1c1c1c] to-[#181818] border border-[#2e2e2e]">
+      <div className="toy-card p-6 bg-[#181818] border border-zinc-800">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="toy-badge toy-badge-emerald">ProducerToy Creator Promise</span>
+              <span className="toy-badge toy-badge-charcoal">ProducerToy Creator Guarantee</span>
               <span className="text-xs font-bold text-white">Guaranteed 85% Developer Revenue</span>
             </div>
             <p className="text-xs text-zinc-300 max-w-2xl leading-relaxed">
@@ -190,11 +181,11 @@ export default function EarningsPage() {
                       <td className="py-3 px-3 text-right font-mono text-zinc-400">
                         -${fee.toFixed(2)}
                       </td>
-                      <td className="py-3 px-3 text-right font-mono font-bold text-emerald-400">
+                      <td className="py-3 px-3 text-right font-mono font-bold text-white">
                         +${net.toFixed(2)}
                       </td>
                       <td className="py-3 px-3 text-right">
-                        <span className="toy-badge toy-badge-emerald">Credited</span>
+                        <span className="toy-badge toy-badge-charcoal">Credited</span>
                       </td>
                     </tr>
                   );

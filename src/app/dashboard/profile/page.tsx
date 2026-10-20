@@ -5,16 +5,11 @@ import { useBrand } from '@/context/BrandContext';
 import { getAdminClient } from '@/lib/supabase/admin';
 import {
   Building2,
-  Globe,
-  Mail,
-  User,
   Save,
   CheckCircle,
   AlertCircle,
   Loader2,
-  ShieldCheck,
   CreditCard,
-  Sparkles,
 } from 'lucide-react';
 
 export default function ProfilePage() {
@@ -78,7 +73,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6 font-sans">
       {/* Header */}
       <div>
         <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
@@ -90,8 +85,8 @@ export default function ProfilePage() {
       </div>
 
       {successMsg && (
-        <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-xs flex items-center gap-2">
-          <CheckCircle className="w-4 h-4 flex-shrink-0" />
+        <div className="p-4 bg-[#202020] border border-zinc-700/60 rounded-xl text-white text-xs flex items-center gap-2">
+          <CheckCircle className="w-4 h-4 text-zinc-300 flex-shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
@@ -107,7 +102,7 @@ export default function ProfilePage() {
         {/* Brand Information */}
         <div className="toy-card p-6 space-y-4">
           <div className="flex items-center gap-2 border-b border-[#2a2a2a] pb-3">
-            <Building2 className="w-4 h-4 text-indigo-400" />
+            <Building2 className="w-4 h-4 text-zinc-300" />
             <h2 className="text-sm font-bold text-white uppercase tracking-wider">
               Audio Brand Identity
             </h2>
@@ -123,7 +118,7 @@ export default function ProfilePage() {
                 required
                 value={brandName}
                 onChange={(e) => setBrandName(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
               />
             </div>
 
@@ -150,7 +145,7 @@ export default function ProfilePage() {
                 placeholder="https://yourbrand.com"
                 value={websiteUrl}
                 onChange={(e) => setWebsiteUrl(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
               />
             </div>
 
@@ -163,7 +158,7 @@ export default function ProfilePage() {
                 placeholder="https://... or /Charcoal Headphone Bear Mascot.webp"
                 value={logoUrl}
                 onChange={(e) => setLogoUrl(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
               />
             </div>
           </div>
@@ -177,7 +172,7 @@ export default function ProfilePage() {
               placeholder="Tell producers and sound engineers about your audio philosophy, DSP algorithms, or sampling hardware..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl p-3.5 text-xs text-white focus:border-indigo-500 transition-colors resize-y"
+              className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl p-3.5 text-xs text-white focus:border-[#42454e] transition-colors resize-y"
             />
           </div>
         </div>
@@ -185,7 +180,7 @@ export default function ProfilePage() {
         {/* Payout & Settlement Settings */}
         <div className="toy-card p-6 space-y-4">
           <div className="flex items-center gap-2 border-b border-[#2a2a2a] pb-3">
-            <CreditCard className="w-4 h-4 text-emerald-400" />
+            <CreditCard className="w-4 h-4 text-zinc-300" />
             <h2 className="text-sm font-bold text-white uppercase tracking-wider">
               Settlement & Payout Configuration
             </h2>
@@ -199,7 +194,7 @@ export default function ProfilePage() {
               <select
                 value={payoutMethod}
                 onChange={(e) => setPayoutMethod(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
               >
                 <option value="Stripe Connect">Stripe Connect (Recommended)</option>
                 <option value="PayPal Business">PayPal Business</option>
@@ -217,7 +212,7 @@ export default function ProfilePage() {
                 required
                 value={payoutEmail}
                 onChange={(e) => setPayoutEmail(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
               />
             </div>
           </div>
@@ -228,7 +223,7 @@ export default function ProfilePage() {
           <button
             type="submit"
             disabled={saving}
-            className="btn-accent px-6 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-lg"
+            className="btn-primary px-6 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-lg uppercase tracking-wider"
           >
             {saving ? (
               <>

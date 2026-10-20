@@ -7,22 +7,16 @@ import {
   getBrandProducts,
   getBrandPurchases,
   getBrandDeviceActivations,
-  getBrandPayouts,
 } from '@/lib/supabase/actions';
 import {
   DollarSign,
   TrendingUp,
   Package,
-  ShoppingCart,
   KeyRound,
-  ArrowUpRight,
   Plus,
   ShieldCheck,
-  Building,
-  Sparkles,
   ExternalLink,
   ChevronRight,
-  Cpu,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -35,7 +29,7 @@ import {
 } from 'recharts';
 
 export default function DashboardOverviewPage() {
-  const { brand, user } = useBrand();
+  const { brand } = useBrand();
 
   const [products, setProducts] = useState<any[]>([]);
   const [purchases, setPurchases] = useState<any[]>([]);
@@ -65,17 +59,15 @@ export default function DashboardOverviewPage() {
     loadDashboardData();
   }, [brand?.id]);
 
-  // Calculations from real Supabase records
   const totalGrossRevenue = purchases.reduce(
     (acc, p) => acc + (parseFloat(p.amount_paid) || 0),
     0
   );
   const netEarnings = totalGrossRevenue * 0.85;
   const activeProductsCount = products.filter((p) => p.is_active).length;
-  const totalSalesCount = purchases.length;
   const activeDeviceSeats = activations.filter((a) => a.is_active).length;
 
-  // Chart data: synthesize daily points or fallbacks for smooth visualization
+  // Chart data
   const chartData = [
     { date: 'Mon', revenue: Math.round(totalGrossRevenue * 0.1) || 120, orders: 4 },
     { date: 'Tue', revenue: Math.round(totalGrossRevenue * 0.15) || 280, orders: 8 },
@@ -87,14 +79,12 @@ export default function DashboardOverviewPage() {
   ];
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-6 sm:space-y-8 font-sans">
       {/* Brand Welcome Banner */}
-      <div className="relative rounded-2xl bg-gradient-to-r from-[#181818] via-[#1a1a1a] to-[#161616] border border-[#2a2a2a] p-6 sm:p-8 overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-indigo-500/10 to-transparent pointer-events-none" />
-
+      <div className="relative rounded-2xl bg-[#181818] border border-zinc-800 p-6 sm:p-8 overflow-hidden shadow-sm">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#222222] border border-white/5 text-[11px] font-semibold text-emerald-400">
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#242424] border border-zinc-700/60 text-[11px] font-semibold text-zinc-300">
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>Verified Audio Developer Portal</span>
             </div>
@@ -109,7 +99,7 @@ export default function DashboardOverviewPage() {
           <div className="flex items-center gap-3">
             <Link
               href="/dashboard/products/new"
-              className="btn-accent px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-lg"
+              className="btn-primary px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm"
             >
               <Plus className="w-4 h-4" />
               <span>Publish Product</span>
@@ -130,43 +120,42 @@ export default function DashboardOverviewPage() {
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
         {/* Gross Revenue */}
-        <div className="toy-card p-5 relative overflow-hidden">
+        <div className="toy-card p-5">
           <div className="flex items-center justify-between text-zinc-400 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Gross Sales</span>
-            <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+            <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
           <div className="text-xl sm:text-2xl font-black text-white font-mono">
             ${totalGrossRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <div className="text-[11px] text-zinc-400 mt-1 flex items-center gap-1">
-            <span className="text-emerald-400 font-medium">100% Real DB</span>
-            <span>• All time</span>
+          <div className="text-[11px] text-zinc-400 mt-1">
+            <span>All-time verified payments</span>
           </div>
         </div>
 
         {/* Net Brand Earnings (85%) */}
-        <div className="toy-card p-5 relative overflow-hidden">
+        <div className="toy-card p-5">
           <div className="flex items-center justify-between text-zinc-400 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Net Earnings (85%)</span>
-            <div className="w-7 h-7 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+            <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           <div className="text-xl sm:text-2xl font-black text-white font-mono">
             ${netEarnings.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <div className="text-[11px] text-indigo-300/80 mt-1">
+          <div className="text-[11px] text-zinc-400 mt-1">
             Creator share after 15% platform split
           </div>
         </div>
 
         {/* Active Products */}
-        <div className="toy-card p-5 relative overflow-hidden">
+        <div className="toy-card p-5">
           <div className="flex items-center justify-between text-zinc-400 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Active Products</span>
-            <div className="w-7 h-7 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-400">
+            <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
               <Package className="w-4 h-4" />
             </div>
           </div>
@@ -179,10 +168,10 @@ export default function DashboardOverviewPage() {
         </div>
 
         {/* Hardware Activations */}
-        <div className="toy-card p-5 relative overflow-hidden">
+        <div className="toy-card p-5">
           <div className="flex items-center justify-between text-zinc-400 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Active Devices</span>
-            <div className="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400">
+            <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
               <KeyRound className="w-4 h-4" />
             </div>
           </div>
@@ -195,7 +184,7 @@ export default function DashboardOverviewPage() {
         </div>
       </div>
 
-      {/* Analytics Chart & Quick Stats */}
+      {/* Analytics Chart & Catalog Snapshot */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Sales Chart */}
         <div className="lg:col-span-2 toy-card p-5 sm:p-6 flex flex-col justify-between">
@@ -206,7 +195,7 @@ export default function DashboardOverviewPage() {
             </div>
             <Link
               href="/dashboard/analytics"
-              className="text-xs text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1"
+              className="text-xs text-zinc-300 hover:text-white font-medium flex items-center gap-1"
             >
               <span>Full Analytics</span>
               <ChevronRight className="w-3.5 h-3.5" />
@@ -217,9 +206,9 @@ export default function DashboardOverviewPage() {
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0} />
+                  <linearGradient id="charcoalRevenueGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ffffff" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#ffffff" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#252525" vertical={false} />
@@ -238,23 +227,23 @@ export default function DashboardOverviewPage() {
                 <Area
                   type="monotone"
                   dataKey="revenue"
-                  stroke="#6366f1"
+                  stroke="#ffffff"
                   strokeWidth={2}
                   fillOpacity={1}
-                  fill="url(#revenueGradient)"
+                  fill="url(#charcoalRevenueGradient)"
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Real Products Spotlight */}
+        {/* Real Products Snapshot */}
         <div className="toy-card p-5 sm:p-6 flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-bold text-white uppercase tracking-wider">Catalog Snapshot</h2>
             <Link
               href="/dashboard/products"
-              className="text-xs text-indigo-400 hover:text-indigo-300 font-medium"
+              className="text-xs text-zinc-300 hover:text-white font-medium"
             >
               View All
             </Link>
@@ -266,7 +255,7 @@ export default function DashboardOverviewPage() {
               <p className="text-xs text-zinc-400">No products published yet</p>
               <Link
                 href="/dashboard/products/new"
-                className="mt-3 text-xs text-indigo-400 font-medium hover:underline"
+                className="mt-3 text-xs text-zinc-300 hover:text-white font-medium underline"
               >
                 + Add your first plugin / pack
               </Link>
@@ -294,7 +283,7 @@ export default function DashboardOverviewPage() {
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold text-white truncate group-hover:text-indigo-400 transition-colors">
+                    <p className="text-xs font-semibold text-white truncate group-hover:text-zinc-300 transition-colors">
                       {p.name}
                     </p>
                     <p className="text-[10px] text-zinc-400 uppercase tracking-wider">
@@ -307,7 +296,7 @@ export default function DashboardOverviewPage() {
                     </span>
                     <span
                       className={`block text-[9px] font-bold uppercase ${
-                        p.is_active ? 'text-emerald-400' : 'text-zinc-500'
+                        p.is_active ? 'text-zinc-200' : 'text-zinc-500'
                       }`}
                     >
                       {p.is_active ? 'Active' : 'Draft'}
@@ -329,7 +318,7 @@ export default function DashboardOverviewPage() {
           </div>
           <Link
             href="/dashboard/orders"
-            className="text-xs text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1"
+            className="text-xs text-zinc-300 hover:text-white font-medium flex items-center gap-1"
           >
             <span>View All Orders</span>
             <ChevronRight className="w-3.5 h-3.5" />
@@ -373,7 +362,7 @@ export default function DashboardOverviewPage() {
                       ${parseFloat(ord.amount_paid || 0).toFixed(2)}
                     </td>
                     <td className="py-3 px-3 text-right">
-                      <span className="toy-badge toy-badge-emerald">
+                      <span className="toy-badge toy-badge-charcoal">
                         Completed
                       </span>
                     </td>

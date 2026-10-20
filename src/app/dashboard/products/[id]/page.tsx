@@ -8,14 +8,11 @@ import { getProductById, updateBrandProduct } from '@/lib/supabase/actions';
 import {
   ArrowLeft,
   Package,
-  DollarSign,
   Cpu,
-  KeyRound,
   ExternalLink,
   Loader2,
   CheckCircle,
   AlertCircle,
-  Sparkles,
   Save,
 } from 'lucide-react';
 
@@ -129,7 +126,7 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6 font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -146,7 +143,7 @@ export default function ProductDetailPage() {
             </h1>
             <span
               className={`toy-badge ${
-                isActive ? 'toy-badge-emerald' : 'bg-zinc-800 text-zinc-400'
+                isActive ? 'toy-badge-charcoal' : 'bg-zinc-800 text-zinc-500'
               }`}
             >
               {isActive ? 'Live' : 'Draft'}
@@ -168,8 +165,8 @@ export default function ProductDetailPage() {
       </div>
 
       {successMsg && (
-        <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-xs flex items-center gap-2">
-          <CheckCircle className="w-4 h-4 flex-shrink-0" />
+        <div className="p-4 bg-[#202020] border border-zinc-700/60 rounded-xl text-white text-xs flex items-center gap-2">
+          <CheckCircle className="w-4 h-4 text-zinc-300 flex-shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
@@ -186,7 +183,7 @@ export default function ProductDetailPage() {
         <div className="toy-card p-6 space-y-4">
           <div className="flex items-center justify-between border-b border-[#2a2a2a] pb-3">
             <div className="flex items-center gap-2">
-              <Package className="w-4 h-4 text-indigo-400" />
+              <Package className="w-4 h-4 text-zinc-300" />
               <h2 className="text-sm font-bold text-white uppercase tracking-wider">
                 Product Details & Pricing
               </h2>
@@ -206,7 +203,7 @@ export default function ProductDetailPage() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
               />
             </div>
 
@@ -236,7 +233,7 @@ export default function ProductDetailPage() {
                   required
                   value={priceUsd}
                   onChange={(e) => setPriceUsd(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-7 pr-3 py-2.5 text-xs font-mono text-white focus:border-indigo-500 transition-colors"
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-7 pr-3 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
                 />
               </div>
             </div>
@@ -252,7 +249,7 @@ export default function ProductDetailPage() {
                   step="0.01"
                   value={originalPriceUsd}
                   onChange={(e) => setOriginalPriceUsd(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-7 pr-3 py-2.5 text-xs font-mono text-white focus:border-indigo-500 transition-colors"
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-7 pr-3 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
                 />
               </div>
             </div>
@@ -266,7 +263,7 @@ export default function ProductDetailPage() {
               type="text"
               value={shortDesc}
               onChange={(e) => setShortDesc(e.target.value)}
-              className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+              className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
             />
           </div>
 
@@ -278,7 +275,7 @@ export default function ProductDetailPage() {
               rows={6}
               value={fullDesc}
               onChange={(e) => setFullDesc(e.target.value)}
-              className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl p-3.5 text-xs text-white focus:border-indigo-500 transition-colors resize-y"
+              className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl p-3.5 text-xs text-white focus:border-[#42454e] transition-colors resize-y"
             />
           </div>
         </div>
@@ -287,7 +284,7 @@ export default function ProductDetailPage() {
         {product.product_type === 'plugin' && (
           <div className="toy-card p-6 space-y-4">
             <div className="flex items-center gap-2 border-b border-[#2a2a2a] pb-3">
-              <Cpu className="w-4 h-4 text-emerald-400" />
+              <Cpu className="w-4 h-4 text-zinc-300" />
               <h2 className="text-sm font-bold text-white uppercase tracking-wider">
                 VST Licensing & Machine Seats
               </h2>
@@ -314,7 +311,7 @@ export default function ProductDetailPage() {
                   type="text"
                   value={vstFormat}
                   onChange={(e) => setVstFormat(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
                 />
               </div>
             </div>
@@ -330,7 +327,7 @@ export default function ProductDetailPage() {
                   max="10"
                   value={maxSeats}
                   onChange={(e) => setMaxSeats(parseInt(e.target.value) || 3)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-indigo-500 transition-colors"
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
                 />
               </div>
 
@@ -344,7 +341,7 @@ export default function ProductDetailPage() {
                   max="90"
                   value={offlineGraceDays}
                   onChange={(e) => setOfflineGraceDays(parseInt(e.target.value) || 14)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-indigo-500 transition-colors"
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
                 />
               </div>
             </div>
@@ -362,7 +359,7 @@ export default function ProductDetailPage() {
                 type="text"
                 value={coverImage}
                 onChange={(e) => setCoverImage(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
               />
             </div>
 
@@ -374,7 +371,7 @@ export default function ProductDetailPage() {
                 type="text"
                 value={demoAudioUrl}
                 onChange={(e) => setDemoAudioUrl(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
               />
             </div>
           </div>
@@ -387,7 +384,7 @@ export default function ProductDetailPage() {
               type="text"
               value={downloadUrl}
               onChange={(e) => setDownloadUrl(e.target.value)}
-              className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+              className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
             />
           </div>
 
@@ -397,7 +394,7 @@ export default function ProductDetailPage() {
               id="isActiveEdit"
               checked={isActive}
               onChange={(e) => setIsActive(e.target.checked)}
-              className="w-4 h-4 rounded bg-[#121212] border-[#2e2e2e] text-indigo-600 focus:ring-indigo-500"
+              className="w-4 h-4 rounded bg-[#121212] border-[#2e2e2e] text-[#34363d] focus:ring-zinc-600"
             />
             <label htmlFor="isActiveEdit" className="text-xs text-zinc-300 font-medium cursor-pointer">
               Product is active and visible to buyers on ProducerToy
@@ -416,7 +413,7 @@ export default function ProductDetailPage() {
           <button
             type="submit"
             disabled={saving}
-            className="btn-accent px-6 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-lg"
+            className="btn-primary px-6 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-lg uppercase tracking-wider"
           >
             {saving ? (
               <>

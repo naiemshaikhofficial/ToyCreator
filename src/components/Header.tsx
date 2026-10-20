@@ -23,7 +23,6 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
-  // Derive current title
   const currentNav = NAV_ITEMS.find((n) =>
     n.href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(n.href)
   );
@@ -68,7 +67,7 @@ export function Header() {
           {/* New Product CTA */}
           <Link
             href="/dashboard/products/new"
-            className="btn-accent px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm"
+            className="btn-primary px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm"
           >
             <Plus className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Add Product</span>
@@ -81,7 +80,7 @@ export function Header() {
               onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
               className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-[#1f1f1f] border border-transparent hover:border-[#2a2a2a] transition-all"
             >
-              <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-600 to-indigo-400 flex items-center justify-center text-xs font-bold text-white uppercase">
+              <div className="w-7 h-7 rounded-full bg-[#34363d] border border-zinc-600 flex items-center justify-center text-xs font-bold text-white uppercase">
                 {brand?.name ? brand.name[0] : 'C'}
               </div>
               <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
@@ -117,7 +116,7 @@ export function Header() {
                       setProfileDropdownOpen(false);
                       signOut();
                     }}
-                    className="w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-500/10 text-red-400 hover:text-red-300 transition-colors mt-1 border-t border-[#262626]"
+                    className="w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#242424] text-zinc-300 hover:text-white transition-colors mt-1 border-t border-[#262626]"
                   >
                     Sign Out
                   </button>
@@ -180,7 +179,7 @@ export function Header() {
                         : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#1a1a1a]'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-400' : 'text-zinc-400'}`} />
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-zinc-400'}`} />
                     <span>{item.name}</span>
                   </Link>
                 );
@@ -203,7 +202,7 @@ export function Header() {
                   setMobileMenuOpen(false);
                   signOut();
                 }}
-                className="w-full btn-secondary py-2 text-xs text-red-400 hover:text-red-300 border-red-500/20 hover:border-red-500/40"
+                className="w-full btn-secondary py-2 text-xs text-zinc-300 hover:text-white"
               >
                 Sign Out
               </button>

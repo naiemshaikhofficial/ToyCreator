@@ -7,13 +7,10 @@ import {
   LifeBuoy,
   Plus,
   MessageSquare,
-  Clock,
   CheckCircle2,
   AlertCircle,
   Loader2,
   Send,
-  HelpCircle,
-  Cpu,
   ShieldCheck,
 } from 'lucide-react';
 
@@ -87,7 +84,7 @@ export default function SupportPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -101,7 +98,7 @@ export default function SupportPage() {
 
         <button
           onClick={() => setShowModal(true)}
-          className="btn-accent px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 self-start sm:self-auto shadow-lg"
+          className="btn-primary px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 self-start sm:self-auto shadow-sm uppercase tracking-wider"
         >
           <Plus className="w-4 h-4" />
           <span>Open Developer Ticket</span>
@@ -109,15 +106,15 @@ export default function SupportPage() {
       </div>
 
       {successMsg && (
-        <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-xs flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+        <div className="p-4 bg-[#202020] border border-zinc-700/60 rounded-xl text-white text-xs flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-zinc-300 flex-shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
       {/* SLA Info Banner */}
-      <div className="toy-card p-5 bg-gradient-to-r from-[#181818] via-[#1a1a1a] to-[#161616] border border-[#2a2a2a] flex items-center gap-4">
-        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 flex-shrink-0">
+      <div className="toy-card p-5 bg-[#181818] border border-zinc-800 flex items-center gap-4">
+        <div className="w-10 h-10 rounded-xl bg-[#242424] border border-zinc-700/60 flex items-center justify-center text-zinc-300 flex-shrink-0">
           <ShieldCheck className="w-5 h-5" />
         </div>
         <div className="text-xs">
@@ -155,16 +152,14 @@ export default function SupportPage() {
               <div key={t.id} className="p-4 sm:p-5 hover:bg-[#1a1a1a]/70 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-bold text-indigo-400">
+                    <span className="font-mono text-xs font-bold text-zinc-300">
                       {t.ticket_number}
                     </span>
                     <span
                       className={`toy-badge ${
                         t.status === 'OPEN'
-                          ? 'toy-badge-amber'
-                          : t.status === 'RESOLVED'
-                          ? 'toy-badge-emerald'
-                          : 'bg-zinc-800 text-zinc-300'
+                          ? 'toy-badge-charcoal'
+                          : 'toy-badge-zinc'
                       }`}
                     >
                       {t.status}
@@ -213,7 +208,7 @@ export default function SupportPage() {
                   placeholder="e.g. VST3 Apple Silicon signing issue on macOS Sequoia"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
                 />
               </div>
 
@@ -225,7 +220,7 @@ export default function SupportPage() {
                   <select
                     value={priority}
                     onChange={(e) => setPriority(e.target.value)}
-                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3 py-2 text-xs text-white focus:border-indigo-500 transition-colors"
+                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3 py-2 text-xs text-white focus:border-[#42454e] transition-colors"
                   >
                     <option value="NORMAL">Normal</option>
                     <option value="HIGH">High</option>
@@ -241,7 +236,7 @@ export default function SupportPage() {
                     type="text"
                     value={daw}
                     onChange={(e) => setDaw(e.target.value)}
-                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3 py-2 text-xs text-white focus:border-indigo-500 transition-colors"
+                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3 py-2 text-xs text-white focus:border-[#42454e] transition-colors"
                   />
                 </div>
 
@@ -253,7 +248,7 @@ export default function SupportPage() {
                     type="text"
                     value={osPlatform}
                     onChange={(e) => setOsPlatform(e.target.value)}
-                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3 py-2 text-xs text-white focus:border-indigo-500 transition-colors"
+                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3 py-2 text-xs text-white focus:border-[#42454e] transition-colors"
                   />
                 </div>
               </div>
@@ -268,7 +263,7 @@ export default function SupportPage() {
                   placeholder="Include error codes, JUCE crash dumps, or reproduction steps..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl p-3.5 text-xs text-white focus:border-indigo-500 transition-colors resize-none"
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl p-3.5 text-xs text-white focus:border-[#42454e] transition-colors resize-none"
                 />
               </div>
 
@@ -283,12 +278,12 @@ export default function SupportPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="btn-accent px-5 py-2 text-xs font-semibold flex items-center gap-1.5"
+                  className="btn-primary px-5 py-2 text-xs font-semibold flex items-center gap-1.5"
                 >
                   {submitting ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      Submitting Ticket...
+                      <span>Submitting Ticket...</span>
                     </>
                   ) : (
                     <>

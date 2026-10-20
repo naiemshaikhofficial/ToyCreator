@@ -11,13 +11,6 @@ import {
   Filter,
   ExternalLink,
   Edit,
-  Eye,
-  CheckCircle,
-  XCircle,
-  MoreVertical,
-  Cpu,
-  Layers,
-  Sparkles,
 } from 'lucide-react';
 
 export default function ProductsListPage() {
@@ -65,7 +58,7 @@ export default function ProductsListPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -73,13 +66,13 @@ export default function ProductsListPage() {
             My Audio Products
           </h1>
           <p className="text-xs text-zinc-400">
-            Manage your audio plugins, sample libraries, and presets published under {brand?.name || 'your brand'}
+            Manage audio plugins, sample libraries, and presets published under {brand?.name || 'your brand'}
           </p>
         </div>
 
         <Link
           href="/dashboard/products/new"
-          className="btn-accent px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 self-start sm:self-auto shadow-lg"
+          className="btn-primary px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 self-start sm:self-auto shadow-sm"
         >
           <Plus className="w-4 h-4" />
           <span>New Product</span>
@@ -95,7 +88,7 @@ export default function ProductsListPage() {
             placeholder="Search products by title or slug..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg pl-10 pr-4 py-2 text-xs text-white focus:border-indigo-500 transition-colors"
+            className="w-full bg-[#121212] border border-[#2e2e2e] rounded-lg pl-10 pr-4 py-2 text-xs text-white focus:border-[#42454e] transition-colors"
           />
         </div>
 
@@ -104,7 +97,7 @@ export default function ProductsListPage() {
           <select
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
-            className="bg-[#121212] border border-[#2e2e2e] rounded-lg px-3 py-2 text-xs text-zinc-200 focus:border-indigo-500 transition-colors"
+            className="bg-[#121212] border border-[#2e2e2e] rounded-lg px-3 py-2 text-xs text-zinc-200 focus:border-[#42454e] transition-colors"
           >
             <option value="all">All Audio Types</option>
             <option value="plugin">VST / AU Plugins</option>
@@ -173,7 +166,7 @@ export default function ProductsListPage() {
                         <div className="min-w-0">
                           <Link
                             href={`/dashboard/products/${p.id}`}
-                            className="font-semibold text-white hover:text-indigo-400 transition-colors truncate block"
+                            className="font-semibold text-white hover:text-zinc-300 transition-colors truncate block"
                           >
                             {p.name}
                           </Link>
@@ -186,7 +179,7 @@ export default function ProductsListPage() {
 
                     {/* Type */}
                     <td className="py-3.5 px-4">
-                      <span className="toy-badge toy-badge-cyan capitalize">
+                      <span className="toy-badge toy-badge-zinc capitalize">
                         {p.product_type?.replace('_', ' ') || 'Plugin'}
                       </span>
                     </td>
@@ -197,7 +190,7 @@ export default function ProductsListPage() {
                         {p.vst_format || p.operating_system || 'Standard Audio'}
                       </p>
                       {p.max_activation_seats && (
-                        <span className="text-[10px] text-indigo-400 font-mono">
+                        <span className="text-[10px] text-zinc-400 font-mono">
                           {p.max_activation_seats} seats allowed
                         </span>
                       )}
@@ -215,11 +208,11 @@ export default function ProductsListPage() {
                       <button
                         onClick={() => toggleProductActive(p.id, p.is_active)}
                         className={`toy-badge cursor-pointer transition-colors ${
-                          p.is_active ? 'toy-badge-emerald' : 'bg-zinc-800 text-zinc-400'
+                          p.is_active ? 'toy-badge-charcoal' : 'bg-zinc-800 text-zinc-500 border-zinc-700/50'
                         }`}
                         title="Click to toggle active/inactive"
                       >
-                        {p.is_active ? 'Active' : 'Inactive'}
+                        {p.is_active ? 'Active' : 'Draft'}
                       </button>
                     </td>
 
@@ -237,7 +230,7 @@ export default function ProductsListPage() {
                           href={`https://producertoy.com/product/${p.slug}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="p-1.5 rounded-lg text-zinc-400 hover:text-indigo-400 hover:bg-[#282828] transition-colors"
+                          className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-[#282828] transition-colors"
                           title="View on Live Marketplace"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />

@@ -69,15 +69,15 @@ export function Sidebar() {
       <div className="px-4 py-3.5 border-b border-[#202020] bg-[#161616]/70">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-7 h-7 rounded-lg bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center text-indigo-400 flex-shrink-0">
+            <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/60 flex items-center justify-center text-zinc-300 flex-shrink-0">
               <Building className="w-3.5 h-3.5" />
             </div>
             <div className="min-w-0">
               <p className="text-xs font-semibold text-white truncate leading-tight">
                 {brand?.name || 'Producer Toy'}
               </p>
-              <div className="flex items-center gap-1 text-[10px] text-emerald-400 font-medium">
-                <ShieldCheck className="w-2.5 h-2.5" />
+              <div className="flex items-center gap-1 text-[10px] text-zinc-400 font-medium">
+                <ShieldCheck className="w-2.5 h-2.5 text-zinc-300" />
                 <span>Verified Brand</span>
               </div>
             </div>
@@ -85,7 +85,7 @@ export function Sidebar() {
           <Link
             href="/dashboard/products/new"
             title="Create New Product"
-            className="w-6 h-6 rounded-md bg-[#262626] hover:bg-indigo-600 hover:text-white text-zinc-300 flex items-center justify-center transition-colors border border-white/5"
+            className="w-6 h-6 rounded-md bg-[#262626] hover:bg-[#34363d] text-zinc-300 hover:text-white flex items-center justify-center transition-colors border border-white/5"
           >
             <Plus className="w-3.5 h-3.5" />
           </Link>
@@ -113,12 +113,12 @@ export function Sidebar() {
             >
               <Icon
                 className={`w-4 h-4 transition-colors ${
-                  isActive ? 'text-indigo-400' : 'text-zinc-500 group-hover:text-zinc-300'
+                  isActive ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'
                 }`}
               />
               <span className="flex-1">{item.name}</span>
               {isActive && (
-                <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_8px_rgba(99,102,241,0.8)]" />
+                <div className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]" />
               )}
             </Link>
           );
@@ -149,7 +149,7 @@ export function Sidebar() {
               {brand?.name ? brand.name[0] : user?.email ? user.email[0] : 'C'}
             </div>
             <div className="min-w-0 text-left">
-              <p className="text-xs font-medium text-white truncate group-hover:text-indigo-400 transition-colors">
+              <p className="text-xs font-medium text-white truncate group-hover:text-zinc-300 transition-colors">
                 {user?.email?.split('@')[0] || 'Creator'}
               </p>
               <p className="text-[10px] text-zinc-400 truncate capitalize">
@@ -161,7 +161,7 @@ export function Sidebar() {
           <button
             onClick={() => signOut()}
             title="Sign Out"
-            className="p-1.5 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+            className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
           >
             <LogOut className="w-4 h-4" />
           </button>

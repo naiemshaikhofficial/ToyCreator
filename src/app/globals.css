@@ -7,23 +7,18 @@
     --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
     
-    /* ProducerToy Core Dark Palette */
+    /* ProducerToy Pure Charcoal & Near-Black Palette */
     --brand-bg: #121212;
     --brand-surface: #181818;
     --brand-card: #202020;
-    --brand-card-hover: #262626;
+    --brand-card-hover: #2a2a2a;
     --brand-card-border: #2a2a2a;
     --brand-border: #2a2a2a;
     --brand-border-light: rgba(255, 255, 255, 0.08);
     
-    /* ProducerToy Accent & Buttons */
+    /* ProducerToy Charcoal Action Buttons */
     --brand-charcoal: #34363d;
     --brand-charcoal-hover: #42454e;
-    --brand-accent: #6366f1; /* Electric violet / Indigo for creator actions */
-    --brand-accent-hover: #4f46e5;
-    --brand-cyan: #38bdf8;
-    --brand-emerald: #10b981;
-    --brand-amber: #f59e0b;
     
     /* Text */
     --text-primary: #ffffff;
@@ -47,7 +42,7 @@
     min-height: 100vh;
   }
 
-  /* Image protection & contain */
+  /* Image protection */
   img, svg, picture {
     -webkit-user-drag: none !important;
     user-select: none !important;
@@ -71,11 +66,11 @@
 }
 
 *:focus-visible {
-  outline: 2px solid #6366f1;
+  outline: 2px solid rgba(255, 255, 255, 0.35);
   outline-offset: 2px;
 }
 
-/* ProducerToy Card Design */
+/* ProducerToy Charcoal Card Design */
 .toy-card {
   background-color: #202020;
   border: 1px solid #2a2a2a;
@@ -84,8 +79,8 @@
 }
 
 .toy-card:hover {
-  background-color: #242424;
-  border-color: #383838;
+  background-color: #252525;
+  border-color: #353535;
 }
 
 .toy-card-interactive {
@@ -101,7 +96,7 @@
   transform: translateY(-1px);
 }
 
-/* ProducerToy Badge System */
+/* ProducerToy Monochromatic Badge System (No Neons) */
 .toy-badge {
   background-color: #2a2a2a;
   color: #ffffff;
@@ -116,31 +111,26 @@
   gap: 0.35rem;
 }
 
-.toy-badge-violet {
-  background-color: rgba(99, 102, 241, 0.12);
-  color: #a5b4fc;
-  border-color: rgba(99, 102, 241, 0.25);
+.toy-badge-charcoal {
+  background-color: #34363d;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
-.toy-badge-emerald {
-  background-color: rgba(16, 185, 129, 0.12);
-  color: #6ee7b7;
-  border-color: rgba(16, 185, 129, 0.25);
+.toy-badge-zinc {
+  background-color: #1f1f1f;
+  color: #d4d4d8;
+  border-color: #2e2e2e;
 }
 
-.toy-badge-amber {
-  background-color: rgba(245, 158, 11, 0.12);
-  color: #fcd34d;
-  border-color: rgba(245, 158, 11, 0.25);
+.toy-badge-white {
+  background-color: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+  font-weight: 700;
 }
 
-.toy-badge-cyan {
-  background-color: rgba(56, 189, 248, 0.12);
-  color: #7dd3fc;
-  border-color: rgba(56, 189, 248, 0.25);
-}
-
-/* Primary ProducerToy Button */
+/* Primary ProducerToy Charcoal Button (#34363d) */
 .btn-primary {
   display: inline-flex;
   align-items: center;
@@ -223,7 +213,7 @@
   transform: scale(0.98);
 }
 
-/* Accent Indigo Action Button */
+/* btn-accent mapped to ProducerToy's signature charcoal button */
 .btn-accent {
   display: inline-flex;
   align-items: center;
@@ -231,20 +221,21 @@
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
   border-radius: 10px;
-  background-color: #4f46e5;
-  border: 1px solid #6366f1;
+  background-color: #34363d;
+  border: 1px solid rgba(255, 255, 255, 0.14);
   color: #ffffff;
   font-size: 0.875rem;
   font-weight: 600;
   transition: all 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
   cursor: pointer;
   user-select: none;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
 }
 
 .btn-accent:hover {
-  background-color: #4338ca;
-  border-color: #818cf8;
+  background-color: #42454e;
+  border-color: rgba(255, 255, 255, 0.24);
+  transform: translateY(-0.5px);
 }
 
 .btn-accent:active {
@@ -283,12 +274,4 @@ select:-webkit-autofill {
   transition: background-color 5000000s ease-in-out 0s !important;
   caret-color: #ffffff !important;
   color: #ffffff !important;
-}
-
-/* Glass panel */
-.toy-glass {
-  background: rgba(24, 24, 24, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
 }

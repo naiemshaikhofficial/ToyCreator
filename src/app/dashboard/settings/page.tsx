@@ -4,11 +4,8 @@ import React, { useState } from 'react';
 import { useBrand } from '@/context/BrandContext';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import {
-  Settings,
-  Lock,
   Bell,
   Webhook,
-  Key,
   Shield,
   CheckCircle,
   AlertCircle,
@@ -73,7 +70,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6 font-sans">
       {/* Header */}
       <div>
         <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
@@ -87,7 +84,7 @@ export default function SettingsPage() {
       {/* Notifications */}
       <div className="toy-card p-6 space-y-4">
         <div className="flex items-center gap-2 border-b border-[#2a2a2a] pb-3">
-          <Bell className="w-4 h-4 text-indigo-400" />
+          <Bell className="w-4 h-4 text-zinc-300" />
           <h2 className="text-sm font-bold text-white uppercase tracking-wider">
             Email & Operational Notifications
           </h2>
@@ -103,7 +100,7 @@ export default function SettingsPage() {
               type="checkbox"
               checked={saleNotifications}
               onChange={(e) => setSaleNotifications(e.target.checked)}
-              className="w-4 h-4 rounded bg-[#121212] border-[#2e2e2e] text-indigo-600 focus:ring-indigo-500"
+              className="w-4 h-4 rounded bg-[#121212] border-[#2e2e2e] text-[#34363d] focus:ring-zinc-600"
             />
           </label>
 
@@ -116,7 +113,7 @@ export default function SettingsPage() {
               type="checkbox"
               checked={payoutNotifications}
               onChange={(e) => setPayoutNotifications(e.target.checked)}
-              className="w-4 h-4 rounded bg-[#121212] border-[#2e2e2e] text-indigo-600 focus:ring-indigo-500"
+              className="w-4 h-4 rounded bg-[#121212] border-[#2e2e2e] text-[#34363d] focus:ring-zinc-600"
             />
           </label>
 
@@ -129,7 +126,7 @@ export default function SettingsPage() {
               type="checkbox"
               checked={licenseNotifications}
               onChange={(e) => setLicenseNotifications(e.target.checked)}
-              className="w-4 h-4 rounded bg-[#121212] border-[#2e2e2e] text-indigo-600 focus:ring-indigo-500"
+              className="w-4 h-4 rounded bg-[#121212] border-[#2e2e2e] text-[#34363d] focus:ring-zinc-600"
             />
           </label>
         </div>
@@ -138,7 +135,7 @@ export default function SettingsPage() {
       {/* Developer API & Webhooks */}
       <div className="toy-card p-6 space-y-4">
         <div className="flex items-center gap-2 border-b border-[#2a2a2a] pb-3">
-          <Webhook className="w-4 h-4 text-sky-400" />
+          <Webhook className="w-4 h-4 text-zinc-300" />
           <h2 className="text-sm font-bold text-white uppercase tracking-wider">
             Developer API & Webhooks
           </h2>
@@ -159,7 +156,7 @@ export default function SettingsPage() {
               onClick={copyApiKey}
               className="btn-secondary px-3 py-2.5 rounded-xl text-xs font-medium flex items-center gap-1.5 flex-shrink-0"
             >
-              {copiedKey ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              {copiedKey ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copiedKey ? 'Copied' : 'Copy'}</span>
             </button>
           </div>
@@ -177,7 +174,7 @@ export default function SettingsPage() {
             placeholder="https://api.yourbrand.com/webhooks/producertoy"
             value={webhookUrl}
             onChange={(e) => setWebhookUrl(e.target.value)}
-            className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+            className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
           />
           <p className="text-[10px] text-zinc-500 mt-1">
             We will POST JSON payloads for <code className="text-zinc-400 font-mono">order.completed</code> and <code className="text-zinc-400 font-mono">license.revoked</code>
@@ -188,15 +185,15 @@ export default function SettingsPage() {
       {/* Security & Password */}
       <div className="toy-card p-6 space-y-4">
         <div className="flex items-center gap-2 border-b border-[#2a2a2a] pb-3">
-          <Shield className="w-4 h-4 text-emerald-400" />
+          <Shield className="w-4 h-4 text-zinc-300" />
           <h2 className="text-sm font-bold text-white uppercase tracking-wider">
             Security & Credentials
           </h2>
         </div>
 
         {passwordMsg && (
-          <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-xs flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 flex-shrink-0" />
+          <div className="p-3.5 bg-[#202020] border border-zinc-700/60 rounded-xl text-white text-xs flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-zinc-300 flex-shrink-0" />
             <span>{passwordMsg}</span>
           </div>
         )}
@@ -220,7 +217,7 @@ export default function SettingsPage() {
                 placeholder="••••••••••••"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
               />
             </div>
 
@@ -234,7 +231,7 @@ export default function SettingsPage() {
                 placeholder="••••••••••••"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 transition-colors"
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
               />
             </div>
           </div>
@@ -243,12 +240,12 @@ export default function SettingsPage() {
             <button
               type="submit"
               disabled={savingPassword}
-              className="btn-secondary px-5 py-2 text-xs font-semibold flex items-center gap-1.5"
+              className="btn-primary px-5 py-2 text-xs font-semibold flex items-center gap-1.5 uppercase tracking-wider"
             >
               {savingPassword ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  Updating...
+                  <span>Updating...</span>
                 </>
               ) : (
                 <span>Update Password</span>

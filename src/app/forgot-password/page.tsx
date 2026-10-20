@@ -33,7 +33,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#121212] text-white flex flex-col justify-between p-4 sm:p-6 selection:bg-white selection:text-black">
+    <div className="min-h-screen bg-[#121212] text-white flex flex-col justify-between p-4 sm:p-6 selection:bg-white selection:text-black font-sans">
       <div className="max-w-7xl w-full mx-auto flex items-center justify-between py-2">
         <Link href="/login" className="flex items-center gap-2 text-xs text-zinc-400 hover:text-white transition-colors">
           <ArrowLeft className="w-3.5 h-3.5" />
@@ -58,15 +58,15 @@ export default function ForgotPasswordPage() {
           )}
 
           {success ? (
-            <div className="p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center space-y-3">
-              <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
+            <div className="p-5 bg-[#202020] border border-zinc-700/60 rounded-xl text-center space-y-3">
+              <CheckCircle2 className="w-8 h-8 text-white mx-auto" />
               <p className="text-sm font-semibold text-white">Recovery Link Sent</p>
               <p className="text-xs text-zinc-300">
                 Check your inbox at <span className="text-white font-mono">{email}</span> for instructions to reset your developer credentials.
               </p>
               <Link
                 href="/login"
-                className="inline-block mt-2 text-xs text-indigo-400 hover:text-indigo-300 font-medium"
+                className="inline-block mt-2 text-xs text-zinc-300 hover:text-white font-medium underline"
               >
                 Return to Sign In &rarr;
               </Link>
@@ -85,7 +85,7 @@ export default function ForgotPasswordPage() {
                     placeholder="developer@yourbrand.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:border-indigo-500 transition-colors"
+                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:border-[#42454e] transition-colors"
                   />
                 </div>
               </div>
@@ -93,12 +93,12 @@ export default function ForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full btn-accent py-3 font-semibold text-sm rounded-xl flex items-center justify-center gap-2 mt-2 shadow-lg"
+                className="w-full btn-primary py-3 font-semibold text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 mt-2 shadow-lg"
               >
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Sending link...
+                    <span>Sending link...</span>
                   </>
                 ) : (
                   <>
@@ -112,7 +112,7 @@ export default function ForgotPasswordPage() {
         </div>
       </div>
 
-      <div className="text-center text-xs text-zinc-400 py-4">
+      <div className="text-center text-xs text-zinc-500 py-4">
         Toy Creator • Powered by ProducerToy Audio Infrastructure
       </div>
     </div>
