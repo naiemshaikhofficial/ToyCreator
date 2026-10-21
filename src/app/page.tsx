@@ -41,24 +41,24 @@ export default function HomePage() {
 
   const faqs = [
     {
-      q: 'What types of audio products can I publish?',
-      a: 'Toy Creator supports Audio Plugins (VST3, AU, AAX, CLAP for Windows and macOS), Sample Packs & Sound Libraries (24-bit WAV, AIFF, MIDI), Synth Presets (Serum, Diva, Vital, Phase Plant), and DAW Project Templates.',
+      q: 'What types of audio products can I sell?',
+      a: 'You can sell Audio Plugins (VST3, AU, AAX, CLAP for Mac and Windows), Sample Packs and Sound Kits (WAV, AIFF, MIDI), Synth Presets (Serum, Diva, Vital, Phase Plant), and DAW Project Templates.',
     },
     {
       q: 'How does the 70% creator revenue split work?',
-      a: 'You retain 70% of net product sales. ProducerToy covers all global payment gateway fees, fraud protection, VAT/sales tax compliance, and cloud CDN hosting.',
+      a: 'You keep 70% of every sale. ProducerToy takes care of all credit card fees, fraud protection, sales tax/VAT compliance, and fast cloud download servers.',
     },
     {
-      q: 'Can I generate and protect software license keys?',
-      a: 'Yes. Toy Creator includes a built-in cryptographic license engine. You can configure hardware machine limits (e.g. 2 activations per user), offline authorization tokens, and revoke pirated keys instantly.',
+      q: 'Can I protect my plugins with license keys?',
+      a: 'Yes! Toy Creator includes built-in license protection. You can choose how many computers each customer can activate (e.g. 2 devices per license) and revoke stolen or pirated keys anytime.',
     },
     {
       q: 'How do payouts work?',
-      a: 'Automated monthly payouts are sent directly to your bank account via Stripe Connect or PayPal. Real-time earnings and sales breakdowns are visible anytime on your dashboard.',
+      a: 'Payouts are sent automatically every month directly to your bank account or PayPal. You can check your sales and earnings live on your dashboard anytime.',
     },
     {
       q: 'Who can become a creator on Toy Creator?',
-      a: 'To maintain high audio standards, Toy Creator is curated. Audio software developers, DSP engineers, and sound designers can submit their portfolio via our partnership application to get approved.',
+      a: 'Toy Creator is curated for quality. Audio software developers, plugin makers, and sound designers can apply to join our brand partner roster.',
     },
   ];
 
@@ -206,9 +206,9 @@ export default function HomePage() {
             <div className="w-12 h-12 rounded-xl bg-[#202020] border border-[#303030] flex items-center justify-center text-white mb-5">
               <Cpu className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Cryptographic Licensing</h3>
+            <h3 className="text-lg font-bold text-white mb-2">Built-in License Protection</h3>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              Native hardware activation seats, challenge-response pairing, and offline token management built specifically for C++, JUCE, and VST3 plugins.
+              Protect your software from piracy. Generate license keys automatically, set computer activation limits per user, and manage customer keys with one click.
             </p>
           </div>
 
@@ -216,9 +216,9 @@ export default function HomePage() {
             <div className="w-12 h-12 rounded-xl bg-[#202020] border border-[#303030] flex items-center justify-center text-white mb-5">
               <BarChart3 className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Real-time Sales Analytics</h3>
+            <h3 className="text-lg font-bold text-white mb-2">Real-Time Sales &amp; Earnings</h3>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              Track gross revenue, conversion rates, refund ratios, top customers, and geographic traffic instantly from your creator command center.
+              See your customer orders, daily sales revenue, and monthly payouts live. Keep full track of your best-selling plugins and sample packs.
             </p>
           </div>
 
@@ -226,9 +226,9 @@ export default function HomePage() {
             <div className="w-12 h-12 rounded-xl bg-[#202020] border border-[#303030] flex items-center justify-center text-white mb-5">
               <Globe2 className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">High-Speed Edge Delivery</h3>
+            <h3 className="text-lg font-bold text-white mb-2">Fast Worldwide Downloads</h3>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              Distribute multi-gigabyte audio libraries and plugin installers worldwide with low latency and one-time authenticated signed URLs.
+              Your buyers get lightning-fast, secure cloud downloads for heavy plugin installers and large sound archives anywhere across the globe.
             </p>
           </div>
         </section>

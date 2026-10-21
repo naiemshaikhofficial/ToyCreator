@@ -6,6 +6,7 @@
 
 const CREATORS_LOGO_URL = 'https://imagizer.imageshack.com/img924/664/F2MeF5.png';
 const PRODUCERTOY_BOTTOM_LOGO_URL = 'https://imagizer.imageshack.com/img922/171/nu2UgR.png';
+const MAIL_ICON_URL = 'https://voalgeyexfhfitlyorfl.supabase.co/storage/v1/object/public/product-assets/email-assets/mail-icon.png';
 const CREATORS_PORTAL_URL = 'https://creators.producertoy.com';
 const MAIN_SITE_URL = 'https://producertoy.com';
 const SUPPORT_EMAIL = 'support@producertoy.com';
@@ -16,42 +17,42 @@ const ROLE_METADATA: Record<
 > = {
   developer: {
     title: 'Developer / Sound Designer',
-    summary: 'Audio product catalog access (DSP specs, installer packages, sample archives, presets). No access to banking or earnings.',
+    summary: 'Upload and manage audio plugins, sound presets, and sample packs. (No access to bank details or sales earnings).',
     permissions: [
-      'Manage audio product deliverables (Windows .exe, macOS .pkg, Universal ZIP)',
-      'Configure DSP specs, system requirements, supported DAWs & machine seats',
-      'Upload soundware presets, demo audio loops, and square artwork',
-      'Isolated from banking credentials and platform payout statements',
+      'Upload and update installers for Mac and Windows (.pkg, .exe, .zip)',
+      'Add sound preset banks, audio loops, and product artwork',
+      'Set plugin versions, supported DAWs, and system requirements',
+      'Cannot see bank account details, payouts, or revenue numbers',
     ],
   },
   admin: {
-    title: 'Brand Admin',
-    summary: 'Catalog management, release publishing, serial pool uploads, and team member management. Cannot alter bank payouts or transfer ownership.',
+    title: 'Brand Manager / Admin',
+    summary: 'Full control over product releases, license serial keys, and team members.',
     permissions: [
-      'Publish and update audio software in the ProducerToy catalog',
-      'Batch ingest and manage cryptographic serial key pools',
-      'Invite colleagues and allocate team seats',
-      'Restricted from altering bank payout accounts or transfer of ownership',
+      'Publish, edit, and update your audio software in the store',
+      'Upload and manage license serial keys for buyers',
+      'Invite colleagues and assign them team roles',
+      'Cannot change bank payout settings or transfer brand ownership',
     ],
   },
   support: {
-    title: 'Support Agent',
-    summary: 'Access to customer orders, serial key audits, license lookup, and developer support tickets. Cannot edit binaries or payouts.',
+    title: 'Customer Support',
+    summary: 'Help customers with their orders, licenses, and support questions.',
     permissions: [
-      'Lookup customer orders, invoices, and purchase records',
-      'Audit hardware machine seats and device activations',
-      'Respond to developer support inquiries and technical tickets',
-      'Restricted from modifying release binaries or financial ledger',
+      'Look up customer orders, receipts, and purchase history',
+      'Check customer device activations and reset computer seats',
+      'Reply directly to customer help requests and support tickets',
+      'Cannot edit software files or access payout settings',
     ],
   },
   finance: {
-    title: 'Finance / Operations',
-    summary: 'View-only access to sales analytics, transaction logs, monthly payout receipts, and statements.',
+    title: 'Finance & Accounting',
+    summary: 'View-only access to sales reports, earnings, and monthly payout statements.',
     permissions: [
-      'View sales analytics, revenue velocity, and promo conversion metrics',
-      'Inspect 70/30 ledger itemization and payout receipts',
-      'Export accounting summaries and monthly statements',
-      'View-only access; cannot modify live catalog or installers',
+      'See daily sales volume, customer revenue, and order trends',
+      'Check the 70/30 creator revenue split and payout receipts',
+      'Download monthly accounting summaries and invoices',
+      'View-only access; cannot change products or software files',
     ],
   },
 };
@@ -146,7 +147,7 @@ export async function sendBrandTeamInviteEmail({
               </div>
               <div style="margin-top: 14px; display: inline-block; padding: 5px 14px; background-color: #1f1f23; border: 1px solid #2e2e34; border-radius: 9999px;">
                 <span style="font-size: 10px; font-weight: 700; color: #d4d4d8; text-transform: uppercase; letter-spacing: 0.08em;">
-                  Brand Team Seat Allocation
+                  Team Invitation
                 </span>
               </div>
             </td>
@@ -164,7 +165,7 @@ export async function sendBrandTeamInviteEmail({
                   </td>
                   <td style="vertical-align: middle;">
                     <div style="font-size: 10px; font-weight: 700; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.09em;">
-                      Target Brand Workspace
+                      Your Brand Team
                     </div>
                     <div style="font-size: 20px; font-weight: 800; color: #ffffff; margin-top: 3px; line-height: 1.25;">
                       ${brandName}
@@ -177,14 +178,14 @@ export async function sendBrandTeamInviteEmail({
               <div style="padding: 14px 16px; background-color: #18181b; border: 1px solid #27272a; border-radius: 10px; margin-bottom: 24px;">
                 <table border="0" cellpadding="0" cellspacing="0" width="100%">
                   <tr>
-                    <td style="width: 26px; vertical-align: top; padding-right: 10px; font-size: 16px;">
-                      ✉️
+                    <td style="width: 28px; vertical-align: middle; padding-right: 12px;">
+                      <img src="${MAIL_ICON_URL}" alt="Mail" width="26" height="26" draggable="false" style="display: block; width: 26px; height: 26px; border-radius: 6px; -webkit-user-drag: none; user-select: none;" />
                     </td>
                     <td style="font-size: 13px; line-height: 1.6; color: #d4d4d8;">
                       ${
                         inviterEmail
-                          ? `<strong style="color: #ffffff;">${inviterEmail}</strong> has invited you to collaborate as an authorized team member for <strong style="color: #ffffff;">${brandName}</strong> on the Toy Creator publisher portal.`
-                          : `You have been officially invited to join <strong style="color: #ffffff;">${brandName}</strong> as an authorized team member on the Toy Creator publisher portal.`
+                          ? `<strong style="color: #ffffff;">${inviterEmail}</strong> invited you to join the team for <strong style="color: #ffffff;">${brandName}</strong> on the Toy Creator publisher portal.`
+                          : `You have been invited to join <strong style="color: #ffffff;">${brandName}</strong> as a team member on Toy Creator.`
                       }
                     </td>
                   </tr>
@@ -199,7 +200,7 @@ export async function sendBrandTeamInviteEmail({
                       <tr>
                         <td>
                           <div style="font-size: 10px; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.08em;">
-                            Assigned Publisher Role
+                            Your Assigned Role
                           </div>
                           <div style="font-size: 16px; font-weight: 800; color: #ffffff; margin-top: 4px;">
                             ${roleInfo.title}
@@ -217,7 +218,7 @@ export async function sendBrandTeamInviteEmail({
                 <tr>
                   <td style="padding: 14px 20px; border-bottom: 1px solid #242428;">
                     <div style="font-size: 10px; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px;">
-                      Scope &amp; Access Level
+                      What this role does
                     </div>
                     <div style="font-size: 12px; color: #a1a1aa; line-height: 1.55;">
                       ${roleInfo.summary}
@@ -227,7 +228,7 @@ export async function sendBrandTeamInviteEmail({
                 <tr>
                   <td style="padding: 16px 20px;">
                     <div style="font-size: 10px; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;">
-                      Authorized Capabilities
+                      What you can do
                     </div>
                     <table border="0" cellpadding="0" cellspacing="0" width="100%">
                       ${permissionsListHtml}
@@ -259,25 +260,23 @@ export async function sendBrandTeamInviteEmail({
                 ${activationNoteHtml}
               </div>
 
-              <!-- Support Section (support@producertoy.com mailto with icon) -->
+              <!-- Support Section (support@producertoy.com with user's mail icon) -->
               <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #17171a; border: 1px solid #27272c; border-radius: 10px;">
                 <tr>
                   <td style="padding: 14px 16px;">
                     <table border="0" cellpadding="0" cellspacing="0" width="100%">
                       <tr>
-                        <td style="width: 32px; vertical-align: middle; padding-right: 12px;">
+                        <td style="width: 38px; vertical-align: middle; padding-right: 14px;">
                           <a href="mailto:${SUPPORT_EMAIL}" style="text-decoration: none; display: inline-block;">
-                            <div style="width: 32px; height: 32px; border-radius: 8px; background-color: #242429; border: 1px solid #383840; text-align: center; line-height: 32px; font-size: 15px; color: #ffffff;">
-                              ✉
-                            </div>
+                            <img src="${MAIL_ICON_URL}" alt="Support Email" width="36" height="36" draggable="false" style="display: block; width: 36px; height: 36px; border-radius: 8px; border: none; outline: none; -webkit-user-drag: none; user-select: none;" />
                           </a>
                         </td>
                         <td style="vertical-align: middle;">
                           <div style="font-size: 10px; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.08em;">
-                            Questions or Need Assistance?
+                            Have questions or need help?
                           </div>
-                          <div style="font-size: 12px; color: #a1a1aa; margin-top: 2px;">
-                            Contact Developer Support at 
+                          <div style="font-size: 12px; color: #d4d4d8; margin-top: 2px;">
+                            Email ProducerToy Support directly at 
                             <a href="mailto:${SUPPORT_EMAIL}" style="color: #60a5fa; text-decoration: none; font-weight: 700;">${SUPPORT_EMAIL}</a>
                           </div>
                         </td>

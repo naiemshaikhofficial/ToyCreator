@@ -34,27 +34,27 @@ const ROLE_DEFINITIONS: Record<
   owner: {
     label: 'Brand Owner',
     badgeClass: 'bg-white/10 text-white border-white/20',
-    description: 'Full administrative control (contracts, payouts, catalog, product deletion, team invites & role assignment).',
+    description: 'Full control over everything (products, bank payouts, and team members).',
   },
   admin: {
     label: 'Brand Admin',
     badgeClass: 'bg-zinc-700/40 text-zinc-200 border-zinc-600/50',
-    description: 'Catalog management, release publishing, serial pool uploads, and team invites. Cannot alter bank payouts or transfer ownership.',
+    description: 'Can publish products, manage serial keys, and invite team members. Cannot change bank details.',
   },
   developer: {
     label: 'Developer / Sound Designer',
     badgeClass: 'bg-zinc-800 text-zinc-300 border-zinc-700',
-    description: 'Audio product catalog access (DSP specs, installer packages, sample archives, presets). No access to banking or earnings.',
+    description: 'Can upload plugins, presets, and sample packs. Cannot view bank details or sales earnings.',
   },
   support: {
     label: 'Support Agent',
     badgeClass: 'bg-zinc-800 text-zinc-300 border-zinc-700',
-    description: 'Access to customer orders, serial key audits, license lookup, and developer support tickets. Cannot edit binaries or payouts.',
+    description: 'Can look up customer orders, license keys, and answer support tickets. Cannot edit files or earnings.',
   },
   finance: {
     label: 'Finance / Operations',
     badgeClass: 'bg-zinc-800 text-zinc-300 border-zinc-700',
-    description: 'View-only access to sales analytics, transaction logs, monthly payout receipts, and revenue statements.',
+    description: 'Can view sales reports, revenue numbers, and monthly payout statements. Cannot edit products.',
   },
 };
 
@@ -230,14 +230,14 @@ export function BrandTeamManager() {
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-                Brand Team Access & Permissions
+                Brand Team &amp; Roles
               </h2>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-300 font-mono">
-                {teamMembers.length} {teamMembers.length === 1 ? 'Seat' : 'Seats'}
+                {teamMembers.length} {teamMembers.length === 1 ? 'Member' : 'Members'}
               </span>
             </div>
             <p className="text-[11px] text-zinc-400 mt-0.5">
-              Role-Based Access Control (RBAC) for studio collaborators and co-developers
+              Manage who has access to your brand workspace and what they can do.
             </p>
           </div>
         </div>
@@ -273,13 +273,13 @@ export function BrandTeamManager() {
         <form onSubmit={handleSendInvite} className="p-4 rounded-xl bg-[#141414] border border-[#242424] space-y-3">
           <div className="flex items-center gap-2 text-xs font-semibold text-white uppercase tracking-wider">
             <UserPlus className="w-4 h-4 text-zinc-300" />
-            <span>Invite Team Member</span>
+            <span>Add a Team Member</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
             <div className="sm:col-span-5">
               <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">
-                Colleague Email
+                Teammate&apos;s Email Address
               </label>
               <div className="relative">
                 <Mail className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-3.5 pointer-events-none" />
@@ -294,23 +294,23 @@ export function BrandTeamManager() {
               </div>
             </div>
 
-            <div className="sm:col-span-5">
+            <div className="sm:col-span-4">
               <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">
-                Publisher Role
+                Choose Role
               </label>
               <select
                 value={inviteRole}
                 onChange={(e) => setInviteRole(e.target.value as any)}
                 className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors cursor-pointer"
               >
-                <option value="developer">Developer / Sound Designer</option>
+                <option value="developer">Developer &amp; Sound Designer</option>
                 <option value="admin">Brand Admin</option>
-                <option value="support">Support Agent</option>
-                <option value="finance">Finance / Operations</option>
+                <option value="support">Customer Support</option>
+                <option value="finance">Finance &amp; Accounting</option>
               </select>
             </div>
 
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-3">
               <button
                 type="submit"
                 disabled={inviting || !inviteEmail.trim()}
@@ -321,7 +321,7 @@ export function BrandTeamManager() {
                 ) : (
                   <>
                     <UserPlus className="w-3.5 h-3.5" />
-                    <span>Invite</span>
+                    <span>Send Invite</span>
                   </>
                 )}
               </button>
@@ -336,7 +336,7 @@ export function BrandTeamManager() {
       ) : (
         <div className="p-3.5 rounded-xl bg-[#141414] border border-[#242424] text-xs text-zinc-400 flex items-center gap-2">
           <Shield className="w-4 h-4 text-zinc-500 flex-shrink-0" />
-          <span>Only Brand Owners and Brand Admins have permission to invite or modify team members.</span>
+          <span>Only Brand Owners and Brand Admins can invite or change team members.</span>
         </div>
       )}
 
@@ -345,9 +345,9 @@ export function BrandTeamManager() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-semibold text-white uppercase tracking-wider">
             <UserCheck className="w-4 h-4 text-zinc-300" />
-            <span>Authorized Team Members</span>
+            <span>Active Team Members</span>
           </div>
-          <span className="text-[10px] text-zinc-500">Active Seats</span>
+          <span className="text-[10px] text-zinc-500">Active</span>
         </div>
 
         {loading ? (
@@ -470,7 +470,7 @@ export function BrandTeamManager() {
                         {invite.email}
                       </p>
                       <p className="text-[10px] text-zinc-500">
-                        Invited {new Date(invite.createdAt).toLocaleDateString()} • Pending First Login
+                        Invited {new Date(invite.createdAt).toLocaleDateString()} • Waiting to accept
                       </p>
                     </div>
                   </div>

@@ -226,7 +226,7 @@ function InviteAcceptForm() {
             Invitation Required
           </h1>
           <p className="text-xs text-zinc-400 leading-relaxed max-w-sm mx-auto">
-            {validationError}
+            You need a valid invite link to create a team account on Toy Creator. If a brand invited you, please open the link sent to your email. If your link expired, ask your brand manager to send a new one.
           </p>
         </div>
 
@@ -291,7 +291,7 @@ function InviteAcceptForm() {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-              Authorized Brand Seat
+              Brand Team
             </span>
             <span className="px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-[9px] font-extrabold uppercase text-zinc-300">
               {inviteData.role}
@@ -309,12 +309,12 @@ function InviteAcceptForm() {
       {/* Screen Title */}
       <div className="space-y-1 text-center">
         <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-          {inviteData.isExistingUser ? 'Accept Brand Invitation' : 'Create Your Team Account'}
+          {inviteData.isExistingUser ? `Join ${inviteData.brandName}` : 'Create Your Account'}
         </h1>
         <p className="text-xs text-zinc-400 leading-relaxed">
           {inviteData.isExistingUser
-            ? 'Sign in with your password to activate your seat and access the dashboard.'
-            : 'Set up your credentials to join this brand team on Toy Creator.'}
+            ? `Enter your password to accept the invitation and access ${inviteData.brandName}.`
+            : `Set your password to join ${inviteData.brandName} on Toy Creator.`}
         </p>
       </div>
 
@@ -409,11 +409,11 @@ function InviteAcceptForm() {
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <label className="block text-[12px] font-semibold text-zinc-300">
-                Email Address
+                Your Email Address
               </label>
               <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                Token Verified
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Invited Email
               </span>
             </div>
             <div className="relative flex items-center">
@@ -426,7 +426,7 @@ function InviteAcceptForm() {
               <Lock className="w-3.5 h-3.5 text-zinc-500 absolute right-3" />
             </div>
             <p className="text-[10px] text-zinc-500">
-              This invitation token is cryptographically bound to this email.
+              Your new account will be created under this email.
             </p>
           </div>
 
