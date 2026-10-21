@@ -26,9 +26,37 @@ import {
   ChevronRight,
   ChevronLeft,
   CheckCircle2,
+  Info,
 } from 'lucide-react';
 import SerialKeyPoolManager from '@/components/SerialKeyPoolManager';
 import DualAssetUploadInput from '@/components/DualAssetUploadInput';
+
+function FormLabel({
+  label,
+  info,
+  icon: Icon,
+}: {
+  label: string;
+  info?: string;
+  icon?: React.ComponentType<{ className?: string }>;
+}) {
+  return (
+    <div className="flex items-center gap-1.5 mb-1.5">
+      {Icon && <Icon className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />}
+      <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+        {label}
+      </label>
+      {info && (
+        <div className="relative group/info flex items-center flex-shrink-0">
+          <Info className="w-3.5 h-3.5 text-zinc-500 hover:text-zinc-300 cursor-help transition-colors" />
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 hidden group-hover/info:block z-30 w-56 p-2 rounded-lg bg-[#1e1e1e] border border-zinc-700 text-[11px] font-normal normal-case text-zinc-200 shadow-2xl pointer-events-none text-left leading-relaxed">
+            {info}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const STEPS = [
   { id: 1, label: 'Details', icon: FileText, desc: 'Title & Pricing' },
@@ -37,6 +65,7 @@ const STEPS = [
   { id: 4, label: 'Licensing', icon: Key, desc: 'Seats & Serials' },
   { id: 5, label: 'Visibility', icon: Eye, desc: 'Review & Publish' },
 ];
+
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -307,9 +336,7 @@ export default function ProductDetailPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                  Product Title
-                </label>
+                <FormLabel label="Product Title" />
                 <input
                   type="text"
                   required
@@ -320,9 +347,10 @@ export default function ProductDetailPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                  Storefront Slug (Fixed)
-                </label>
+                <FormLabel
+                  label="Storefront Slug"
+                  info="Permanent unique URL identifier on producertoy.com"
+                />
                 <input
                   type="text"
                   disabled
@@ -334,9 +362,7 @@ export default function ProductDetailPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                  Selling Price (USD)
-                </label>
+                <FormLabel label="Selling Price (USD)" />
                 <div className="relative">
                   <span className="absolute left-3 top-2.5 text-zinc-500 text-xs">$</span>
                   <input
@@ -351,9 +377,10 @@ export default function ProductDetailPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                  Original / List Price (USD)
-                </label>
+                <FormLabel
+                  label="Original Price (USD)"
+                  info="Optional strikethrough list price to display promotional discount"
+                />
                 <div className="relative">
                   <span className="absolute left-3 top-2.5 text-zinc-500 text-xs">$</span>
                   <input
@@ -369,12 +396,13 @@ export default function ProductDetailPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                Short Tagline
-              </label>
+              <FormLabel
+                label="Short Tagline"
+                info="One-sentence hook shown on marketplace cards and catalog search results"
+              />
               <input
                 type="text"
-                placeholder="High-end algorithmic algorithmic reverb for modern music producers"
+                placeholder="High-end algorithmic reverb for modern music producers"
                 value={shortDesc}
                 onChange={(e) => setShortDesc(e.target.value)}
                 className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
@@ -382,9 +410,10 @@ export default function ProductDetailPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                Full Description & Features
-              </label>
+              <FormLabel
+                label="Full Description"
+                info="Comprehensive feature notes, preset lists, and audio specifications"
+              />
               <textarea
                 rows={6}
                 placeholder="Detailed features, sound design notes, preset counts, and workflow highlights..."
@@ -411,17 +440,16 @@ export default function ProductDetailPage() {
               </span>
             </div>
 
-            {/* Cover Artwork */}
             {/* Cover Artwork Dual Mode with Integrated Live Preview */}
             <div className="w-full min-w-0">
               <DualAssetUploadInput
-                label="Square Cover Artwork (600x600 recommended)"
+                label="Cover Artwork"
+                info="600×600 px square PNG or WebP recommended"
                 value={coverImage}
                 onChange={setCoverImage}
                 assetCategory="cover"
                 accept="image/png,image/jpeg,image/webp"
                 placeholder="https://... or /products/proverb.png"
-                hint="High-resolution square PNG or WebP artwork displayed across marketplace cards"
                 icon={ImageIcon}
                 thumbnailUrl={coverImage}
               />
@@ -430,22 +458,23 @@ export default function ProductDetailPage() {
             {/* Audio Preview Dual Mode */}
             <div className="pt-3 border-t border-[#262626] w-full min-w-0">
               <DualAssetUploadInput
-                label="Audio Demo Preview (.mp3 or .wav)"
+                label="Audio Preview"
+                info="Direct MP3 or WAV audio stream for the storefront player"
                 value={demoAudioUrl}
                 onChange={setDemoAudioUrl}
                 assetCategory="demo_audio"
                 accept="audio/mp3,audio/mpeg,audio/wav"
                 placeholder="https://.../audio/proverb-demo.mp3"
-                hint="Streamed directly on the storefront audio player so buyers can preview before purchasing"
               />
             </div>
 
             {/* Video Demo */}
             <div className="pt-3 border-t border-[#262626] space-y-2 w-full min-w-0">
-              <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                <Video className="w-3.5 h-3.5 text-zinc-400" />
-                <span>YouTube Walkthrough Demo URL</span>
-              </label>
+              <FormLabel
+                label="Video Walkthrough"
+                info="YouTube video link embedded on product details page"
+                icon={Video}
+              />
               <input
                 type="text"
                 placeholder="https://www.youtube.com/watch?v=..."
@@ -472,32 +501,32 @@ export default function ProductDetailPage() {
               </span>
             </div>
 
-            {/* OS Specific Binary Installers with Dual Mode (Direct Drive Upload + External Link) */}
+            {/* OS Specific Binary Installers with Dual Mode */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0 w-full">
               <div className="min-w-0 w-full overflow-hidden">
                 <DualAssetUploadInput
-                  label="Windows Installer (.exe / .zip)"
+                  label="Windows Installer"
+                  info="64-bit VST3 installer or archive (.exe / .zip)"
                   value={downloadUrlWin}
                   onChange={setDownloadUrlWin}
                   onFileSizeDetected={setFileSize}
                   assetCategory="win_installer"
                   accept=".exe,.zip,.msi"
                   placeholder="https://.../ProVerb-Win-Setup.exe"
-                  hint="64-bit VST3 installer for Windows workstations"
                   icon={Monitor}
                 />
               </div>
 
               <div className="min-w-0 w-full overflow-hidden">
                 <DualAssetUploadInput
-                  label="macOS Installer (.pkg / .dmg)"
+                  label="macOS Installer"
+                  info="Universal binary (.pkg / .dmg) for Apple Silicon & Intel"
                   value={downloadUrlMac}
                   onChange={setDownloadUrlMac}
                   onFileSizeDetected={setFileSize}
                   assetCategory="mac_installer"
                   accept=".pkg,.dmg,.zip"
                   placeholder="https://.../ProVerb-macOS-Universal.pkg"
-                  hint="Universal package for Apple Silicon (M1/M2/M3) & Intel"
                   icon={Download}
                 />
               </div>
@@ -507,41 +536,39 @@ export default function ProductDetailPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-[#262626] min-w-0 w-full">
               <div className="min-w-0 w-full overflow-hidden">
                 <DualAssetUploadInput
-                  label="Universal / Preset Pack Archive (.zip)"
+                  label="Universal Archive"
+                  info="Cross-platform ZIP containing sample libraries, WAV files, or presets"
                   value={downloadUrl}
                   onChange={setDownloadUrl}
                   onFileSizeDetected={setFileSize}
                   assetCategory="universal_zip"
                   accept=".zip,.rar,.7z"
                   placeholder="https://.../Presets-Universal.zip"
-                  hint="Sound libraries, preset banks, or cross-platform archives"
                 />
               </div>
 
-
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider block">
-                  Download Archive File Size
-                </label>
+              <div>
+                <FormLabel
+                  label="Archive Size"
+                  info="Displayed on download badges and catalog cards. Auto-detected on upload"
+                />
                 <input
                   type="text"
-                  placeholder="e.g. 2.4 GB, 5.0 GB, or 350 MB (Auto-filled on upload)"
+                  placeholder="e.g. 2.4 GB or 350 MB"
                   value={fileSize}
                   onChange={(e) => setFileSize(e.target.value)}
                   className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
                 />
-                <span className="text-[10px] text-zinc-500 block">
-                  Displayed on the marketplace card and download badge
-                </span>
               </div>
             </div>
 
             {/* DAWs & OS requirements */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-[#262626]">
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                  Operating System Requirements
-                </label>
+                <FormLabel
+                  label="Operating System"
+                  info="System requirements (e.g. Windows 10/11 64-bit, macOS 12+)"
+                />
                 <input
                   type="text"
                   placeholder="Windows 10/11 64-bit, macOS 12+ (Apple Silicon & Intel)"
@@ -552,9 +579,10 @@ export default function ProductDetailPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                  Supported DAWs
-                </label>
+                <FormLabel
+                  label="Supported DAWs"
+                  info="Compatible workstations (e.g. Ableton Live, FL Studio, Logic Pro)"
+                />
                 <input
                   type="text"
                   placeholder="Ableton Live, FL Studio, Logic Pro, Pro Tools, Studio One, Reaper"
@@ -567,23 +595,21 @@ export default function ProductDetailPage() {
 
             {/* Release Version & Changelog */}
             <div className="pt-3 border-t border-[#262626] space-y-4">
-              <div>
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  <span>Release Version & Updates</span>
-                  <span className="text-[10px] font-mono font-normal text-zinc-300 bg-[#202020] px-2 py-0.5 rounded border border-[#34363d]">
-                    v{version || '1.0.0'}
-                  </span>
+              <div className="flex items-center gap-2">
+                <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                  Release Version
                 </h3>
-                <p className="text-[11px] text-zinc-400 mt-0.5">
-                  Increment version when publishing binary installer updates. Active buyer licenses and serial keys are preserved automatically.
-                </p>
+                <span className="text-[10px] font-mono font-normal text-zinc-300 bg-[#202020] px-2 py-0.5 rounded border border-[#34363d]">
+                  v{version || '1.0.0'}
+                </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                    Version Number (SemVer)
-                  </label>
+                  <FormLabel
+                    label="Version Number"
+                    info="Semantic version (SemVer). Updates preserve active buyer licenses automatically"
+                  />
                   <input
                     type="text"
                     placeholder="e.g. 1.0.0, 1.1.0"
@@ -594,9 +620,10 @@ export default function ProductDetailPage() {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                    Changelog / Release Notes
-                  </label>
+                  <FormLabel
+                    label="Changelog"
+                    info="Release notes and patch highlights visible to customers"
+                  />
                   <textarea
                     rows={3}
                     placeholder={`• Fixed buffer latency in Ableton Live & Logic Pro\n• Optimized CPU consumption by 15%\n• Added 24 new studio hall presets`}
@@ -628,9 +655,10 @@ export default function ProductDetailPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                    Formats
-                  </label>
+                  <FormLabel
+                    label="Plugin Formats"
+                    info="Architectures (e.g. VST3, AU, AAX, CLAP 64-bit)"
+                  />
                   <input
                     type="text"
                     placeholder="VST3, AU, AAX (64-bit)"
@@ -641,9 +669,10 @@ export default function ProductDetailPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                    Max Machine Seats
-                  </label>
+                  <FormLabel
+                    label="Machine Seats"
+                    info="Concurrent hardware activations per user license"
+                  />
                   <input
                     type="number"
                     min="1"
@@ -655,9 +684,10 @@ export default function ProductDetailPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                    Offline Grace Days
-                  </label>
+                  <FormLabel
+                    label="Offline Grace"
+                    info="Days a workstation can run offline before requiring license ping"
+                  />
                   <input
                     type="number"
                     min="1"
