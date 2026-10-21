@@ -26,6 +26,7 @@ import {
   ChevronLeft,
   CheckCircle2,
 } from 'lucide-react';
+import DualAssetUploadInput from '@/components/DualAssetUploadInput';
 
 const STEPS = [
   { id: 1, label: 'Details', icon: FileText, desc: 'Title & Pricing' },
@@ -379,12 +380,10 @@ export default function NewProductPage() {
               <span className="font-mono text-[10px] text-zinc-400">Step 2 of 5</span>
             </div>
 
+            {/* Cover Artwork with Live Preview & Dual Mode */}
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                Square Cover Image URL (600x600 recommended)
-              </label>
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                <div className="w-20 h-20 rounded-xl bg-[#121212] border border-[#2a2a2a] overflow-hidden flex-shrink-0 flex items-center justify-center shadow-inner">
+                <div className="w-16 h-16 rounded-xl bg-[#121212] border border-[#2a2a2a] overflow-hidden flex-shrink-0 flex items-center justify-center shadow-inner mt-6 sm:mt-0">
                   {coverImage ? (
                     <img
                       src={coverImage}
@@ -398,35 +397,32 @@ export default function NewProductPage() {
                     <Package className="w-6 h-6 text-zinc-500" />
                   )}
                 </div>
-                <div className="flex-1 w-full space-y-1.5">
-                  <input
-                    type="url"
-                    placeholder="https://.../cover.png or /products/proverb.png"
+                <div className="flex-1 w-full">
+                  <DualAssetUploadInput
+                    label="Square Cover Image URL (600x600 recommended)"
                     value={coverImage}
-                    onChange={(e) => setCoverImage(e.target.value)}
-                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                    onChange={setCoverImage}
+                    assetCategory="cover"
+                    accept="image/png,image/jpeg,image/webp"
+                    placeholder="https://.../cover.png or /products/proverb.png"
+                    hint="High-quality artwork displayed across all marketplace cards and detail pages"
+                    icon={ImageIcon}
                   />
-                  <p className="text-[11px] text-zinc-400">
-                    High-quality artwork displayed across all marketplace cards and detail pages.
-                  </p>
                 </div>
               </div>
             </div>
 
-            <div className="pt-3 border-t border-[#262626] space-y-2">
-              <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                Demo Audio Preview URL (.mp3)
-              </label>
-              <input
-                type="url"
-                placeholder="https://.../audio/demo-track.mp3"
+            {/* Audio Preview Dual Mode */}
+            <div className="pt-3 border-t border-[#262626]">
+              <DualAssetUploadInput
+                label="Audio Demo Preview (.mp3 or .wav)"
                 value={demoAudioUrl}
-                onChange={(e) => setDemoAudioUrl(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                onChange={setDemoAudioUrl}
+                assetCategory="demo_audio"
+                accept="audio/mp3,audio/mpeg,audio/wav"
+                placeholder="https://.../audio/demo-track.mp3"
+                hint="Powers the instant audio player on the product page"
               />
-              <p className="text-[11px] text-zinc-400">
-                Powers the instant audio player on the product page.
-              </p>
             </div>
 
             <div className="pt-3 border-t border-[#262626] space-y-2">
@@ -458,61 +454,60 @@ export default function NewProductPage() {
               <span className="font-mono text-[10px] text-zinc-400">Step 3 of 5</span>
             </div>
 
+            {/* OS Specific Binary Installers with Dual Mode */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                  <Monitor className="w-3.5 h-3.5 text-zinc-400" />
-                  <span>Windows Installer (.exe / .zip)</span>
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://.../Setup-Win-x64.exe"
-                  value={downloadUrlWin}
-                  onChange={(e) => setDownloadUrlWin(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
-                />
-              </div>
+              <DualAssetUploadInput
+                label="Windows Installer (.exe / .zip)"
+                value={downloadUrlWin}
+                onChange={setDownloadUrlWin}
+                onFileSizeDetected={setFileSize}
+                assetCategory="win_installer"
+                accept=".exe,.zip,.msi"
+                placeholder="https://.../Setup-Win-x64.exe"
+                hint="64-bit VST3 installer for Windows workstations"
+                icon={Monitor}
+              />
 
-              <div>
-                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                  <Download className="w-3.5 h-3.5 text-zinc-400" />
-                  <span>macOS Installer (.pkg / .dmg)</span>
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://.../Universal-macOS.pkg"
-                  value={downloadUrlMac}
-                  onChange={(e) => setDownloadUrlMac(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
-                />
-              </div>
+              <DualAssetUploadInput
+                label="macOS Installer (.pkg / .dmg)"
+                value={downloadUrlMac}
+                onChange={setDownloadUrlMac}
+                onFileSizeDetected={setFileSize}
+                assetCategory="mac_installer"
+                accept=".pkg,.dmg,.zip"
+                placeholder="https://.../Universal-macOS.pkg"
+                hint="Universal package for Apple Silicon (M1/M2/M3) & Intel"
+                icon={Download}
+              />
             </div>
 
+            {/* Universal Archive & Size */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-[#262626]">
-              <div>
-                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                  Universal / Presets Archive URL
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://.../presets.zip"
-                  value={downloadUrl}
-                  onChange={(e) => setDownloadUrl(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
-                />
-              </div>
+              <DualAssetUploadInput
+                label="Universal / Presets Archive (.zip)"
+                value={downloadUrl}
+                onChange={setDownloadUrl}
+                onFileSizeDetected={setFileSize}
+                assetCategory="universal_zip"
+                accept=".zip,.rar,.7z"
+                placeholder="https://.../presets.zip"
+                hint="Sound libraries, preset banks, or cross-platform archives"
+              />
 
-              <div>
-                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider block">
                   Download Archive File Size
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. 450 MB or 1.2 GB"
+                  placeholder="e.g. 450 MB or 1.2 GB (Auto-filled on upload)"
                   value={fileSize}
                   onChange={(e) => setFileSize(e.target.value)}
                   className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
                 />
+                <span className="text-[10px] text-zinc-500 block">
+                  Displayed on the marketplace card and download badge
+                </span>
               </div>
             </div>
 
