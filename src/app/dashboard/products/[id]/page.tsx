@@ -80,7 +80,8 @@ export default function ProductDetailPage() {
     setErrorMsg('');
 
     try {
-      await updateBrandProduct(productId, {
+      const targetId = product?.id || productId;
+      await updateBrandProduct(targetId, {
         name: name.trim(),
         price_usd: parseFloat(priceUsd) || 0,
         original_price_usd: originalPriceUsd ? parseFloat(originalPriceUsd) : null,

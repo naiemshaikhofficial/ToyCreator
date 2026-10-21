@@ -173,61 +173,59 @@ export async function getBrandProducts(brandId: string) {
 }
 
 /**
- * Fetch a single product by ID
+ * Fetch a single product by ID or slug
  */
 export async function getProductById(productId: string) {
+  if (!productId) return null;
   const supabase = getSupabaseBrowserClient();
+  
+  // 1. Try by ID first if it's a UUID
   const { data, error } = await supabase
     .from('products')
     .select('*, brands(*)')
     .eq('id', productId)
     .maybeSingle();
 
-  if (error) {
-    console.error('Error fetching product by ID:', error);
-    return null;
+  if (data) {
+    return data;
   }
-  return data;
+
+  // 2. Fallback: search by slug in case parameter was a slug
+  const { data: bySlug } = await supabase
+    .from('products')
+    .select('*, brands(*)')
+    .eq('slug', productId)
+    .maybeSingle();
+
+  if (bySlug) {
+    return bySlug;
+  }
+
+  return null;
 }
 
 /**
- * Create a new product in Supabase
+ * Create a new product in Supabase using Server Action
  */
 export async function createBrandProduct(productData: any) {
-  const admin = getAdminClient();
-  const { data, error } = await admin
-    .from('products')
-    .insert(productData)
-    .select('*')
-    .single();
-
-  if (error) {
-    console.error('Error creating product:', error);
-    throw error;
+  const { createBrandProductAction } = await import('@/actions/productActions');
+  const result = await createBrandProductAction(productData);
+  if (!result.success) {
+    throw new Error(result.error);
   }
-  return data;
+  return result.data;
 }
 
 /**
- * Update an existing product in Supabase
+ * Update an existing product in Supabase using Server Action
  */
 export async function updateBrandProduct(productId: string, updates: any) {
-  const admin = getAdminClient();
-  const { data, error } = await admin
-    .from('products')
-    .update({
-      ...updates,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', productId)
-    .select('*')
-    .single();
-
-  if (error) {
-    console.error('Error updating product:', error);
-    throw error;
+  const { updateBrandProductAction } = await import('@/actions/productActions');
+  const result = await updateBrandProductAction(productId, updates);
+  if (!result.success) {
+    throw new Error(result.error);
   }
-  return data;
+  return result.data;
 }
 
 /**

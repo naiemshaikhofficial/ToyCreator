@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useBrand } from '@/context/BrandContext';
-import { getAdminClient } from '@/lib/supabase/admin';
+import { updateBrandProfileAction } from '@/actions/brandActions';
 import {
   Building2,
   Save,
@@ -29,36 +29,22 @@ export default function ProfilePage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!brand?.id) return;
-
     setSaving(true);
     setSuccessMsg('');
     setErrorMsg('');
 
     try {
-      const admin = getAdminClient();
+      const result = await updateBrandProfileAction(brand.id, membership?.id, {
+        brandName: brandName.trim(),
+        websiteUrl: websiteUrl.trim() || null,
+        description: description.trim() || null,
+        logoUrl: logoUrl.trim() || null,
+        payoutEmail: payoutEmail.trim() || null,
+        payoutMethod: payoutMethod,
+      });
 
-      // 1. Update brand info in brands table
-      const { error: brandErr } = await admin
-        .from('brands')
-        .update({
-          name: brandName.trim(),
-          website_url: websiteUrl.trim() || null,
-          description: description.trim() || null,
-          logo_url: logoUrl.trim() || null,
-        })
-        .eq('id', brand.id);
-
-      if (brandErr) throw brandErr;
-
-      // 2. Update payout info in brand_members table
-      if (membership?.id) {
-        await admin
-          .from('brand_members')
-          .update({
-            payout_email: payoutEmail.trim() || null,
-            payout_method: payoutMethod,
-          })
-          .eq('id', membership.id);
+      if (!result.success) {
+        throw new Error(result.error);
       }
 
       await refreshBrand();
