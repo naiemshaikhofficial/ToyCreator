@@ -19,8 +19,23 @@ import {
   HardDrive,
   Video,
   Layers,
+  FileText,
+  Image as ImageIcon,
+  Key,
+  Eye,
+  ChevronRight,
+  ChevronLeft,
+  CheckCircle2,
 } from 'lucide-react';
 import SerialKeyPoolManager from '@/components/SerialKeyPoolManager';
+
+const STEPS = [
+  { id: 1, label: 'Details', icon: FileText, desc: 'Title & Pricing' },
+  { id: 2, label: 'Media', icon: ImageIcon, desc: 'Artwork & Demos' },
+  { id: 3, label: 'Installers', icon: HardDrive, desc: 'Files & DAWs' },
+  { id: 4, label: 'Licensing', icon: Key, desc: 'Seats & Serials' },
+  { id: 5, label: 'Visibility', icon: Eye, desc: 'Review & Publish' },
+];
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -31,6 +46,7 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [activeStep, setActiveStep] = useState(1);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -91,8 +107,8 @@ export default function ProductDetailPage() {
     loadProduct();
   }, [productId]);
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setSaving(true);
     setSuccessMsg('');
     setErrorMsg('');
@@ -120,11 +136,11 @@ export default function ProductDetailPage() {
         is_active: isActive,
       });
 
-      setSuccessMsg('Product updated successfully in database.');
+      setSuccessMsg('All product details saved successfully.');
       setTimeout(() => setSuccessMsg(''), 4000);
     } catch (err: any) {
       console.error('Error saving product:', err);
-      setErrorMsg(err.message || 'Failed to update product in Supabase.');
+      setErrorMsg(err.message || 'Failed to update product.');
     } finally {
       setSaving(false);
     }
@@ -133,7 +149,7 @@ export default function ProductDetailPage() {
   if (loading) {
     return (
       <div className="py-20 text-center text-xs text-zinc-400">
-        Loading product details from Supabase...
+        Loading product details...
       </div>
     );
   }
@@ -152,7 +168,7 @@ export default function ProductDetailPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 font-sans">
-      {/* Header */}
+      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <Link
@@ -183,269 +199,315 @@ export default function ProductDetailPage() {
             rel="noreferrer"
             className="btn-secondary px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5"
           >
-            <span>Live Marketplace</span>
+            <span>Live Storefront</span>
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
+          <button
+            type="button"
+            onClick={() => handleSave()}
+            disabled={saving}
+            className="btn-primary px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md"
+          >
+            {saving ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Save className="w-3.5 h-3.5" />
+            )}
+            <span>Save</span>
+          </button>
         </div>
       </div>
 
       {successMsg && (
-        <div className="p-4 bg-[#202020] border border-zinc-700/60 rounded-xl text-white text-xs flex items-center gap-2">
+        <div className="p-3.5 bg-[#202020] border border-zinc-700/60 rounded-xl text-white text-xs flex items-center gap-2">
           <CheckCircle className="w-4 h-4 text-zinc-300 flex-shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
       {errorMsg && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-center gap-2">
+        <div className="p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-center gap-2">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
 
-      <form onSubmit={handleSave} className="space-y-6">
-        {/* Core Specs */}
-        <div className="toy-card p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-[#2a2a2a] pb-3">
-            <div className="flex items-center gap-2">
-              <Package className="w-4 h-4 text-zinc-300" />
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-                Product Details & Pricing
-              </h2>
-            </div>
-            <span className="font-mono text-[10px] text-zinc-400">
-              ID: {product.id.slice(0, 8)}...
-            </span>
-          </div>
+      {/* YouTube Studio Style Stepper Bar */}
+      <div className="bg-[#141414] border border-[#262626] rounded-2xl p-2 sm:p-3">
+        <div className="grid grid-cols-5 gap-1 sm:gap-2">
+          {STEPS.map((step) => {
+            const Icon = step.icon;
+            const isCurrent = activeStep === step.id;
+            const isDone = activeStep > step.id;
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            return (
+              <button
+                key={step.id}
+                type="button"
+                onClick={() => setActiveStep(step.id)}
+                className={`relative flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2.5 p-2 sm:px-3 sm:py-2.5 rounded-xl transition-all text-left ${
+                  isCurrent
+                    ? 'bg-[#222222] text-white shadow-sm border border-[#34363d]'
+                    : isDone
+                    ? 'text-zinc-300 hover:bg-[#1a1a1a]'
+                    : 'text-zinc-500 hover:text-zinc-400 hover:bg-[#181818]'
+                }`}
+              >
+                <div
+                  className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-mono font-bold ${
+                    isCurrent
+                      ? 'bg-white text-black'
+                      : isDone
+                      ? 'bg-[#282828] text-zinc-300'
+                      : 'bg-[#181818] text-zinc-600'
+                  }`}
+                >
+                  {isDone ? <CheckCircle2 className="w-3.5 h-3.5" /> : step.id}
+                </div>
+                <div className="min-w-0 text-center sm:text-left">
+                  <span className="block text-xs font-semibold truncate leading-tight">
+                    {step.label}
+                  </span>
+                  <span className="hidden sm:block text-[10px] text-zinc-400 truncate">
+                    {step.desc}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Main Step Content Container */}
+      <form onSubmit={handleSave} className="space-y-6">
+        {/* STEP 1: Details & Pricing */}
+        {activeStep === 1 && (
+          <div className="toy-card p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-[#2a2a2a] pb-3">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-zinc-300" />
+                <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+                  Product Details & Pricing
+                </h2>
+              </div>
+              <span className="font-mono text-[10px] text-zinc-400">
+                Step 1 of 5
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
+                  Product Title
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
+                  Storefront Slug (Fixed)
+                </label>
+                <input
+                  type="text"
+                  disabled
+                  value={product.slug || ''}
+                  className="w-full bg-[#141414] border border-[#262626] rounded-xl px-3.5 py-2.5 text-xs font-mono text-zinc-400 cursor-not-allowed"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
+                  Selling Price (USD)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-zinc-500 text-xs">$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    value={priceUsd}
+                    onChange={(e) => setPriceUsd(e.target.value)}
+                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-7 pr-3 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
+                  Original / List Price (USD)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-zinc-500 text-xs">$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="e.g. 59.00"
+                    value={originalPriceUsd}
+                    onChange={(e) => setOriginalPriceUsd(e.target.value)}
+                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-7 pr-3 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div>
               <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                Product Title
+                Short Tagline
               </label>
               <input
                 type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                placeholder="High-end algorithmic algorithmic reverb for modern music producers"
+                value={shortDesc}
+                onChange={(e) => setShortDesc(e.target.value)}
                 className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
               />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                Marketplace Slug (Fixed)
+                Full Description & Features
               </label>
-              <input
-                type="text"
-                disabled
-                value={product.slug || ''}
-                className="w-full bg-[#141414] border border-[#262626] rounded-xl px-3.5 py-2.5 text-xs font-mono text-zinc-400 cursor-not-allowed"
+              <textarea
+                rows={6}
+                placeholder="Detailed features, sound design notes, preset counts, and workflow highlights..."
+                value={fullDesc}
+                onChange={(e) => setFullDesc(e.target.value)}
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl p-3.5 text-xs text-white focus:border-[#42454e] transition-colors resize-y leading-relaxed"
               />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                Selling Price (USD)
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-2.5 text-zinc-500 text-xs">$</span>
-                <input
-                  type="number"
-                  step="0.01"
-                  required
-                  value={priceUsd}
-                  onChange={(e) => setPriceUsd(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-7 pr-3 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                Original Price (USD)
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-2.5 text-zinc-500 text-xs">$</span>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={originalPriceUsd}
-                  onChange={(e) => setOriginalPriceUsd(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-7 pr-3 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-              Short Description
-            </label>
-            <input
-              type="text"
-              value={shortDesc}
-              onChange={(e) => setShortDesc(e.target.value)}
-              className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-              Full Description & Technical Specifications
-            </label>
-            <textarea
-              rows={6}
-              value={fullDesc}
-              onChange={(e) => setFullDesc(e.target.value)}
-              className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl p-3.5 text-xs text-white focus:border-[#42454e] transition-colors resize-y"
-            />
-          </div>
-        </div>
-
-        {/* Licensing & Hardware Config */}
-        {product.product_type === 'plugin' && (
-          <div className="toy-card p-6 space-y-4">
-            <div className="flex items-center gap-2 border-b border-[#2a2a2a] pb-3">
-              <Cpu className="w-4 h-4 text-zinc-300" />
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-                VST Licensing & Machine Seats
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                  Plugin Identifier
-                </label>
-                <input
-                  type="text"
-                  disabled
-                  value={product.plugin_identifier || 'None assigned'}
-                  className="w-full bg-[#141414] border border-[#262626] rounded-xl px-3.5 py-2.5 text-xs font-mono text-zinc-400 cursor-not-allowed"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                  Formats
-                </label>
-                <input
-                  type="text"
-                  value={vstFormat}
-                  onChange={(e) => setVstFormat(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                  Max Activation Seats
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={maxSeats}
-                  onChange={(e) => setMaxSeats(parseInt(e.target.value) || 3)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                  Offline Grace Days
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="90"
-                  value={offlineGraceDays}
-                  onChange={(e) => setOfflineGraceDays(parseInt(e.target.value) || 14)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
-                />
-              </div>
             </div>
           </div>
         )}
 
-        {/* Media & URLs */}
-        <div className="toy-card p-6 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* STEP 2: Media & Previews */}
+        {activeStep === 2 && (
+          <div className="toy-card p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-[#2a2a2a] pb-3">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-zinc-300" />
+                <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+                  Artwork & Audio/Video Demos
+                </h2>
+              </div>
+              <span className="font-mono text-[10px] text-zinc-400">
+                Step 2 of 5
+              </span>
+            </div>
+
+            {/* Cover Artwork */}
             <div>
               <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                Cover Image URL
+                Square Cover Artwork (600x600 recommended)
               </label>
-              <div className="flex gap-3 items-center">
-                <div className="w-11 h-11 rounded-lg bg-[#141414] border border-[#2a2a2a] overflow-hidden flex-shrink-0 flex items-center justify-center">
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                <div className="w-20 h-20 rounded-xl bg-[#121212] border border-[#2a2a2a] overflow-hidden flex-shrink-0 flex items-center justify-center shadow-inner">
                   {coverImage ? (
                     <img
                       src={coverImage}
-                      alt="Preview"
+                      alt="Product Cover"
                       className="w-full h-full object-cover"
                       onError={(e: any) => {
                         e.target.src = '/icon.png';
                       }}
                     />
                   ) : (
-                    <Package className="w-5 h-5 text-zinc-500" />
+                    <Package className="w-6 h-6 text-zinc-500" />
                   )}
                 </div>
-                <input
-                  type="text"
-                  placeholder="https://... or /products/proverb.png"
-                  value={coverImage}
-                  onChange={(e) => setCoverImage(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
-                />
+                <div className="flex-1 w-full space-y-1.5">
+                  <input
+                    type="text"
+                    placeholder="https://... or /products/proverb.png"
+                    value={coverImage}
+                    onChange={(e) => setCoverImage(e.target.value)}
+                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                  />
+                  <p className="text-[11px] text-zinc-400">
+                    High-resolution square PNG or WebP artwork displayed across marketplace cards.
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div>
+            {/* Audio Preview */}
+            <div className="pt-3 border-t border-[#262626] space-y-2">
               <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                Demo Audio Preview URL
+                Audio Demo URL (.mp3 or stream)
               </label>
               <input
                 type="text"
+                placeholder="https://.../audio/proverb-demo.mp3"
                 value={demoAudioUrl}
                 onChange={(e) => setDemoAudioUrl(e.target.value)}
                 className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
               />
+              <p className="text-[11px] text-zinc-400">
+                Played directly on the storefront player so buyers can preview before purchasing.
+              </p>
+            </div>
+
+            {/* Video Demo */}
+            <div className="pt-3 border-t border-[#262626] space-y-2">
+              <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <Video className="w-3.5 h-3.5 text-zinc-400" />
+                <span>YouTube Walkthrough Demo URL</span>
+              </label>
+              <input
+                type="text"
+                placeholder="https://www.youtube.com/watch?v=..."
+                value={youtubeUrl}
+                onChange={(e) => setYoutubeUrl(e.target.value)}
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+              />
             </div>
           </div>
+        )}
 
-          {/* Multi-OS Binary Installers (Plugin Boutique Architecture) */}
-          <div className="pt-2 border-t border-[#2a2a2a] space-y-4">
-            <div className="flex items-center gap-2">
-              <HardDrive className="w-4 h-4 text-zinc-300" />
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                Multi-Platform Installers & Binaries
-              </h3>
+        {/* STEP 3: Installers & Specs */}
+        {activeStep === 3 && (
+          <div className="toy-card p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-[#2a2a2a] pb-3">
+              <div className="flex items-center gap-2">
+                <HardDrive className="w-4 h-4 text-zinc-300" />
+                <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+                  Installers & System Compatibility
+                </h2>
+              </div>
+              <span className="font-mono text-[10px] text-zinc-400">
+                Step 3 of 5
+              </span>
             </div>
 
+            {/* OS Specific Binary Installers */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                   <Monitor className="w-3.5 h-3.5 text-zinc-400" />
-                  <span>Windows Installer URL (.exe / .zip)</span>
+                  <span>Windows Installer (.exe / .zip)</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="https://.../ProVerb-Win-x64-Setup.exe"
+                  placeholder="https://.../ProVerb-Win-Setup.exe"
                   value={downloadUrlWin}
                   onChange={(e) => setDownloadUrlWin(e.target.value)}
                   className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
                 />
+                <span className="text-[10px] text-zinc-500 mt-1 block">
+                  VST3 64-bit setup for Windows workstations
+                </span>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                   <Download className="w-3.5 h-3.5 text-zinc-400" />
-                  <span>macOS Installer URL (.pkg / .dmg)</span>
+                  <span>macOS Installer (.pkg / .dmg)</span>
                 </label>
                 <input
                   type="text"
@@ -454,17 +516,21 @@ export default function ProductDetailPage() {
                   onChange={(e) => setDownloadUrlMac(e.target.value)}
                   className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
                 />
+                <span className="text-[10px] text-zinc-500 mt-1 block">
+                  Universal binary (Apple Silicon M1/M2/M3 & Intel)
+                </span>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Universal Archive & Size */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-[#262626]">
               <div>
                 <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-                  Universal / Presets Archive URL
+                  Universal / Preset Pack Link
                 </label>
                 <input
                   type="text"
-                  placeholder="https://.../ProVerb-Presets-Pack.zip"
+                  placeholder="https://.../Presets-Universal.zip"
                   value={downloadUrl}
                   onChange={(e) => setDownloadUrl(e.target.value)}
                   className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
@@ -484,18 +550,9 @@ export default function ProductDetailPage() {
                 />
               </div>
             </div>
-          </div>
 
-          {/* Compatibility & Video Demo */}
-          <div className="pt-2 border-t border-[#2a2a2a] space-y-4">
-            <div className="flex items-center gap-2">
-              <Layers className="w-4 h-4 text-zinc-300" />
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                System Compatibility & Video Walkthrough
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* DAWs & OS requirements */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-[#262626]">
               <div>
                 <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
                   Operating System Requirements
@@ -522,69 +579,201 @@ export default function ProductDetailPage() {
                 />
               </div>
             </div>
+          </div>
+        )}
 
-            <div>
-              <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                <Video className="w-3.5 h-3.5 text-zinc-400" />
-                <span>YouTube Demo / Video Walkthrough URL</span>
-              </label>
+        {/* STEP 4: Licensing & Serials */}
+        {activeStep === 4 && (
+          <div className="space-y-6">
+            <div className="toy-card p-6 space-y-4">
+              <div className="flex items-center justify-between border-b border-[#2a2a2a] pb-3">
+                <div className="flex items-center gap-2">
+                  <Cpu className="w-4 h-4 text-zinc-300" />
+                  <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+                    Plugin Licensing Configuration
+                  </h2>
+                </div>
+                <span className="font-mono text-[10px] text-zinc-400">
+                  Step 4 of 5
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
+                    Formats
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="VST3, AU, AAX (64-bit)"
+                    value={vstFormat}
+                    onChange={(e) => setVstFormat(e.target.value)}
+                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
+                    Max Machine Seats
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={maxSeats}
+                    onChange={(e) => setMaxSeats(parseInt(e.target.value) || 3)}
+                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
+                    Offline Grace Days
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="90"
+                    value={offlineGraceDays}
+                    onChange={(e) => setOfflineGraceDays(parseInt(e.target.value) || 14)}
+                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Embedded Serial Key Pool */}
+            <SerialKeyPoolManager
+              productId={product.id}
+              productName={product.name}
+            />
+          </div>
+        )}
+
+        {/* STEP 5: Visibility & Review */}
+        {activeStep === 5 && (
+          <div className="toy-card p-6 space-y-6">
+            <div className="flex items-center justify-between border-b border-[#2a2a2a] pb-3">
+              <div className="flex items-center gap-2">
+                <Eye className="w-4 h-4 text-zinc-300" />
+                <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+                  Review & Catalog Visibility
+                </h2>
+              </div>
+              <span className="font-mono text-[10px] text-zinc-400">
+                Step 5 of 5
+              </span>
+            </div>
+
+            {/* Active Toggle Box */}
+            <div className="bg-[#121212] border border-[#2a2a2a] p-4 rounded-xl flex items-center justify-between">
+              <div>
+                <span className="text-xs font-bold text-white block">
+                  Catalog Status: {isActive ? 'Live on Storefront' : 'Draft Mode (Hidden)'}
+                </span>
+                <p className="text-[11px] text-zinc-400 mt-0.5">
+                  When enabled, verified music producers can discover and purchase this item.
+                </p>
+              </div>
+
               <input
-                type="text"
-                placeholder="https://www.youtube.com/watch?v=..."
-                value={youtubeUrl}
-                onChange={(e) => setYoutubeUrl(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                type="checkbox"
+                id="isActiveToggle"
+                checked={isActive}
+                onChange={(e) => setIsActive(e.target.checked)}
+                className="w-5 h-5 rounded bg-[#181818] border-[#34363d] text-[#34363d] focus:ring-zinc-600 cursor-pointer"
               />
             </div>
-          </div>
 
-          <div className="pt-2 flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="isActiveEdit"
-              checked={isActive}
-              onChange={(e) => setIsActive(e.target.checked)}
-              className="w-4 h-4 rounded bg-[#121212] border-[#2e2e2e] text-[#34363d] focus:ring-zinc-600"
-            />
-            <label htmlFor="isActiveEdit" className="text-xs text-zinc-300 font-medium cursor-pointer">
-              Product is active and visible to buyers on ProducerToy
-            </label>
-          </div>
-        </div>
+            {/* Product Configuration Checklist */}
+            <div className="space-y-2">
+              <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+                Asset Readiness Checklist
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div className="p-3 bg-[#121212] border border-[#222222] rounded-lg flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${coverImage ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                  <span className="text-zinc-300">Cover Artwork:</span>
+                  <span className="font-mono text-[11px] text-zinc-400 ml-auto">
+                    {coverImage ? 'Configured' : 'Missing'}
+                  </span>
+                </div>
 
-        {/* Submit Button */}
-        <div className="flex items-center justify-end gap-3">
-          <Link
-            href="/dashboard/products"
-            className="btn-secondary px-5 py-2.5 rounded-xl text-xs font-semibold"
-          >
-            Cancel
-          </Link>
-          <button
-            type="submit"
-            disabled={saving}
-            className="btn-primary px-6 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-lg uppercase tracking-wider"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Saving to Database...</span>
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4" />
-                <span>Save Changes</span>
-              </>
+                <div className="p-3 bg-[#121212] border border-[#222222] rounded-lg flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${demoAudioUrl ? 'bg-emerald-500' : 'bg-zinc-600'}`} />
+                  <span className="text-zinc-300">Demo Audio:</span>
+                  <span className="font-mono text-[11px] text-zinc-400 ml-auto">
+                    {demoAudioUrl ? 'Active' : 'None'}
+                  </span>
+                </div>
+
+                <div className="p-3 bg-[#121212] border border-[#222222] rounded-lg flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${downloadUrlWin ? 'bg-emerald-500' : 'bg-zinc-600'}`} />
+                  <span className="text-zinc-300">Windows Installer:</span>
+                  <span className="font-mono text-[11px] text-zinc-400 ml-auto">
+                    {downloadUrlWin ? 'Linked' : 'Optional'}
+                  </span>
+                </div>
+
+                <div className="p-3 bg-[#121212] border border-[#222222] rounded-lg flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${downloadUrlMac ? 'bg-emerald-500' : 'bg-zinc-600'}`} />
+                  <span className="text-zinc-300">macOS Installer:</span>
+                  <span className="font-mono text-[11px] text-zinc-400 ml-auto">
+                    {downloadUrlMac ? 'Linked' : 'Optional'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bottom Stepper Navigation & Action Bar */}
+        <div className="flex items-center justify-between pt-2 border-t border-[#222222]">
+          <div>
+            {activeStep > 1 && (
+              <button
+                type="button"
+                onClick={() => setActiveStep((prev) => Math.max(1, prev - 1))}
+                className="btn-secondary px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span>Previous Step</span>
+              </button>
             )}
-          </button>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {activeStep < 5 ? (
+              <button
+                type="button"
+                onClick={() => setActiveStep((prev) => Math.min(5, prev + 1))}
+                className="btn-secondary px-5 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5"
+              >
+                <span>Continue: {STEPS[activeStep]?.label}</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            ) : null}
+
+            <button
+              type="submit"
+              disabled={saving}
+              className="btn-primary px-6 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-lg uppercase tracking-wider"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  <span>Save Product</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </form>
-
-      {/* Serial Key Pool Management (Plugin Boutique Architecture) */}
-      <SerialKeyPoolManager
-        productId={product.id}
-        productName={product.name}
-      />
     </div>
   );
 }

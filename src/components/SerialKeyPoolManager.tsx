@@ -138,9 +138,9 @@ export default function SerialKeyPoolManager({
           </div>
           <div>
             <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <span>License Key Pool</span>
+              <span>License Keys & Serials</span>
               <span className="text-[10px] font-mono font-normal text-zinc-400 bg-[#202020] px-2 py-0.5 rounded-full border border-zinc-700/50">
-                Plugin Boutique Architecture
+                Automated Delivery
               </span>
             </h2>
             <p className="text-[11px] text-zinc-400">
