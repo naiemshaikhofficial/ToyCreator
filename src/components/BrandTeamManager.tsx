@@ -14,6 +14,8 @@ import {
   Loader2,
   RefreshCw,
   UserCheck,
+  Copy,
+  Check,
 } from 'lucide-react';
 import {
   getBrandTeamAction,
@@ -68,6 +70,7 @@ export function BrandTeamManager() {
   const [inviteRole, setInviteRole] = useState<'admin' | 'developer' | 'support' | 'finance'>('developer');
   const [inviting, setInviting] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [copiedInviteId, setCopiedInviteId] = useState<string | null>(null);
 
   // Status feedback
   const [successMsg, setSuccessMsg] = useState('');
@@ -205,6 +208,15 @@ export function BrandTeamManager() {
     } finally {
       setActionLoadingId(null);
     }
+  };
+
+  const handleCopyInviteLink = (invite: BrandInvite) => {
+    if (!invite.token) return;
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://creators.producertoy.com';
+    const inviteUrl = `${origin}/invite?token=${encodeURIComponent(invite.token)}`;
+    navigator.clipboard.writeText(inviteUrl);
+    setCopiedInviteId(invite.id);
+    setTimeout(() => setCopiedInviteId(null), 2500);
   };
 
   return (
@@ -467,6 +479,27 @@ export function BrandTeamManager() {
                     <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300">
                       {roleInfo.label}
                     </span>
+
+                    {invite.token && (
+                      <button
+                        type="button"
+                        onClick={() => handleCopyInviteLink(invite)}
+                        title="Copy Secure Invitation Link"
+                        className="p-1 px-2 text-zinc-400 hover:text-white bg-[#1a1a1a] hover:bg-[#222222] border border-zinc-700/60 rounded-lg transition-colors flex items-center gap-1.5 text-[10px] font-semibold"
+                      >
+                        {copiedInviteId === invite.id ? (
+                          <>
+                            <Check className="w-3 h-3 text-emerald-400" />
+                            <span className="text-emerald-400">Copied</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3 h-3 text-zinc-400" />
+                            <span>Copy Link</span>
+                          </>
+                        )}
+                      </button>
+                    )}
 
                     {isOwnerOrAdmin && (
                       <button

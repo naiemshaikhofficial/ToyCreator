@@ -62,6 +62,8 @@ interface SendBrandTeamInviteParams {
   brandLogoUrl?: string | null;
   role: 'admin' | 'developer' | 'support' | 'finance';
   inviterEmail?: string;
+  inviteToken?: string;
+  isNewAccount?: boolean;
 }
 
 export async function sendBrandTeamInviteEmail({
@@ -70,6 +72,8 @@ export async function sendBrandTeamInviteEmail({
   brandLogoUrl,
   role,
   inviterEmail,
+  inviteToken,
+  isNewAccount,
 }: SendBrandTeamInviteParams): Promise<{ success: boolean; error?: string; messageId?: string }> {
   const cleanEmail = to.trim().toLowerCase();
   if (!cleanEmail || !cleanEmail.includes('@')) {
@@ -84,7 +88,17 @@ export async function sendBrandTeamInviteEmail({
 
   const fromEmail = process.env.EMAIL_FROM || 'ProducerToy Creator Portal <info@producertoy.com>';
   const roleInfo = ROLE_METADATA[role] || ROLE_METADATA.developer;
-  const loginUrl = `${CREATORS_PORTAL_URL}/login?email=${encodeURIComponent(cleanEmail)}`;
+  const actionUrl = inviteToken
+    ? `${CREATORS_PORTAL_URL}/invite?token=${encodeURIComponent(inviteToken)}`
+    : `${CREATORS_PORTAL_URL}/login?email=${encodeURIComponent(cleanEmail)}`;
+
+  const ctaButtonText = isNewAccount
+    ? 'Accept Invitation &amp; Create Account'
+    : 'Accept Invitation &amp; Access Dashboard';
+
+  const activationNoteHtml = isNewAccount
+    ? `<strong style="color: #ffffff;">How account creation works:</strong> Set your password and activate your seat for <strong>${brandName}</strong>. This secure token is cryptographically bound to <span style="color: #ffffff; font-family: monospace;">${cleanEmail}</span>.`
+    : `<strong style="color: #ffffff;">How login works:</strong> Sign in with your existing account using <span style="color: #ffffff; font-family: monospace;">${cleanEmail}</span>. Your seat for <strong>${brandName}</strong> will automatically link upon authentication.`;
 
   const permissionsListHtml = roleInfo.permissions
     .map(
@@ -229,9 +243,9 @@ export async function sendBrandTeamInviteEmail({
                     <table border="0" cellpadding="0" cellspacing="0">
                       <tr>
                         <td align="center" style="background-color: #27272a; border-radius: 10px; border: 1px solid rgba(255,255,255,0.22); box-shadow: 0 6px 18px rgba(0,0,0,0.6);">
-                          <a href="${loginUrl}" 
+                          <a href="${actionUrl}" 
                              style="display: inline-block; padding: 14px 34px; font-size: 12px; font-weight: 800; color: #ffffff; text-decoration: none; text-transform: uppercase; letter-spacing: 0.08em;">
-                            Accept Invitation &amp; Access Dashboard
+                            ${ctaButtonText}
                           </a>
                         </td>
                       </tr>
@@ -242,7 +256,7 @@ export async function sendBrandTeamInviteEmail({
 
               <!-- Instant Activation Note -->
               <div style="padding: 14px 16px; background-color: #121214; border: 1px solid #202024; border-radius: 8px; font-size: 11px; line-height: 1.6; color: #888888; margin-bottom: 22px;">
-                <strong style="color: #ffffff;">How login works:</strong> Sign in or register with <span style="color: #ffffff; font-family: monospace;">${cleanEmail}</span>. Your seat for <strong>${brandName}</strong> will automatically bind upon account verification.
+                ${activationNoteHtml}
               </div>
 
               <!-- Support Section (support@producertoy.com mailto with icon) -->

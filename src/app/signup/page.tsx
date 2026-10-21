@@ -1,11 +1,22 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ArrowLeft, ShieldAlert } from 'lucide-react';
 import { CreatorApplicationForm } from '@/components/CreatorApplicationForm';
 
-export default function SignupPage() {
+function SignupContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token');
+
+  useEffect(() => {
+    if (token) {
+      router.replace(`/invite?token=${encodeURIComponent(token)}`);
+    }
+  }, [token, router]);
+
   return (
     <div className="min-h-screen bg-[#121212] text-white flex flex-col justify-between p-4 sm:p-6 font-sans selection:bg-white selection:text-black">
       {/* Top Brand Bar */}
@@ -38,7 +49,23 @@ export default function SignupPage() {
       </div>
 
       {/* Main Form Container */}
-      <div className="my-8 sm:my-12">
+      <div className="my-8 sm:my-12 max-w-4xl mx-auto w-full">
+        {/* Team Seat Notice */}
+        <div className="mb-6 p-3.5 bg-[#18181b] border border-zinc-800 rounded-xl flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2.5 text-zinc-300">
+            <ShieldAlert className="w-4 h-4 text-zinc-400 flex-shrink-0" />
+            <span>
+              Invited by a studio brand? Team member accounts require a secure invite link sent to your inbox.
+            </span>
+          </div>
+          <Link
+            href="/invite"
+            className="text-white underline font-semibold hover:text-zinc-200 ml-3 flex-shrink-0"
+          >
+            Got an Invite? &rarr;
+          </Link>
+        </div>
+
         <CreatorApplicationForm />
       </div>
 
@@ -47,5 +74,13 @@ export default function SignupPage() {
         &copy; {new Date().getFullYear()} Producer Toy Inc. • Audio Developer Partnerships
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#121212]" />}>
+      <SignupContent />
+    </Suspense>
   );
 }

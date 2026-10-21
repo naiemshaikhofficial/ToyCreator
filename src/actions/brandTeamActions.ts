@@ -2,6 +2,7 @@
 
 import { getAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
+import crypto from 'crypto';
 
 export interface BrandTeamMember {
   id: string;
@@ -18,6 +19,7 @@ export interface BrandInvite {
   email: string;
   role: 'admin' | 'developer' | 'support' | 'finance';
   status: 'pending' | 'accepted' | 'revoked';
+  token?: string;
   createdAt: string;
 }
 
@@ -78,6 +80,7 @@ export async function getBrandTeamAction(brandId: string) {
       email: inv.email,
       role: inv.role as any,
       status: inv.status as any,
+      token: inv.token || undefined,
       createdAt: inv.created_at,
     }));
 
@@ -125,20 +128,26 @@ export async function inviteBrandMemberAction(params: {
       }
     }
 
+    // Generate a secure cryptographically random invite token
+    const inviteToken = crypto.randomBytes(32).toString('hex');
+    let finalToken = inviteToken;
+
     // Insert or update pending invite
     const { data: existingInvite } = await admin
       .from('brand_invites')
-      .select('id')
+      .select('id, token')
       .eq('brand_id', params.brandId)
       .eq('email', cleanEmail)
       .eq('status', 'pending')
       .maybeSingle();
 
     if (existingInvite) {
+      if (existingInvite.token) finalToken = existingInvite.token;
       await admin
         .from('brand_invites')
         .update({
           role: params.role,
+          token: finalToken,
           updated_at: new Date().toISOString(),
         })
         .eq('id', existingInvite.id);
@@ -149,18 +158,28 @@ export async function inviteBrandMemberAction(params: {
         role: params.role,
         invited_by_user_id: params.invitedByUserId || null,
         status: 'pending',
+        token: finalToken,
       });
       if (insErr) throw insErr;
     }
 
-    // If the user already has an auth account, we can immediately add them to brand_members!
+    // If the user already has an auth account, link them to brand_members right away
     if (existingUser) {
-      await admin.from('brand_members').insert({
-        user_id: existingUser.id,
-        brand_id: params.brandId,
-        role: params.role,
-        status: 'active',
-      });
+      const { data: memCheck } = await admin
+        .from('brand_members')
+        .select('id')
+        .eq('brand_id', params.brandId)
+        .eq('user_id', existingUser.id)
+        .maybeSingle();
+
+      if (!memCheck) {
+        await admin.from('brand_members').insert({
+          user_id: existingUser.id,
+          brand_id: params.brandId,
+          role: params.role,
+          status: 'active',
+        });
+      }
 
       await admin
         .from('brand_invites')
@@ -205,6 +224,8 @@ export async function inviteBrandMemberAction(params: {
         brandLogoUrl,
         role: params.role,
         inviterEmail,
+        inviteToken: finalToken,
+        isNewAccount: !existingUser,
       });
       emailSent = emailResult.success;
       emailError = emailResult.error;
@@ -219,6 +240,267 @@ export async function inviteBrandMemberAction(params: {
   } catch (err: any) {
     console.error('inviteBrandMemberAction error:', err);
     return { success: false, error: err.message || 'Failed to send brand team invitation.' };
+  }
+}
+
+/**
+ * Validates a team invitation token from the database
+ */
+export async function validateInviteTokenAction(token: string): Promise<{
+  success: boolean;
+  error?: string;
+  invite?: {
+    email: string;
+    role: 'admin' | 'developer' | 'support' | 'finance';
+    brandId: string;
+    brandName: string;
+    brandLogoUrl?: string | null;
+    isExistingUser: boolean;
+  };
+}> {
+  if (!token || typeof token !== 'string' || token.trim().length < 16) {
+    return { success: false, error: 'Invalid or missing invitation token.' };
+  }
+
+  try {
+    const admin = getAdminClient();
+    const cleanToken = token.trim();
+
+    const { data: invite, error: invErr } = await admin
+      .from('brand_invites')
+      .select('id, brand_id, email, role, status, token')
+      .eq('token', cleanToken)
+      .maybeSingle();
+
+    if (invErr || !invite) {
+      return { success: false, error: 'Invitation not found. Please verify your link or request a new invite.' };
+    }
+
+    if (invite.status === 'revoked') {
+      return { success: false, error: 'This invitation has been revoked by the studio administrator.' };
+    }
+
+    if (invite.status === 'accepted') {
+      return {
+        success: false,
+        error: 'This invitation has already been accepted. Please sign in to access your dashboard.',
+      };
+    }
+
+    // Fetch brand name & logo
+    let brandName = 'ProducerToy Studio';
+    let brandLogoUrl: string | null = null;
+    try {
+      const { data: brandData } = await admin
+        .from('brands')
+        .select('name, logo_url')
+        .eq('id', invite.brand_id)
+        .maybeSingle();
+      if (brandData?.name) brandName = brandData.name;
+      if (brandData?.logo_url) brandLogoUrl = brandData.logo_url;
+    } catch {
+      // ignore
+    }
+
+    // Check if user already exists
+    const { data: userList } = await admin.auth.admin.listUsers();
+    const existingUser = (userList?.users as any[])?.find(
+      (u: any) => u.email?.toLowerCase() === invite.email.toLowerCase()
+    );
+
+    return {
+      success: true,
+      invite: {
+        email: invite.email,
+        role: invite.role as any,
+        brandId: invite.brand_id,
+        brandName,
+        brandLogoUrl,
+        isExistingUser: Boolean(existingUser),
+      },
+    };
+  } catch (err: any) {
+    console.error('validateInviteTokenAction error:', err);
+    return { success: false, error: err.message || 'Failed to validate invitation token.' };
+  }
+}
+
+/**
+ * Completes secure token-based account registration for an invited member
+ */
+export async function acceptInviteAndRegisterAction(params: {
+  token: string;
+  fullName: string;
+  password: string;
+  turnstileToken: string;
+}): Promise<{ success: boolean; error?: string; email?: string }> {
+  try {
+    const { token, fullName, password, turnstileToken } = params;
+
+    if (!token || typeof token !== 'string') {
+      return { success: false, error: 'Invalid invitation token.' };
+    }
+
+    if (!fullName || !fullName.trim()) {
+      return { success: false, error: 'Please enter your full name.' };
+    }
+
+    if (!password || password.length < 8) {
+      return { success: false, error: 'Password must be at least 8 characters long.' };
+    }
+
+    // Verify Cloudflare Turnstile token
+    const { validateTurnstileAction } = await import('@/actions/authActions');
+    const turnstileCheck = await validateTurnstileAction(turnstileToken);
+    if (!turnstileCheck.success) {
+      return { success: false, error: turnstileCheck.error || 'Security verification failed. Please try again.' };
+    }
+
+    const admin = getAdminClient();
+
+    // 1. Verify invite token from database
+    const { data: invite, error: invErr } = await admin
+      .from('brand_invites')
+      .select('*')
+      .eq('token', token.trim())
+      .eq('status', 'pending')
+      .maybeSingle();
+
+    if (invErr || !invite) {
+      return { success: false, error: 'Invitation is invalid, expired, or has already been claimed.' };
+    }
+
+    const cleanEmail = invite.email.trim().toLowerCase();
+
+    // 2. Check if user already exists
+    const { data: userList } = await admin.auth.admin.listUsers();
+    const existingUser = (userList?.users as any[])?.find(
+      (u: any) => u.email?.toLowerCase() === cleanEmail
+    );
+
+    let userId: string;
+
+    if (existingUser) {
+      userId = existingUser.id;
+    } else {
+      // 3. Create the user securely in Supabase Auth
+      const { data: created, error: createErr } = await admin.auth.admin.createUser({
+        email: cleanEmail,
+        password: password,
+        email_confirm: true, // Email confirmed because token was sent to this exact email
+        user_metadata: {
+          full_name: fullName.trim(),
+        },
+      });
+
+      if (createErr || !created?.user) {
+        throw new Error(createErr?.message || 'Failed to create account.');
+      }
+
+      userId = created.user.id;
+
+      // 4. Upsert into public.profiles
+      try {
+        await admin.from('profiles').upsert({
+          id: userId,
+          email: cleanEmail,
+          full_name: fullName.trim(),
+          display_name: fullName.trim(),
+          updated_at: new Date().toISOString(),
+        });
+      } catch (profErr) {
+        console.warn('profiles upsert note:', profErr);
+      }
+    }
+
+    // 5. Add to brand_members
+    const { data: existingMember } = await admin
+      .from('brand_members')
+      .select('id')
+      .eq('brand_id', invite.brand_id)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (!existingMember) {
+      const { error: memErr } = await admin.from('brand_members').insert({
+        user_id: userId,
+        brand_id: invite.brand_id,
+        role: invite.role,
+        status: 'active',
+      });
+      if (memErr) throw memErr;
+    }
+
+    // 6. Update invite status to accepted
+    await admin
+      .from('brand_invites')
+      .update({
+        status: 'accepted',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', invite.id);
+
+    revalidatePath('/dashboard/settings');
+    revalidatePath('/dashboard');
+    return { success: true, email: cleanEmail };
+  } catch (err: any) {
+    console.error('acceptInviteAndRegisterAction error:', err);
+    return { success: false, error: err.message || 'Failed to complete registration.' };
+  }
+}
+
+/**
+ * Claims a pending invite for an existing authenticated user
+ */
+export async function claimInviteWithTokenAction(
+  token: string,
+  userId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const admin = getAdminClient();
+    const { data: invite, error: invErr } = await admin
+      .from('brand_invites')
+      .select('*')
+      .eq('token', token.trim())
+      .eq('status', 'pending')
+      .maybeSingle();
+
+    if (invErr || !invite) {
+      return { success: false, error: 'Invitation not found or already claimed.' };
+    }
+
+    // Add to brand_members
+    const { data: existingMember } = await admin
+      .from('brand_members')
+      .select('id')
+      .eq('brand_id', invite.brand_id)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (!existingMember) {
+      await admin.from('brand_members').insert({
+        user_id: userId,
+        brand_id: invite.brand_id,
+        role: invite.role,
+        status: 'active',
+      });
+    }
+
+    // Update invite status to accepted
+    await admin
+      .from('brand_invites')
+      .update({
+        status: 'accepted',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', invite.id);
+
+    revalidatePath('/dashboard/settings');
+    revalidatePath('/dashboard');
+    return { success: true };
+  } catch (err: any) {
+    console.error('claimInviteWithTokenAction error:', err);
+    return { success: false, error: err.message || 'Failed to claim invitation.' };
   }
 }
 
