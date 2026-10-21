@@ -11,7 +11,7 @@ import {
   X,
   ExternalLink,
 } from 'lucide-react';
-import { uploadAssetToDriveAction } from '@/actions/driveUploadAction';
+import { uploadAssetToDriveAction, verifyDriveLinkAction } from '@/actions/driveUploadAction';
 
 interface DualAssetUploadInputProps {
   label: string;
@@ -51,10 +51,43 @@ export default function DualAssetUploadInput({
   const [uploading, setUploading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [verifyingDrive, setVerifyingDrive] = useState(false);
+  const [driveMetadata, setDriveMetadata] = useState<{ fileName?: string; fileSize?: string } | null>(null);
 
-  const isGoogleDriveLink = value?.includes('drive.google.com') || value?.includes('script.google.com');
+  const isGoogleDriveLink = value?.includes('drive.google.com') || value?.includes('script.google.com') || /[-\w]{28,}/.test(value || '');
   const isDropboxLink = value?.includes('dropbox.com');
   const isS3Link = value?.includes('amazonaws.com') || value?.includes('s3.');
+
+  // Live verify Google Drive links to auto-fetch file name & size for ProducerToy
+  React.useEffect(() => {
+    if (!value || !isGoogleDriveLink) {
+      setDriveMetadata(null);
+      return;
+    }
+
+    let active = true;
+    const timer = setTimeout(async () => {
+      setVerifyingDrive(true);
+      try {
+        const res = await verifyDriveLinkAction(value);
+        if (active && res.success) {
+          setDriveMetadata({ fileName: res.fileName, fileSize: res.fileSize });
+          if (res.fileSize && onFileSizeDetected) {
+            onFileSizeDetected(res.fileSize);
+          }
+        }
+      } catch (err) {
+        console.error('Drive verification error:', err);
+      } finally {
+        if (active) setVerifyingDrive(false);
+      }
+    }, 600);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [value, isGoogleDriveLink]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -297,12 +330,25 @@ export default function DualAssetUploadInput({
 
           {/* Cloud Provider Recognition Badges */}
           {value && (
-            <div className="flex items-center gap-2 pt-0.5">
-              {isGoogleDriveLink && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-900/40 px-2 py-0.5 rounded">
-                  <CheckCircle className="w-3 h-3" />
-                  Google Drive Detected (High-Speed Direct Delivery)
+            <div className="flex flex-wrap items-center gap-2 pt-0.5">
+              {verifyingDrive && (
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-zinc-400 bg-[#181818] border border-[#2a2a2a] px-2 py-0.5 rounded">
+                  <Loader2 className="w-3 h-3 animate-spin text-zinc-400" />
+                  Verifying Google Drive asset via Service Account...
                 </span>
+              )}
+              {isGoogleDriveLink && !verifyingDrive && (
+                driveMetadata?.fileName ? (
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-900/40 px-2.5 py-1 rounded-md">
+                    <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>ProducerToy CDN Connected: <strong>{driveMetadata.fileName}</strong> {driveMetadata.fileSize ? `(${driveMetadata.fileSize})` : ''}</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-900/40 px-2 py-0.5 rounded">
+                    <CheckCircle className="w-3 h-3" />
+                    Google Drive Recognized (ProducerToy Edge CDN Ready)
+                  </span>
+                )
               )}
               {isDropboxLink && (
                 <span className="inline-flex items-center gap-1 text-[10px] font-mono text-sky-400 bg-sky-950/40 border border-sky-900/40 px-2 py-0.5 rounded">

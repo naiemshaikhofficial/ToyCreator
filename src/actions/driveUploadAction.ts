@@ -118,3 +118,12 @@ export async function uploadAssetToDriveAction(formData: FormData): Promise<Driv
     };
   }
 }
+
+/**
+ * Server Action: Verifies Google Drive link, extracts File ID, and auto-detects name & size
+ * Matches ProducerToy download engine format
+ */
+export async function verifyDriveLinkAction(url: string) {
+  const { verifyGoogleDriveAsset } = await import('@/lib/googleDrive');
+  return await verifyGoogleDriveAsset(url);
+}

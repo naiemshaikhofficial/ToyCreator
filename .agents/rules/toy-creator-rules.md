@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # Toy Creator — Engineering, Security & Business Rules
 
 These rules are mandatory invariants for the **Toy Creator** portal (`creators.producertoy.com` / `d:\Website\Toy Creator`).
@@ -42,41 +46,6 @@ These rules are mandatory invariants for the **Toy Creator** portal (`creators.p
 - **Logo & Favicon**: The official emblem for Toy Creator is the circular Bear "C" mascot (`/logo.webp`, `/logo.png`, `/icon.png`, `/favicon.ico`).
 - **Brand Text**: "TOY CREATOR — by ProducerToy".
 
----
 
-## 7. Minimalist UI & No Buzzword Clutter
-- **No Marketing Noise**: Never inject third-party marketplace buzzwords, architecture branding, or clutter badges (e.g. "Plugin Boutique Architecture") into creator-facing tools.
-- **Minimalist Precision**: Use concise, professional audio industry terminology (e.g., "Automated Delivery", "Windows Installer", "Machine Seats", "Offline Grace").
-- **Clarity Over Jargon**: Labels must be self-explanatory to VST architects, sound designers, and independent sample pack creators.
-
----
-
-## 8. YouTube Studio-Style Stepped Workflow Invariant
-- **Stepped Product Setup**: Complex product creation and editing must follow a clean, structured 5-step flow:
-  1. **Details & Pricing** (Title, Slug, Category, Pricing, Description)
-  2. **Media & Previews** (Square Artwork, Audio Preview, Video Demo)
-  3. **Installers & Specs** (Windows .exe, macOS .pkg, Universal ZIP, File Size, DAWs, OS)
-  4. **Licensing & Serials** (Plugin Formats, Machine Seats, Automated Key Pool)
-  5. **Review & Visibility** (Catalog Status, Readiness Checklist)
-- **Non-Blocking Navigation**: Creators can click any step tab directly or use "Previous / Next" buttons.
-- **Persistent Save**: The "Save / Publish" action must always remain accessible from any step.
-
----
-
-## 9. Product Versioning & Update Lifecycle Standards
-- **Non-Destructive Updates**: Updating product installers (e.g. v1.0.0 to v1.1.0) must never invalidate previously assigned serial keys, device activations, or buyer order records.
-- **Download URL Integrity**: When new binary installers are uploaded, existing customer download links in ProducerToy vault must point to the updated asset automatically.
-- **Version & Changelog Tracking**: Provide clear semantic version fields and release notes so buyers know what is new in each patch.
-
----
-
-## 10. 5TB Google Drive Storage & Cloud Helper Streaming Architecture
-- **Dedicated Storage Destination**: All product binaries, VST installers (.exe, .pkg, .dmg), universal archives (.zip), and sample libraries must be hosted in the owner's 5TB Google Drive (`sampleswaladrive@gmail.com`), NEVER in Supabase Storage.
-- **Strictly Forbid In-Memory Base64 for Large Binaries**: Never use `buffer.toString('base64')` or full in-memory buffering on binary assets in Next.js Server Actions. V8 crashes with `ERR_STRING_TOO_LONG` on files exceeding ~380MB.
-- **Cloud Helper Streaming Pipeline**:
-  1. **Direct Stream Route**: Use a raw HTTP streaming route (`/api/drive/upload`) or Cloudflare Edge Worker proxy that pipes `request.body` directly to Google Drive as an octet-stream chunk by chunk.
-  2. **Google Drive Resumable Upload**: For multi-gigabyte files (400MB–5TB), initiate a Resumable Upload session URI with Google Drive API v3, allowing the client to stream chunks directly to Google with real-time percentage progress (`0% -> 100%`).
-  3. **Dual-Mode Fallback**: When users upload through the browser, auto-detect the file size (MB/GB) and support direct link entry from Google Drive with zero size barriers.
-- **ProducerToy CDN Delivery Compatibility**: All generated Google Drive file IDs and shareable URLs must maintain compatibility with ProducerToy's streaming download engine (`/api/download/[id]/route.ts`).
-
+## 6. Expect Producer Toy dont use google drive or any other brand name like plugin bootique use upload only
 
