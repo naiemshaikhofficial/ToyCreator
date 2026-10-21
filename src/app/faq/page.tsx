@@ -399,10 +399,18 @@ export default function CreatorFaqPage() {
                   id={item.id}
                   className="rounded-xl bg-[#161616] border border-[#242424] hover:border-[#2f2f2f] transition-colors overflow-hidden"
                 >
-                  <button
-                    type="button"
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={isOpen}
                     onClick={() => toggle(item.id)}
-                    className="w-full p-5 text-left flex items-start justify-between gap-4 cursor-pointer"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggle(item.id);
+                      }
+                    }}
+                    className="w-full p-5 text-left flex items-start justify-between gap-4 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-white/30"
                   >
                     <span className="text-sm sm:text-base font-bold text-white leading-snug">
                       {item.q}
@@ -412,7 +420,7 @@ export default function CreatorFaqPage() {
                         type="button"
                         onClick={(e) => copyLink(item.id, e)}
                         title="Copy link"
-                        className="p-1 text-zinc-500 hover:text-white transition-colors"
+                        className="p-1 text-zinc-500 hover:text-white transition-colors cursor-pointer"
                         aria-label="Copy link to question"
                       >
                         {isCopied ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
@@ -423,7 +431,7 @@ export default function CreatorFaqPage() {
                         }`}
                       />
                     </div>
-                  </button>
+                  </div>
 
                   {isOpen && (
                     <div className="px-5 pb-5 pt-0 text-xs sm:text-sm text-zinc-400 leading-relaxed border-t border-[#202020] mt-1 pt-3.5">
