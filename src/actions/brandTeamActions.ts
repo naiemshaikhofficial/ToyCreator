@@ -169,17 +169,19 @@ export async function inviteBrandMemberAction(params: {
         .eq('email', cleanEmail);
     }
 
-    // Fetch brand name & inviter email for email notification
+    // Fetch brand name, logo & inviter email for email notification
     let brandName = 'ProducerToy Studio';
+    let brandLogoUrl: string | undefined;
     try {
       const { data: brandData } = await admin
         .from('brands')
-        .select('name')
+        .select('name, logo_url')
         .eq('id', params.brandId)
         .maybeSingle();
       if (brandData?.name) brandName = brandData.name;
+      if (brandData?.logo_url) brandLogoUrl = brandData.logo_url;
     } catch (e) {
-      console.warn('Could not fetch brand name for invite email:', e);
+      console.warn('Could not fetch brand details for invite email:', e);
     }
 
     let inviterEmail: string | undefined;
@@ -200,6 +202,7 @@ export async function inviteBrandMemberAction(params: {
       const emailResult = await sendBrandTeamInviteEmail({
         to: cleanEmail,
         brandName,
+        brandLogoUrl,
         role: params.role,
         inviterEmail,
       });

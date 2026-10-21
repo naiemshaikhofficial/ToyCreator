@@ -4,8 +4,11 @@
  * Sender: info@producertoy.com
  */
 
-const LOGO_URL = 'https://creators.producertoy.com/logo.png';
-const PORTAL_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://creators.producertoy.com';
+const CREATORS_LOGO_URL = 'https://imagizer.imageshack.com/img924/664/F2MeF5.png';
+const PRODUCERTOY_BOTTOM_LOGO_URL = 'https://imagizer.imageshack.com/img922/171/nu2UgR.png';
+const CREATORS_PORTAL_URL = 'https://creators.producertoy.com';
+const MAIN_SITE_URL = 'https://producertoy.com';
+const SUPPORT_EMAIL = 'support@producertoy.com';
 
 const ROLE_METADATA: Record<
   'admin' | 'developer' | 'support' | 'finance',
@@ -56,6 +59,7 @@ const ROLE_METADATA: Record<
 interface SendBrandTeamInviteParams {
   to: string;
   brandName: string;
+  brandLogoUrl?: string | null;
   role: 'admin' | 'developer' | 'support' | 'finance';
   inviterEmail?: string;
 }
@@ -63,6 +67,7 @@ interface SendBrandTeamInviteParams {
 export async function sendBrandTeamInviteEmail({
   to,
   brandName,
+  brandLogoUrl,
   role,
   inviterEmail,
 }: SendBrandTeamInviteParams): Promise<{ success: boolean; error?: string; messageId?: string }> {
@@ -79,17 +84,24 @@ export async function sendBrandTeamInviteEmail({
 
   const fromEmail = process.env.EMAIL_FROM || 'ProducerToy Creator Portal <info@producertoy.com>';
   const roleInfo = ROLE_METADATA[role] || ROLE_METADATA.developer;
-  const loginUrl = `${PORTAL_URL}/login?email=${encodeURIComponent(cleanEmail)}`;
+  const loginUrl = `${CREATORS_PORTAL_URL}/login?email=${encodeURIComponent(cleanEmail)}`;
 
   const permissionsListHtml = roleInfo.permissions
     .map(
       (p) =>
         `<tr>
-          <td style="padding: 4px 0; vertical-align: top; width: 18px; color: #a0a0a0; font-size: 13px;">✓</td>
-          <td style="padding: 4px 0; color: #d4d4d8; font-size: 12px; line-height: 1.5;">${p}</td>
+          <td style="padding: 5px 0; vertical-align: top; width: 20px; color: #10b981; font-size: 13px; font-weight: bold;">✓</td>
+          <td style="padding: 5px 0; color: #d4d4d8; font-size: 12px; line-height: 1.55;">${p}</td>
         </tr>`
     )
     .join('');
+
+  // Fallback initial letter for brand logo if not uploaded
+  const brandInitial = (brandName || 'B').trim().charAt(0).toUpperCase();
+
+  const brandLogoHtml = brandLogoUrl
+    ? `<img src="${brandLogoUrl}" alt="${brandName} Logo" width="56" height="56" style="width: 56px; height: 56px; border-radius: 12px; object-fit: cover; border: 1px solid #333338; display: block;" />`
+    : `<div style="width: 56px; height: 56px; border-radius: 12px; background: linear-gradient(135deg, #27272a 0%, #18181b 100%); border: 1px solid #3f3f46; text-align: center; line-height: 56px; font-size: 24px; font-weight: 800; color: #ffffff; text-transform: uppercase;">${brandInitial}</div>`;
 
   const htmlContent = `
 <!DOCTYPE html>
@@ -99,26 +111,26 @@ export async function sendBrandTeamInviteEmail({
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Invitation to Join ${brandName} on Toy Creator</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #0d0d0d; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #ffffff;">
+<body style="margin: 0; padding: 0; background-color: #0a0a0c; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #ffffff; -webkit-font-smoothing: antialiased;">
   <table border="0" cellpadding="0" cellspacing="0" width="100%">
     <tr>
-      <td align="center" style="padding: 32px 14px;">
+      <td align="center" style="padding: 36px 14px 44px 14px;">
         <!-- Container -->
-        <table border="0" cellpadding="0" cellspacing="0" style="max-width: 580px; width: 100%; background-color: #161616; border: 1px solid #262626; border-radius: 14px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.6);">
+        <table border="0" cellpadding="0" cellspacing="0" style="max-width: 590px; width: 100%; background-color: #141416; border: 1px solid #27272a; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.7);">
           
-          <!-- Header with Emblem -->
+          <!-- Header with Main Toy Creator Logo (Redirects to creators.producertoy.com) -->
           <tr>
-            <td align="center" style="padding: 36px 24px 24px 24px; background-color: #121212; border-bottom: 1px solid #242424;">
-              <a href="${PORTAL_URL}" style="text-decoration: none; display: inline-block;">
-                <img src="${LOGO_URL}" alt="Toy Creator Emblem" width="60" height="60" style="display: block; margin: 0 auto; border: none; border-radius: 12px;" />
+            <td align="center" style="padding: 36px 24px 26px 24px; background: linear-gradient(180deg, #18181b 0%, #121214 100%); border-bottom: 1px solid #27272a;">
+              <a href="${CREATORS_PORTAL_URL}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; display: inline-block;">
+                <img src="${CREATORS_LOGO_URL}" alt="Toy Creator Logo" width="68" height="60" style="display: block; margin: 0 auto; border: none; border-radius: 14px; max-width: 68px; height: auto;" />
               </a>
-              <div style="margin-top: 14px; font-size: 15px; font-weight: 800; letter-spacing: -0.02em; color: #ffffff; text-transform: uppercase;">
+              <div style="margin-top: 14px; font-size: 16px; font-weight: 800; letter-spacing: 0.04em; color: #ffffff; text-transform: uppercase;">
                 TOY CREATOR
               </div>
-              <div style="font-size: 10px; font-weight: 600; color: #71717a; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px;">
+              <div style="font-size: 11px; font-weight: 600; color: #71717a; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px;">
                 by ProducerToy
               </div>
-              <div style="margin-top: 14px; display: inline-block; padding: 4px 12px; background-color: #202020; border: 1px solid #2e2e2e; border-radius: 6px;">
+              <div style="margin-top: 14px; display: inline-block; padding: 5px 14px; background-color: #1f1f23; border: 1px solid #2e2e34; border-radius: 9999px;">
                 <span style="font-size: 10px; font-weight: 700; color: #d4d4d8; text-transform: uppercase; letter-spacing: 0.08em;">
                   Brand Team Seat Allocation
                 </span>
@@ -128,36 +140,81 @@ export async function sendBrandTeamInviteEmail({
 
           <!-- Main Body -->
           <tr>
-            <td style="padding: 32px 28px; background-color: #161616;">
-              <h1 style="margin: 0 0 14px 0; font-size: 20px; font-weight: 800; color: #ffffff; line-height: 1.3;">
-                You've been invited to join <span style="color: #ffffff; text-decoration: underline;">${brandName}</span>
-              </h1>
+            <td style="padding: 32px 28px; background-color: #141416;">
               
-              <p style="margin: 0 0 24px 0; font-size: 13px; line-height: 1.6; color: #a0a0a0;">
-                ${inviterEmail ? `<strong>${inviterEmail}</strong> has invited you` : 'You have been invited'} to collaborate as an authorized team member for <strong>${brandName}</strong> on the Toy Creator publisher portal.
-              </p>
-
-              <!-- Seat & Role Card -->
-              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #121212; border: 1px solid #242424; border-radius: 10px; margin-bottom: 24px;">
+              <!-- Brand Identity Spotlight Card -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #1a1a1e; border: 1px solid #2e2e34; border-radius: 12px; margin-bottom: 24px; padding: 18px 20px;">
                 <tr>
-                  <td style="padding: 16px 18px; border-bottom: 1px solid #202020;">
-                    <div style="font-size: 10px; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.08em;">Assigned Publisher Role</div>
-                    <div style="font-size: 15px; font-weight: 800; color: #ffffff; margin-top: 4px;">
-                      ${roleInfo.title}
+                  <td style="width: 56px; vertical-align: middle; padding-right: 16px;">
+                    ${brandLogoHtml}
+                  </td>
+                  <td style="vertical-align: middle;">
+                    <div style="font-size: 10px; font-weight: 700; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.09em;">
+                      Target Brand Workspace
+                    </div>
+                    <div style="font-size: 20px; font-weight: 800; color: #ffffff; margin-top: 3px; line-height: 1.25;">
+                      ${brandName}
                     </div>
                   </td>
                 </tr>
+              </table>
+
+              <!-- Invitation Message (Kisne bheja) -->
+              <div style="padding: 14px 16px; background-color: #18181b; border: 1px solid #27272a; border-radius: 10px; margin-bottom: 24px;">
+                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                  <tr>
+                    <td style="width: 26px; vertical-align: top; padding-right: 10px; font-size: 16px;">
+                      ✉️
+                    </td>
+                    <td style="font-size: 13px; line-height: 1.6; color: #d4d4d8;">
+                      ${
+                        inviterEmail
+                          ? `<strong style="color: #ffffff;">${inviterEmail}</strong> has invited you to collaborate as an authorized team member for <strong style="color: #ffffff;">${brandName}</strong> on the Toy Creator publisher portal.`
+                          : `You have been officially invited to join <strong style="color: #ffffff;">${brandName}</strong> as an authorized team member on the Toy Creator publisher portal.`
+                      }
+                    </td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- Seat & Role Card (Kya role hai) -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #18181b; border: 1px solid #27272a; border-radius: 12px; margin-bottom: 26px;">
                 <tr>
-                  <td style="padding: 14px 18px; border-bottom: 1px solid #202020;">
-                    <div style="font-size: 10px; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px;">Scope & Access</div>
-                    <div style="font-size: 12px; color: #a0a0a0; line-height: 1.5;">
+                  <td style="padding: 16px 20px; border-bottom: 1px solid #242428;">
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                      <tr>
+                        <td>
+                          <div style="font-size: 10px; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.08em;">
+                            Assigned Publisher Role
+                          </div>
+                          <div style="font-size: 16px; font-weight: 800; color: #ffffff; margin-top: 4px;">
+                            ${roleInfo.title}
+                          </div>
+                        </td>
+                        <td align="right" style="vertical-align: top;">
+                          <span style="display: inline-block; padding: 4px 10px; background-color: #27272a; border: 1px solid #3f3f46; border-radius: 6px; font-size: 10px; font-weight: 800; color: #e4e4e7; text-transform: uppercase; letter-spacing: 0.05em;">
+                            ${role.toUpperCase()}
+                          </span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 14px 20px; border-bottom: 1px solid #242428;">
+                    <div style="font-size: 10px; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px;">
+                      Scope &amp; Access Level
+                    </div>
+                    <div style="font-size: 12px; color: #a1a1aa; line-height: 1.55;">
                       ${roleInfo.summary}
                     </div>
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding: 14px 18px;">
-                    <div style="font-size: 10px; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">Authorized Capabilities</div>
+                  <td style="padding: 16px 20px;">
+                    <div style="font-size: 10px; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;">
+                      Authorized Capabilities
+                    </div>
                     <table border="0" cellpadding="0" cellspacing="0" width="100%">
                       ${permissionsListHtml}
                     </table>
@@ -171,9 +228,9 @@ export async function sendBrandTeamInviteEmail({
                   <td align="center">
                     <table border="0" cellpadding="0" cellspacing="0">
                       <tr>
-                        <td align="center" style="background-color: #34363d; border-radius: 10px; border: 1px solid rgba(255,255,255,0.18); box-shadow: 0 4px 14px rgba(0,0,0,0.5);">
+                        <td align="center" style="background-color: #27272a; border-radius: 10px; border: 1px solid rgba(255,255,255,0.22); box-shadow: 0 6px 18px rgba(0,0,0,0.6);">
                           <a href="${loginUrl}" 
-                             style="display: inline-block; padding: 14px 32px; font-size: 12px; font-weight: 800; color: #ffffff; text-decoration: none; text-transform: uppercase; letter-spacing: 0.08em;">
+                             style="display: inline-block; padding: 14px 34px; font-size: 12px; font-weight: 800; color: #ffffff; text-decoration: none; text-transform: uppercase; letter-spacing: 0.08em;">
                             Accept Invitation &amp; Access Dashboard
                           </a>
                         </td>
@@ -184,26 +241,68 @@ export async function sendBrandTeamInviteEmail({
               </table>
 
               <!-- Instant Activation Note -->
-              <div style="padding: 14px 16px; background-color: #141414; border: 1px solid #222222; border-radius: 8px; font-size: 11px; line-height: 1.6; color: #888888;">
-                <strong style="color: #ffffff;">How login works:</strong> Sign in or create your account using <span style="color: #ffffff; font-family: monospace;">${cleanEmail}</span>. Your seat for <strong>${brandName}</strong> will automatically link upon authentication.
+              <div style="padding: 14px 16px; background-color: #121214; border: 1px solid #202024; border-radius: 8px; font-size: 11px; line-height: 1.6; color: #888888; margin-bottom: 22px;">
+                <strong style="color: #ffffff;">How login works:</strong> Sign in or register with <span style="color: #ffffff; font-family: monospace;">${cleanEmail}</span>. Your seat for <strong>${brandName}</strong> will automatically bind upon account verification.
               </div>
+
+              <!-- Support Section (support@producertoy.com mailto with icon) -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #17171a; border: 1px solid #27272c; border-radius: 10px;">
+                <tr>
+                  <td style="padding: 14px 16px;">
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                      <tr>
+                        <td style="width: 32px; vertical-align: middle; padding-right: 12px;">
+                          <a href="mailto:${SUPPORT_EMAIL}" style="text-decoration: none; display: inline-block;">
+                            <div style="width: 32px; height: 32px; border-radius: 8px; background-color: #242429; border: 1px solid #383840; text-align: center; line-height: 32px; font-size: 15px; color: #ffffff;">
+                              ✉
+                            </div>
+                          </a>
+                        </td>
+                        <td style="vertical-align: middle;">
+                          <div style="font-size: 10px; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.08em;">
+                            Questions or Need Assistance?
+                          </div>
+                          <div style="font-size: 12px; color: #a1a1aa; margin-top: 2px;">
+                            Contact Developer Support at 
+                            <a href="mailto:${SUPPORT_EMAIL}" style="color: #60a5fa; text-decoration: none; font-weight: 700;">${SUPPORT_EMAIL}</a>
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
             </td>
           </tr>
 
-          <!-- Footer -->
+          <!-- Footer with Bottom ProducerToy Logo (Redirects to producertoy.com, Drag Off) -->
           <tr>
-            <td align="center" style="padding: 24px 20px; background-color: #101010; border-top: 1px solid #202020;">
+            <td align="center" style="padding: 28px 24px; background-color: #0e0e10; border-top: 1px solid #202024;">
+              
+              <!-- Bottom ProducerToy Logo with drag off and redirect to producertoy.com -->
+              <div style="margin-bottom: 16px;">
+                <a href="${MAIN_SITE_URL}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; display: inline-block;">
+                  <img src="${PRODUCERTOY_BOTTOM_LOGO_URL}" 
+                       alt="ProducerToy" 
+                       width="160" 
+                       draggable="false" 
+                       style="display: block; margin: 0 auto; border: 0; outline: none; text-decoration: none; max-width: 160px; width: 100%; height: auto; -webkit-user-drag: none; -khtml-user-drag: none; -moz-user-drag: none; -o-user-drag: none; user-select: none;" />
+                </a>
+              </div>
+
               <p style="margin: 0 0 6px 0; font-size: 11px; font-weight: 700; color: #888888; text-transform: uppercase; letter-spacing: 0.06em;">
                 Toy Creator — Audio Software Distribution Platform
               </p>
               <p style="margin: 0 0 10px 0; font-size: 10px; color: #555555;">
-                Operated by ProducerToy • Direct inquiries: <a href="mailto:info@producertoy.com" style="color: #888888; text-decoration: underline;">info@producertoy.com</a>
+                Operated by ProducerToy • Inquiries: <a href="mailto:${SUPPORT_EMAIL}" style="color: #888888; text-decoration: underline;">${SUPPORT_EMAIL}</a>
               </p>
               <p style="margin: 0; font-size: 9px; color: #444444; text-transform: uppercase; letter-spacing: 0.05em;">
                 &copy; ${new Date().getFullYear()} PRODUCERTOY. ALL RIGHTS RESERVED.
               </p>
             </td>
           </tr>
+
         </table>
       </td>
     </tr>
@@ -240,3 +339,4 @@ export async function sendBrandTeamInviteEmail({
     return { success: false, error: err?.message || 'Email dispatch exception' };
   }
 }
+
