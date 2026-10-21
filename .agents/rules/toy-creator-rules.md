@@ -41,3 +41,30 @@ These rules are mandatory invariants for the **Toy Creator** portal (`creators.p
 ## 6. Official Brand Assets & Identifiers
 - **Logo & Favicon**: The official emblem for Toy Creator is the circular Bear "C" mascot (`/logo.webp`, `/logo.png`, `/icon.png`, `/favicon.ico`).
 - **Brand Text**: "TOY CREATOR — by ProducerToy".
+
+---
+
+## 7. Minimalist UI & No Buzzword Clutter
+- **No Marketing Noise**: Never inject third-party marketplace buzzwords, architecture branding, or clutter badges (e.g. "Plugin Boutique Architecture") into creator-facing tools.
+- **Minimalist Precision**: Use concise, professional audio industry terminology (e.g., "Automated Delivery", "Windows Installer", "Machine Seats", "Offline Grace").
+- **Clarity Over Jargon**: Labels must be self-explanatory to VST architects, sound designers, and independent sample pack creators.
+
+---
+
+## 8. YouTube Studio-Style Stepped Workflow Invariant
+- **Stepped Product Setup**: Complex product creation and editing must follow a clean, structured 5-step flow:
+  1. **Details & Pricing** (Title, Slug, Category, Pricing, Description)
+  2. **Media & Previews** (Square Artwork, Audio Preview, Video Demo)
+  3. **Installers & Specs** (Windows .exe, macOS .pkg, Universal ZIP, File Size, DAWs, OS)
+  4. **Licensing & Serials** (Plugin Formats, Machine Seats, Automated Key Pool)
+  5. **Review & Visibility** (Catalog Status, Readiness Checklist)
+- **Non-Blocking Navigation**: Creators can click any step tab directly or use "Previous / Next" buttons.
+- **Persistent Save**: The "Save / Publish" action must always remain accessible from any step.
+
+---
+
+## 9. Product Versioning & Update Lifecycle Standards
+- **Non-Destructive Updates**: Updating product installers (e.g. v1.0.0 to v1.1.0) must never invalidate previously assigned serial keys, device activations, or buyer order records.
+- **Download URL Integrity**: When new binary installers are uploaded, existing customer download links in ProducerToy vault must point to the updated asset automatically.
+- **Version & Changelog Tracking**: Provide clear semantic version fields and release notes so buyers know what is new in each patch.
+
