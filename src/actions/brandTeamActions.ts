@@ -169,9 +169,50 @@ export async function inviteBrandMemberAction(params: {
         .eq('email', cleanEmail);
     }
 
+    // Fetch brand name & inviter email for email notification
+    let brandName = 'ProducerToy Studio';
+    try {
+      const { data: brandData } = await admin
+        .from('brands')
+        .select('name')
+        .eq('id', params.brandId)
+        .maybeSingle();
+      if (brandData?.name) brandName = brandData.name;
+    } catch (e) {
+      console.warn('Could not fetch brand name for invite email:', e);
+    }
+
+    let inviterEmail: string | undefined;
+    if (params.invitedByUserId) {
+      try {
+        const { data: inviterUser } = await admin.auth.admin.getUserById(params.invitedByUserId);
+        inviterEmail = inviterUser?.user?.email;
+      } catch {
+        // ignore error fetching inviter
+      }
+    }
+
+    // Send official branded invite email via Resend
+    let emailSent = false;
+    let emailError: string | undefined;
+    try {
+      const { sendBrandTeamInviteEmail } = await import('@/lib/email/teamInviteEmail');
+      const emailResult = await sendBrandTeamInviteEmail({
+        to: cleanEmail,
+        brandName,
+        role: params.role,
+        inviterEmail,
+      });
+      emailSent = emailResult.success;
+      emailError = emailResult.error;
+    } catch (mailErr: any) {
+      console.error('Error dispatching team invite email:', mailErr);
+      emailError = mailErr?.message;
+    }
+
     revalidatePath('/dashboard/settings');
     revalidatePath('/dashboard');
-    return { success: true };
+    return { success: true, emailSent, emailError };
   } catch (err: any) {
     console.error('inviteBrandMemberAction error:', err);
     return { success: false, error: err.message || 'Failed to send brand team invitation.' };

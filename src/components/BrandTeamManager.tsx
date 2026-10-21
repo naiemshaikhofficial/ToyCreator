@@ -115,10 +115,14 @@ export function BrandTeamManager() {
       });
 
       if (res.success) {
-        setSuccessMsg(`Team invitation registered for ${inviteEmail.trim()}.`);
+        if (res.emailSent) {
+          setSuccessMsg(`Team invitation email dispatched to ${inviteEmail.trim()} from info@producertoy.com.`);
+        } else {
+          setSuccessMsg(`Team invitation registered for ${inviteEmail.trim()}.`);
+        }
         setInviteEmail('');
         await loadTeam();
-        setTimeout(() => setSuccessMsg(''), 5000);
+        setTimeout(() => setSuccessMsg(''), 6000);
       } else {
         setErrorMsg(res.error || 'Could not send invitation.');
       }
