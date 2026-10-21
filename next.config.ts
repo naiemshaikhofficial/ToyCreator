@@ -5,6 +5,11 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10gb',
+    },
+  },
   images: {
     unoptimized: true,
     remotePatterns: [
