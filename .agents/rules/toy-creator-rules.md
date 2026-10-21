@@ -68,3 +68,15 @@ These rules are mandatory invariants for the **Toy Creator** portal (`creators.p
 - **Download URL Integrity**: When new binary installers are uploaded, existing customer download links in ProducerToy vault must point to the updated asset automatically.
 - **Version & Changelog Tracking**: Provide clear semantic version fields and release notes so buyers know what is new in each patch.
 
+---
+
+## 10. 5TB Google Drive Storage & Cloud Helper Streaming Architecture
+- **Dedicated Storage Destination**: All product binaries, VST installers (.exe, .pkg, .dmg), universal archives (.zip), and sample libraries must be hosted in the owner's 5TB Google Drive (`sampleswaladrive@gmail.com`), NEVER in Supabase Storage.
+- **Strictly Forbid In-Memory Base64 for Large Binaries**: Never use `buffer.toString('base64')` or full in-memory buffering on binary assets in Next.js Server Actions. V8 crashes with `ERR_STRING_TOO_LONG` on files exceeding ~380MB.
+- **Cloud Helper Streaming Pipeline**:
+  1. **Direct Stream Route**: Use a raw HTTP streaming route (`/api/drive/upload`) or Cloudflare Edge Worker proxy that pipes `request.body` directly to Google Drive as an octet-stream chunk by chunk.
+  2. **Google Drive Resumable Upload**: For multi-gigabyte files (400MB–5TB), initiate a Resumable Upload session URI with Google Drive API v3, allowing the client to stream chunks directly to Google with real-time percentage progress (`0% -> 100%`).
+  3. **Dual-Mode Fallback**: When users upload through the browser, auto-detect the file size (MB/GB) and support direct link entry from Google Drive with zero size barriers.
+- **ProducerToy CDN Delivery Compatibility**: All generated Google Drive file IDs and shareable URLs must maintain compatibility with ProducerToy's streaming download engine (`/api/download/[id]/route.ts`).
+
+

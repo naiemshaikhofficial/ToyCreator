@@ -40,8 +40,16 @@ export async function uploadAssetToDriveAction(formData: FormData): Promise<Driv
     };
   }
 
+  // Google Apps Script and Node V8 string limit protection (base64 of >50MB crashes Node V8 memory with ERR_STRING_TOO_LONG)
+  if (file.size > 50 * 1024 * 1024) {
+    return {
+      success: false,
+      error: `File is ${formattedSize}. Direct browser upload 50MB tak support karta hai. Bade VST installers (400MB–5GB+) ko direct apne 5TB Google Drive (drive.google.com) me daal kar 'External Link' tab me link paste karein. ProducerToy direct high-speed download provide karega.`,
+    };
+  }
+
   try {
-    // Convert File buffer to Base64
+    // Convert File buffer to Base64 (safe for files <= 50MB)
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     const base64Data = buffer.toString('base64');

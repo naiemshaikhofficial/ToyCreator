@@ -205,33 +205,58 @@ export default function DualAssetUploadInput({
                       />
                     </label>
                     <span className="text-[10px] text-zinc-500 block">
-                      {selectedFile
-                        ? `${formatBytes(selectedFile.size)} selected`
-                        : 'Upload directly or link cloud storage (Zero size limit • Supports 2GB, 5GB+ plugins)'}
+                      {selectedFile ? (
+                        selectedFile.size > 50 * 1024 * 1024 ? (
+                          <span className="text-amber-400 font-mono">
+                            {formatBytes(selectedFile.size)} detected • For 50MB+ installers, paste your 5TB Google Drive link
+                          </span>
+                        ) : (
+                          <span className="text-zinc-400">
+                            {formatBytes(selectedFile.size)} selected • Ready to upload to Drive
+                          </span>
+                        )
+                      ) : (
+                        'Upload directly or link from 5TB Google Drive (No file size limits)'
+                      )}
                     </span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                   {selectedFile && (
-                    <button
-                      type="button"
-                      disabled={uploading}
-                      onClick={handleUpload}
-                      className="btn-primary px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm"
-                    >
-                      {uploading ? (
-                        <>
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          <span>Uploading...</span>
-                        </>
-                      ) : (
-                        <>
-                          <UploadCloud className="w-3.5 h-3.5" />
-                          <span>Upload to Drive</span>
-                        </>
-                      )}
-                    </button>
+                    selectedFile.size > 50 * 1024 * 1024 ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMode('link');
+                          setSelectedFile(null);
+                        }}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm bg-[#222222] hover:bg-[#2c2c2c] text-white border border-[#383838] transition-colors"
+                        title="Switch to paste Google Drive link"
+                      >
+                        <LinkIcon className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Paste 5TB Drive Link</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={uploading}
+                        onClick={handleUpload}
+                        className="btn-primary px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm"
+                      >
+                        {uploading ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Uploading...</span>
+                          </>
+                        ) : (
+                          <>
+                            <UploadCloud className="w-3.5 h-3.5" />
+                            <span>Upload to Drive</span>
+                          </>
+                        )}
+                      </button>
+                    )
                   )}
                 </div>
               </div>
