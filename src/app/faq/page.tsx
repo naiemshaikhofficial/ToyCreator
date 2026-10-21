@@ -113,6 +113,19 @@ const FAQS: FaqItem[] = [
     q: 'Can I choose how many computers a user can activate?',
     a: 'Yes. You can choose the computer activation limit per license (for example, 2 computers for home studio and laptop). If a key is leaked or refunded, you can revoke it anytime from your dashboard.',
   },
+  {
+    id: 'external-api-webhook',
+    category: 'licensing',
+    q: 'Can I connect my own website or licensing API to generate keys dynamically?',
+    a: 'Yes! If you already run your own website or cloud licensing server, you can connect it using our Live Developer Webhook API (Plugin Boutique standard):',
+    points: [
+      'Real-Time Key Dispatch: ProducerToy sends an authenticated HTTPS POST to your endpoint when an order is completed.',
+      'HMAC-SHA256 Security: Every request is signed with your shared secret to prevent tampering or replay attacks.',
+      'Use the Same API on Your Website: You can use your exact same internal licensing code for sales on your own website and ProducerToy.',
+      'Zero-Blocker Fallback: If your server temporarily times out or experiences downtime, ProducerToy automatically falls back to an emergency CSV pool so you never lose a sale.',
+      'Full Developer Guide & Code: Step-by-step documentation with ready-to-copy Next.js, Node.js, Python, and PHP snippets is available in your dashboard under "Developer Guide & API".',
+    ],
+  },
 
   // 3. Customer Privacy
   {

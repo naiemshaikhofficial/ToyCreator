@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useBrand } from '@/context/BrandContext';
 import { getBrandDeviceActivations, revokeDeviceActivation } from '@/lib/supabase/actions';
+import Link from 'next/link';
 import {
   KeyRound,
   Laptop,
@@ -13,6 +14,9 @@ import {
   RefreshCw,
   Cpu,
   CheckCircle,
+  Code,
+  Globe,
+  ArrowRight,
 } from 'lucide-react';
 import { RoleGate } from '@/components/RoleGate';
 
@@ -89,13 +93,50 @@ export default function LicensingPage() {
           </p>
         </div>
 
-        <button
-          onClick={loadActivations}
-          className="btn-secondary px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 self-start sm:self-auto"
+        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+          <Link
+            href="/dashboard/developers"
+            className="btn-primary px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm"
+          >
+            <Code className="w-3.5 h-3.5" />
+            <span>Developer API Guide</span>
+          </Link>
+
+          <button
+            onClick={loadActivations}
+            className="btn-secondary px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Refresh</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Developer Webhook Integration Quick-Access Banner */}
+      <div className="p-4 bg-gradient-to-r from-[#181818] to-[#141414] border border-[#2a2a2a] rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0 text-emerald-400">
+            <Globe className="w-4 h-4" />
+          </div>
+          <div>
+            <h3 className="font-bold text-white flex items-center gap-1.5">
+              <span>Connect Your Brand Website via Webhooks</span>
+              <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                Plugin Boutique Standard
+              </span>
+            </h3>
+            <p className="text-zinc-400 text-[11px] mt-0.5">
+              Issue dynamic license keys in real-time from your own website or cloud API. Fully compatible with Next.js, Node.js, Python, and PHP.
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/dashboard/developers"
+          className="btn-secondary px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 flex-shrink-0 text-white hover:text-white"
         >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>Refresh Hardware Status</span>
-        </button>
+          <span>Read Developer Guide</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
       </div>
 
       {successMsg && (

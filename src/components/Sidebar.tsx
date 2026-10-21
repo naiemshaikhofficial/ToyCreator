@@ -20,6 +20,7 @@ import {
   Plus,
   ShieldCheck,
   Building,
+  Code,
 } from 'lucide-react';
 
 import { canAccessRoute, hasPermission, ROLE_BADGES, BrandRole } from '@/lib/rbac';
@@ -32,6 +33,7 @@ export const NAV_ITEMS = [
   { name: 'Earnings', href: '/dashboard/earnings', icon: Coins },
   { name: 'Payouts', href: '/dashboard/payouts', icon: CreditCard },
   { name: 'Licensing & Delivery', href: '/dashboard/licensing', icon: KeyRound },
+  { name: 'Developer Guide & API', href: '/dashboard/developers', icon: Code },
   { name: 'Agreements & Documents', href: '/dashboard/documents', icon: FileText },
   { name: 'Support', href: '/dashboard/support', icon: LifeBuoy },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },

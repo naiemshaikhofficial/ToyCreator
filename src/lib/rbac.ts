@@ -104,6 +104,7 @@ export const ROUTE_ALLOWED_ROLES: Record<string, BrandRole[]> = {
   '/dashboard/earnings': ['owner', 'admin', 'finance'],
   '/dashboard/payouts': ['owner', 'finance'],
   '/dashboard/licensing': ['owner', 'admin', 'developer', 'support'],
+  '/dashboard/developers': ['owner', 'admin', 'developer'],
   '/dashboard/documents': ['owner', 'finance'],
   '/dashboard/support': ['owner', 'admin', 'developer', 'support'],
   '/dashboard/settings': ['owner', 'admin'],
