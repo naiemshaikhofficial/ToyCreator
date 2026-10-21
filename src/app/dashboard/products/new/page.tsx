@@ -500,7 +500,7 @@ export default function NewProductPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. 450 MB or 1.2 GB (Auto-filled on upload)"
+                  placeholder="e.g. 2.4 GB, 5.0 GB, or 350 MB (Auto-filled on upload)"
                   value={fileSize}
                   onChange={(e) => setFileSize(e.target.value)}
                   className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"

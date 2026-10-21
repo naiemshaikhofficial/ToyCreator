@@ -25,6 +25,15 @@ interface DualAssetUploadInputProps {
   icon?: React.ComponentType<{ className?: string }>;
 }
 
+function formatBytes(bytes: number): string {
+  if (!bytes || bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  const val = parseFloat((bytes / Math.pow(k, i)).toFixed(i >= 2 ? 1 : 0));
+  return `${val} ${sizes[i]}`;
+}
+
 export default function DualAssetUploadInput({
   label,
   value,
@@ -44,6 +53,8 @@ export default function DualAssetUploadInput({
   const [successMsg, setSuccessMsg] = useState('');
 
   const isGoogleDriveLink = value?.includes('drive.google.com') || value?.includes('script.google.com');
+  const isDropboxLink = value?.includes('dropbox.com');
+  const isS3Link = value?.includes('amazonaws.com') || value?.includes('s3.');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -51,6 +62,10 @@ export default function DualAssetUploadInput({
       setSelectedFile(file);
       setErrorMsg('');
       setSuccessMsg('');
+      // Auto-detect and populate product file size immediately without waiting for upload to finish
+      if (onFileSizeDetected) {
+        onFileSizeDetected(formatBytes(file.size));
+      }
     }
   };
 
@@ -191,8 +206,8 @@ export default function DualAssetUploadInput({
                     </label>
                     <span className="text-[10px] text-zinc-500 block">
                       {selectedFile
-                        ? `${(selectedFile.size / (1024 * 1024)).toFixed(1)} MB selected`
-                        : 'Uploads directly to your Google Drive storage (Max 50MB)'}
+                        ? `${formatBytes(selectedFile.size)} selected`
+                        : 'Upload directly or link cloud storage (Zero size limit • Supports 2GB, 5GB+ plugins)'}
                     </span>
                   </div>
                 </div>
@@ -213,7 +228,7 @@ export default function DualAssetUploadInput({
                       ) : (
                         <>
                           <UploadCloud className="w-3.5 h-3.5" />
-                          <span>Upload to Drive</span>
+                          <span>Upload to Cloud</span>
                         </>
                       )}
                     </button>
@@ -241,7 +256,7 @@ export default function DualAssetUploadInput({
 
       {/* MODE 2: External Link */}
       {mode === 'link' && (
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           <div className="relative">
             <span className="absolute left-3 top-2.5 text-zinc-500">
               <LinkIcon className="w-3.5 h-3.5" />
@@ -254,7 +269,38 @@ export default function DualAssetUploadInput({
               className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
             />
           </div>
-          {hint && <span className="text-[10px] text-zinc-500 block">{hint}</span>}
+
+          {/* Cloud Provider Recognition Badges */}
+          {value && (
+            <div className="flex items-center gap-2 pt-0.5">
+              {isGoogleDriveLink && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-900/40 px-2 py-0.5 rounded">
+                  <CheckCircle className="w-3 h-3" />
+                  Google Drive Detected (High-Speed Direct Delivery)
+                </span>
+              )}
+              {isDropboxLink && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-mono text-sky-400 bg-sky-950/40 border border-sky-900/40 px-2 py-0.5 rounded">
+                  <CheckCircle className="w-3 h-3" />
+                  Dropbox Link Recognized
+                </span>
+              )}
+              {isS3Link && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-mono text-amber-400 bg-amber-950/40 border border-amber-900/40 px-2 py-0.5 rounded">
+                  <CheckCircle className="w-3 h-3" />
+                  AWS S3 Storage Recognized
+                </span>
+              )}
+            </div>
+          )}
+
+          {hint ? (
+            <span className="text-[10px] text-zinc-500 block">{hint}</span>
+          ) : (
+            <span className="text-[10px] text-zinc-500 block">
+              Direct cloud link (Google Drive, Dropbox, AWS S3, or CDN). Zero file size restrictions.
+            </span>
+          )}
         </div>
       )}
     </div>

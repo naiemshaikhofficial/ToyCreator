@@ -20,13 +20,15 @@ export async function uploadAssetToDriveAction(formData: FormData): Promise<Driv
     return { success: false, error: 'No file was provided for upload.' };
   }
 
-  // Google Apps Script payload limit is 50MB
-  const MAX_WEBHOOK_SIZE = 50 * 1024 * 1024; // 50MB
-  if (file.size > MAX_WEBHOOK_SIZE) {
-    return {
-      success: false,
-      error: `File is ${(file.size / (1024 * 1024)).toFixed(1)}MB. Direct upload supports up to 50MB. For larger sample libraries or installers, please select 'Paste External Link' and enter your Google Drive or Dropbox link.`,
-    };
+  // Calculate human-readable file size with GB support for audio software & libraries
+  const sizeInBytes = file.size;
+  let formattedSize = '';
+  if (sizeInBytes >= 1024 * 1024 * 1024) {
+    formattedSize = `${(sizeInBytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+  } else if (sizeInBytes >= 1024 * 1024) {
+    formattedSize = `${(sizeInBytes / (1024 * 1024)).toFixed(1)} MB`;
+  } else {
+    formattedSize = `${Math.round(sizeInBytes / 1024)} KB`;
   }
 
   const WEBHOOK_URL = process.env.GOOGLE_WEBHOOK_URL;
@@ -34,7 +36,7 @@ export async function uploadAssetToDriveAction(formData: FormData): Promise<Driv
     console.error('Missing GOOGLE_WEBHOOK_URL in environment configuration.');
     return {
       success: false,
-      error: 'Cloud storage webhook is not configured. Please contact support.',
+      error: 'Cloud storage webhook is not configured. For large files (2GB, 5GB+), switch to External Link to paste your Google Drive or Dropbox link directly.',
     };
   }
 
@@ -43,10 +45,6 @@ export async function uploadAssetToDriveAction(formData: FormData): Promise<Driv
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     const base64Data = buffer.toString('base64');
-
-    // Human-readable file size
-    const sizeInMb = file.size / (1024 * 1024);
-    const formattedSize = sizeInMb >= 1 ? `${sizeInMb.toFixed(1)} MB` : `${Math.round(file.size / 1024)} KB`;
 
     // File name formatting
     const sanitizedOriginalName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
