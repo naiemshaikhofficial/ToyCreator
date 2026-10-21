@@ -17,6 +17,8 @@ export interface CreatorProduct {
   youtube_url?: string;
   short_description?: string;
   full_description?: string;
+  version?: string;
+  changelog?: string;
   vst_format?: string;
   operating_system?: string;
   supported_daws?: string;

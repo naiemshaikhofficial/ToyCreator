@@ -165,12 +165,17 @@ export default function ProductsListPage() {
                           )}
                         </div>
                         <div className="min-w-0">
-                          <Link
-                            href={`/dashboard/products/${p.id}`}
-                            className="font-semibold text-white hover:text-zinc-300 transition-colors truncate block"
-                          >
-                            {p.name}
-                          </Link>
+                          <div className="flex items-center gap-2">
+                            <Link
+                              href={`/dashboard/products/${p.id}`}
+                              className="font-semibold text-white hover:text-zinc-300 transition-colors truncate block"
+                            >
+                              {p.name}
+                            </Link>
+                            <span className="text-[10px] font-mono text-zinc-400 bg-[#202020] px-1.5 py-0.5 rounded border border-zinc-700/40 flex-shrink-0">
+                              v{p.version || '1.0.0'}
+                            </span>
+                          </div>
                           <span className="font-mono text-[10px] text-zinc-400">
                             /{p.slug}
                           </span>

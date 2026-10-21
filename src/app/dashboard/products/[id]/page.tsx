@@ -63,6 +63,8 @@ export default function ProductDetailPage() {
   const [downloadUrlMac, setDownloadUrlMac] = useState('');
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [fileSize, setFileSize] = useState('');
+  const [version, setVersion] = useState('1.0.0');
+  const [changelog, setChangelog] = useState('');
   const [supportedDaws, setSupportedDaws] = useState('');
   const [operatingSystem, setOperatingSystem] = useState('');
   const [vstFormat, setVstFormat] = useState('');
@@ -90,6 +92,8 @@ export default function ProductDetailPage() {
           setDownloadUrlMac(data.download_url_mac || '');
           setYoutubeUrl(data.youtube_url || '');
           setFileSize(data.file_size || '');
+          setVersion(data.version || '1.0.0');
+          setChangelog(data.changelog || '');
           setSupportedDaws(data.supported_daws || '');
           setOperatingSystem(data.operating_system || '');
           setVstFormat(data.vst_format || '');
@@ -128,6 +132,8 @@ export default function ProductDetailPage() {
         download_url_mac: downloadUrlMac.trim() || null,
         youtube_url: youtubeUrl.trim() || null,
         file_size: fileSize.trim() || null,
+        version: version.trim() || '1.0.0',
+        changelog: changelog.trim() || null,
         supported_daws: supportedDaws.trim() || null,
         operating_system: operatingSystem.trim() || null,
         vst_format: vstFormat.trim() || null,
@@ -182,6 +188,9 @@ export default function ProductDetailPage() {
             <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
               {product.name}
             </h1>
+            <span className="text-[11px] font-mono text-zinc-300 bg-[#202020] px-2 py-0.5 rounded-md border border-[#34363d]">
+              v{version || '1.0.0'}
+            </span>
             <span
               className={`toy-badge ${
                 isActive ? 'toy-badge-charcoal' : 'bg-zinc-800 text-zinc-500'
@@ -579,6 +588,49 @@ export default function ProductDetailPage() {
                 />
               </div>
             </div>
+
+            {/* Release Version & Changelog */}
+            <div className="pt-3 border-t border-[#262626] space-y-4">
+              <div>
+                <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <span>Release Version & Updates</span>
+                  <span className="text-[10px] font-mono font-normal text-zinc-300 bg-[#202020] px-2 py-0.5 rounded border border-[#34363d]">
+                    v{version || '1.0.0'}
+                  </span>
+                </h3>
+                <p className="text-[11px] text-zinc-400 mt-0.5">
+                  Increment version when publishing binary installer updates. Active buyer licenses and serial keys are preserved automatically.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
+                    Version Number (SemVer)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 1.0.0, 1.1.0"
+                    value={version}
+                    onChange={(e) => setVersion(e.target.value)}
+                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
+                    Changelog / Release Notes
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder={`• Fixed buffer latency in Ableton Live & Logic Pro\n• Optimized CPU consumption by 15%\n• Added 24 new studio hall presets`}
+                    value={changelog}
+                    onChange={(e) => setChangelog(e.target.value)}
+                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl p-3 text-xs text-white focus:border-[#42454e] transition-colors resize-y leading-relaxed font-mono"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -720,6 +772,14 @@ export default function ProductDetailPage() {
                   <span className="text-zinc-300">macOS Installer:</span>
                   <span className="font-mono text-[11px] text-zinc-400 ml-auto">
                     {downloadUrlMac ? 'Linked' : 'Optional'}
+                  </span>
+                </div>
+
+                <div className="p-3 bg-[#121212] border border-[#222222] rounded-lg flex items-center gap-2 sm:col-span-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="text-zinc-300">Release Version:</span>
+                  <span className="font-mono text-[11px] text-zinc-300 ml-auto">
+                    v{version || '1.0.0'} {changelog ? '• Release notes provided' : ''}
                   </span>
                 </div>
               </div>
