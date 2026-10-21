@@ -2,7 +2,7 @@
 
 import { getAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
-import { SerialKeyPoolStats } from '@/lib/types';
+import { SerialKeyPoolStats, ProductLicenseApiConfig } from '@/lib/types';
 import { maskCustomerPii } from '@/lib/privacy/dataSharing';
 
 /**
@@ -91,6 +91,28 @@ export async function getProductSerialStatsAction(productId: string): Promise<{
     const used = claimedKeys.length;
     const recentKeys = [...availableKeys, ...claimedKeys].slice(0, 30);
 
+    // 4. Fetch product license configuration (delivery type, external webhook URL, secret)
+    let licenseConfig: ProductLicenseApiConfig | undefined = undefined;
+    try {
+      const { data: prodData } = await admin
+        .from('products')
+        .select('license_delivery_type, license_api_url, license_api_secret, license_api_timeout_ms, license_api_fallback_to_pool, delivery_method')
+        .eq('id', productId)
+        .maybeSingle();
+
+      if (prodData) {
+        licenseConfig = {
+          license_delivery_type: (prodData.license_delivery_type as any) || (prodData.delivery_method === 'direct_download' ? 'direct_download' : 'pool'),
+          license_api_url: prodData.license_api_url || null,
+          license_api_secret: prodData.license_api_secret || null,
+          license_api_timeout_ms: prodData.license_api_timeout_ms || 3000,
+          license_api_fallback_to_pool: prodData.license_api_fallback_to_pool ?? true,
+        };
+      }
+    } catch (confErr) {
+      console.warn('Note retrieving product license config:', confErr);
+    }
+
     return {
       success: true,
       data: {
@@ -100,6 +122,7 @@ export async function getProductSerialStatsAction(productId: string): Promise<{
         availableKeys,
         claimedKeys,
         recentKeys,
+        licenseConfig,
       },
     };
   } catch (err: any) {
@@ -239,5 +262,198 @@ export async function deleteSerialKeyAction(
   } catch (err: any) {
     console.error('deleteSerialKeyAction exception:', err);
     return { success: false, error: err.message || 'Failed to delete serial key.' };
+  }
+}
+
+/**
+ * Server Action: Update a product's external license API / webhook configuration
+ */
+export async function updateProductLicenseConfigAction(
+  productId: string,
+  config: Partial<ProductLicenseApiConfig>
+): Promise<{ success: boolean; error?: string }> {
+  if (!productId) {
+    return { success: false, error: 'Product ID is required.' };
+  }
+
+  try {
+    const admin = getAdminClient();
+    const updatePayload: Record<string, any> = {};
+
+    if (config.license_delivery_type !== undefined) {
+      updatePayload.license_delivery_type = config.license_delivery_type;
+      if (config.license_delivery_type === 'direct_download') {
+        updatePayload.delivery_method = 'direct_download';
+      } else if (config.license_delivery_type === 'dedicated_licensing_server') {
+        updatePayload.delivery_method = 'dedicated_licensing_server';
+      } else {
+        updatePayload.delivery_method = 'serial_key';
+      }
+    }
+
+    if (config.license_api_url !== undefined) {
+      updatePayload.license_api_url = config.license_api_url ? config.license_api_url.trim() : null;
+    }
+
+    if (config.license_api_secret !== undefined) {
+      updatePayload.license_api_secret = config.license_api_secret ? config.license_api_secret.trim() : null;
+    }
+
+    if (config.license_api_timeout_ms !== undefined) {
+      updatePayload.license_api_timeout_ms = Math.min(Math.max(Number(config.license_api_timeout_ms) || 3000, 1000), 10000);
+    }
+
+    if (config.license_api_fallback_to_pool !== undefined) {
+      updatePayload.license_api_fallback_to_pool = Boolean(config.license_api_fallback_to_pool);
+    }
+
+    const { error } = await admin
+      .from('products')
+      .update(updatePayload)
+      .eq('id', productId);
+
+    if (error) {
+      console.error('Error updating product license config:', error);
+      return { success: false, error: error.message };
+    }
+
+    revalidatePath(`/dashboard/products/${productId}`);
+    return { success: true };
+  } catch (err: any) {
+    console.error('updateProductLicenseConfigAction exception:', err);
+    return { success: false, error: err.message || 'Failed to update license configuration.' };
+  }
+}
+
+/**
+ * Server Action: Test a developer's external license generation API endpoint
+ * Dispatches a diagnostic test payload with HMAC-SHA256 signature and measures response latency.
+ */
+export async function testExternalLicenseApiAction(
+  productId: string,
+  url: string,
+  secret?: string | null
+): Promise<{
+  success: boolean;
+  latencyMs: number;
+  statusCode?: number;
+  receivedKey?: string;
+  rawPreview?: string;
+  error?: string;
+}> {
+  const cleanUrl = (url || '').trim();
+  if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+    return {
+      success: false,
+      latencyMs: 0,
+      error: 'Invalid URL. Must begin with http:// or https://',
+    };
+  }
+
+  const startTime = Date.now();
+  const testPayload = {
+    event: 'license.test',
+    test: true,
+    order_id: 'PT_TEST_DIAGNOSTIC_' + Date.now().toString(36).toUpperCase(),
+    product_id: productId,
+    customer_reference: 'pt_test_client_001',
+    timestamp: Math.floor(Date.now() / 1000),
+  };
+
+  try {
+    const bodyString = JSON.stringify(testPayload);
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'User-Agent': 'ProducerToy-License-Tester/1.0 (+https://creators.producertoy.com)',
+      'X-ProducerToy-Event': 'license.test',
+      'X-ProducerToy-Timestamp': String(testPayload.timestamp),
+    };
+
+    if (secret && secret.trim()) {
+      const cleanSecret = secret.trim();
+      headers['Authorization'] = `Bearer ${cleanSecret}`;
+      const crypto = await import('crypto');
+      const signature = crypto.createHmac('sha256', cleanSecret).update(bodyString).digest('hex');
+      headers['X-ProducerToy-Signature'] = signature;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+    try {
+      const response = await fetch(cleanUrl, {
+        method: 'POST',
+        headers,
+        body: bodyString,
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      const latencyMs = Date.now() - startTime;
+
+      const rawText = await response.text().catch(() => '');
+      let parsedJson: any = null;
+      try {
+        parsedJson = JSON.parse(rawText);
+      } catch {
+        // Response not JSON
+      }
+
+      if (!response.ok) {
+        return {
+          success: false,
+          latencyMs,
+          statusCode: response.status,
+          rawPreview: rawText.slice(0, 300),
+          error: `Server responded with HTTP ${response.status} (${response.statusText})${rawText ? `: ${rawText.slice(0, 160)}` : ''}`,
+        };
+      }
+
+      const receivedKey =
+        parsedJson?.serial_key ||
+        parsedJson?.serialKey ||
+        parsedJson?.license_key ||
+        parsedJson?.licenseKey ||
+        parsedJson?.key ||
+        (typeof parsedJson?.data === 'string' ? parsedJson.data : parsedJson?.data?.serial_key);
+
+      if (!receivedKey) {
+        return {
+          success: false,
+          latencyMs,
+          statusCode: response.status,
+          rawPreview: rawText.slice(0, 300),
+          error: 'Received HTTP 200 OK, but response JSON did not contain a "serial_key" or "license_key" string field.',
+        };
+      }
+
+      return {
+        success: true,
+        latencyMs,
+        statusCode: response.status,
+        receivedKey: String(receivedKey).trim(),
+        rawPreview: rawText.slice(0, 300),
+      };
+    } catch (fetchErr: any) {
+      clearTimeout(timeoutId);
+      const latencyMs = Date.now() - startTime;
+      if (fetchErr.name === 'AbortError') {
+        return {
+          success: false,
+          latencyMs,
+          error: 'Connection timed out after 6000ms. Please ensure your server responds promptly.',
+        };
+      }
+      return {
+        success: false,
+        latencyMs,
+        error: fetchErr.message || 'Network error occurred during test dispatch.',
+      };
+    }
+  } catch (err: any) {
+    return {
+      success: false,
+      latencyMs: Date.now() - startTime,
+      error: err.message || 'Unexpected exception during API test.',
+    };
   }
 }

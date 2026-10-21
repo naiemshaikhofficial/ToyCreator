@@ -30,6 +30,11 @@ export interface CreatorProduct {
   offline_grace_days?: number;
   is_active: boolean;
   is_featured?: boolean;
+  license_delivery_type?: 'pool' | 'external_api' | 'dedicated_licensing_server' | 'direct_download';
+  license_api_url?: string | null;
+  license_api_secret?: string | null;
+  license_api_timeout_ms?: number;
+  license_api_fallback_to_pool?: boolean;
   created_at: string;
   updated_at?: string;
   // Computed / Aggregated metrics
@@ -38,6 +43,14 @@ export interface CreatorProduct {
   downloads_count: number;
   rating?: number;
   review_count?: number;
+}
+
+export interface ProductLicenseApiConfig {
+  license_delivery_type: 'pool' | 'external_api' | 'dedicated_licensing_server' | 'direct_download';
+  license_api_url: string | null;
+  license_api_secret: string | null;
+  license_api_timeout_ms: number;
+  license_api_fallback_to_pool: boolean;
 }
 
 export interface ProductSerialKey {
@@ -62,6 +75,7 @@ export interface SerialKeyPoolStats {
   availableKeys: ProductSerialKey[];
   claimedKeys: ProductSerialKey[];
   recentKeys: ProductSerialKey[];
+  licenseConfig?: ProductLicenseApiConfig;
 }
 
 export interface CreatorOrder {

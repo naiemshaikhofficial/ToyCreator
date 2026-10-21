@@ -20,13 +20,22 @@ import {
   CreditCard,
   Plus,
   Info,
+  Globe,
+  Radio,
+  Zap,
+  Eye,
+  EyeOff,
+  Code,
+  Terminal,
 } from 'lucide-react';
 import {
   getProductSerialStatsAction,
   batchUploadSerialsAction,
   deleteSerialKeyAction,
+  updateProductLicenseConfigAction,
+  testExternalLicenseApiAction,
 } from '@/actions/serialActions';
-import { SerialKeyPoolStats, ProductSerialKey } from '@/lib/types';
+import { SerialKeyPoolStats, ProductSerialKey, ProductLicenseApiConfig } from '@/lib/types';
 
 interface SerialKeyPoolManagerProps {
   productId: string;
@@ -39,7 +48,7 @@ export default function SerialKeyPoolManager({
 }: SerialKeyPoolManagerProps) {
   const [stats, setStats] = useState<SerialKeyPoolStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'available' | 'claimed' | 'upload'>('available');
+  const [activeTab, setActiveTab] = useState<'available' | 'claimed' | 'upload' | 'webhook'>('available');
   const [availableSearch, setAvailableSearch] = useState('');
   const [claimedSearch, setClaimedSearch] = useState('');
   const [rawInput, setRawInput] = useState('');
@@ -51,12 +60,42 @@ export default function SerialKeyPoolManager({
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  // Webhook / Live API Configuration State
+  const [deliveryType, setDeliveryType] = useState<'pool' | 'external_api'>('pool');
+  const [apiUrl, setApiUrl] = useState('');
+  const [apiSecret, setApiSecret] = useState('');
+  const [timeoutMs, setTimeoutMs] = useState(3000);
+  const [fallbackToPool, setFallbackToPool] = useState(true);
+  const [showSecret, setShowSecret] = useState(false);
+  const [testingApi, setTestingApi] = useState(false);
+  const [savingConfig, setSavingConfig] = useState(false);
+  const [testResult, setTestResult] = useState<{
+    success: boolean;
+    latencyMs: number;
+    statusCode?: number;
+    receivedKey?: string;
+    rawPreview?: string;
+    error?: string;
+  } | null>(null);
+  const [configFeedback, setConfigFeedback] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
+
   const fetchStats = async () => {
     try {
       setLoading(true);
       const res = await getProductSerialStatsAction(productId);
       if (res.success && res.data) {
         setStats(res.data);
+        if (res.data.licenseConfig) {
+          const cfg = res.data.licenseConfig;
+          setDeliveryType(cfg.license_delivery_type === 'external_api' ? 'external_api' : 'pool');
+          setApiUrl(cfg.license_api_url || '');
+          setApiSecret(cfg.license_api_secret || '');
+          setTimeoutMs(cfg.license_api_timeout_ms || 3000);
+          setFallbackToPool(cfg.license_api_fallback_to_pool ?? true);
+        }
       }
     } catch (err) {
       console.error('Failed to load serial stats:', err);
@@ -156,6 +195,67 @@ export default function SerialKeyPoolManager({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleSaveLicenseConfig = async () => {
+    setSavingConfig(true);
+    setConfigFeedback(null);
+    try {
+      const res = await updateProductLicenseConfigAction(productId, {
+        license_delivery_type: deliveryType,
+        license_api_url: apiUrl,
+        license_api_secret: apiSecret,
+        license_api_timeout_ms: timeoutMs,
+        license_api_fallback_to_pool: fallbackToPool,
+      });
+      if (res.success) {
+        setConfigFeedback({
+          type: 'success',
+          text: 'License architecture & webhook settings updated successfully.',
+        });
+        await fetchStats();
+      } else {
+        setConfigFeedback({
+          type: 'error',
+          text: res.error || 'Failed to save webhook settings.',
+        });
+      }
+    } catch (err: any) {
+      setConfigFeedback({
+        type: 'error',
+        text: err.message || 'An error occurred while saving.',
+      });
+    } finally {
+      setSavingConfig(false);
+    }
+  };
+
+  const handleTestEndpoint = async () => {
+    if (!apiUrl.trim()) {
+      alert('Please enter your Webhook Endpoint URL first.');
+      return;
+    }
+    setTestingApi(true);
+    setTestResult(null);
+    try {
+      const res = await testExternalLicenseApiAction(productId, apiUrl, apiSecret);
+      setTestResult(res);
+    } catch (err: any) {
+      setTestResult({
+        success: false,
+        latencyMs: 0,
+        error: err.message || 'Unexpected test execution failure.',
+      });
+    } finally {
+      setTestingApi(false);
+    }
+  };
+
+  const handleGenerateSecret = () => {
+    const randomHex = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+    setApiSecret(`pt_sec_live_${randomHex}`);
   };
 
   const exportClaimedCsv = () => {
@@ -331,7 +431,7 @@ export default function SerialKeyPoolManager({
       </div>
 
       {/* Threshold Warnings */}
-      {availableCount === 0 && (
+      {availableCount === 0 && deliveryType !== 'external_api' && (
         <div className="p-4 bg-red-500/10 border border-red-500/25 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-red-300">
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
@@ -424,6 +524,28 @@ export default function SerialKeyPoolManager({
           >
             <Upload className="w-3.5 h-3.5 text-zinc-400" />
             <span>Batch Upload</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('webhook')}
+            className={`pb-3 px-3 text-xs font-semibold flex items-center gap-2 border-b-2 transition-all whitespace-nowrap ${
+              activeTab === 'webhook'
+                ? 'border-white text-white'
+                : 'border-transparent text-zinc-500 hover:text-zinc-300'
+            }`}
+          >
+            <Globe className="w-3.5 h-3.5 text-zinc-400" />
+            <span>Developer Webhook / API</span>
+            {deliveryType === 'external_api' ? (
+              <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                Live
+              </span>
+            ) : (
+              <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono bg-[#202020] text-zinc-400 border border-[#2e2e2e]">
+                API
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -706,6 +828,301 @@ export default function SerialKeyPoolManager({
                 </>
               )}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: DEVELOPER WEBHOOK / API INTEGRATION */}
+      {activeTab === 'webhook' && (
+        <div className="space-y-6">
+          {/* Mode Selector */}
+          <div className="bg-[#121212] border border-[#2a2a2a] p-4 rounded-xl space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-white uppercase tracking-wider">
+                Select Licensing Architecture
+              </span>
+              <span className="text-[10px] text-zinc-400 font-mono">
+                Plugin Boutique & Splice Standard
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div
+                onClick={() => setDeliveryType('pool')}
+                className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                  deliveryType === 'pool'
+                    ? 'bg-[#181818] border-white text-white shadow-sm'
+                    : 'bg-[#141414] border-[#262626] text-zinc-400 hover:border-zinc-700'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white">Pre-Loaded CSV Batch Pool</span>
+                  {deliveryType === 'pool' && <Check className="w-4 h-4 text-white" />}
+                </div>
+                <p className="text-[11px] text-zinc-400 mt-1 leading-relaxed">
+                  Best for PACE iLok batches, fixed pre-generated serial lists, or offline cryptographic keygens.
+                </p>
+              </div>
+
+              <div
+                onClick={() => setDeliveryType('external_api')}
+                className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                  deliveryType === 'external_api'
+                    ? 'bg-[#181818] border-white text-white shadow-sm'
+                    : 'bg-[#141414] border-[#262626] text-zinc-400 hover:border-zinc-700'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <span>Live Developer Webhook / API</span>
+                    <span className="text-[9px] px-1.5 py-0.2 rounded font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                      Dynamic
+                    </span>
+                  </span>
+                  {deliveryType === 'external_api' && <Check className="w-4 h-4 text-white" />}
+                </div>
+                <p className="text-[11px] text-zinc-400 mt-1 leading-relaxed">
+                  Dispatches an authenticated HTTPS POST to your own server/website to generate keys in real-time on purchase.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Webhook Configuration Form */}
+          <div className="bg-[#121212] border border-[#2a2a2a] p-5 rounded-xl space-y-4">
+            <div className="border-b border-[#242424] pb-3 flex items-center justify-between">
+              <div>
+                <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <Globe className="w-3.5 h-3.5 text-zinc-300" />
+                  <span>Developer API Endpoint & Secret</span>
+                </h3>
+                <p className="text-[11px] text-zinc-400 mt-0.5">
+                  Configure your webhook URL where ProducerToy will request serial keys upon verified checkout
+                </p>
+              </div>
+            </div>
+
+            {configFeedback && (
+              <div
+                className={`p-3 rounded-xl border text-xs flex items-center gap-2 ${
+                  configFeedback.type === 'success'
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                    : 'bg-red-500/10 border-red-500/30 text-red-300'
+                }`}
+              >
+                {configFeedback.type === 'success' ? (
+                  <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                )}
+                <span>{configFeedback.text}</span>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              {/* Endpoint URL */}
+              <div>
+                <label className="text-[11px] font-semibold text-zinc-300 block mb-1">
+                  Webhook Endpoint URL (HTTPS)
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://api.yourbrand.com/v1/licenses/issue"
+                  value={apiUrl}
+                  onChange={(e) => setApiUrl(e.target.value)}
+                  className="w-full bg-[#181818] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
+                />
+                <span className="text-[10px] text-zinc-500 mt-1 block">
+                  ProducerToy will send an authenticated POST request with order metadata and event <code className="text-zinc-300 font-mono">license.generate</code>.
+                </span>
+              </div>
+
+              {/* API Secret Key */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-semibold text-zinc-300">
+                    Webhook Shared Secret (HMAC-SHA256 Token)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleGenerateSecret}
+                    className="text-[10px] text-zinc-400 hover:text-white transition-colors underline"
+                  >
+                    Generate New Secret
+                  </button>
+                </div>
+                <div className="relative">
+                  <input
+                    type={showSecret ? 'text' : 'password'}
+                    placeholder="pt_sec_live_..."
+                    value={apiSecret}
+                    onChange={(e) => setApiSecret(e.target.value)}
+                    className="w-full bg-[#181818] border border-[#2e2e2e] rounded-xl pl-3.5 pr-10 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowSecret(!showSecret)}
+                    className="absolute right-3 top-3 text-zinc-500 hover:text-zinc-300"
+                  >
+                    {showSecret ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+                <span className="text-[10px] text-zinc-500 mt-1 block">
+                  Sent in header <code className="text-zinc-300 font-mono">Authorization: Bearer &lt;secret&gt;</code> and used to calculate the <code className="text-zinc-300 font-mono">X-ProducerToy-Signature</code> HMAC header.
+                </span>
+              </div>
+
+              {/* Timeout & Fallback */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div>
+                  <label className="text-[11px] font-semibold text-zinc-300 block mb-1">
+                    Request Timeout SLA
+                  </label>
+                  <select
+                    value={timeoutMs}
+                    onChange={(e) => setTimeoutMs(Number(e.target.value))}
+                    className="w-full bg-[#181818] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                  >
+                    <option value={1500}>1,500 ms (Fastest SLA)</option>
+                    <option value={3000}>3,000 ms (Recommended Standard)</option>
+                    <option value={5000}>5,000 ms (Maximum Grace)</option>
+                  </select>
+                  <span className="text-[10px] text-zinc-500 mt-1 block">
+                    If your server does not respond within this duration, the request will safely abort.
+                  </span>
+                </div>
+
+                <div className="flex flex-col justify-center">
+                  <label className="text-[11px] font-semibold text-zinc-300 block mb-1">
+                    Emergency Resilience
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer mt-1">
+                    <input
+                      type="checkbox"
+                      checked={fallbackToPool}
+                      onChange={(e) => setFallbackToPool(e.target.checked)}
+                      className="w-4 h-4 rounded bg-[#181818] border-[#2e2e2e] text-[#34363d] focus:ring-zinc-600"
+                    />
+                    <span className="text-xs text-zinc-300">
+                      Fallback to pre-loaded CSV pool if webhook fails
+                    </span>
+                  </label>
+                  <span className="text-[10px] text-zinc-500 mt-1 block">
+                    Guarantees buyers receive a license even if your hosting service experiences downtime.
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-[#222222]">
+                <button
+                  type="button"
+                  onClick={handleTestEndpoint}
+                  disabled={testingApi || !apiUrl.trim()}
+                  className="btn-secondary px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 w-full sm:w-auto justify-center disabled:opacity-50"
+                >
+                  <Zap className={`w-3.5 h-3.5 text-zinc-300 ${testingApi ? 'animate-pulse' : ''}`} />
+                  <span>{testingApi ? 'Pinging Endpoint...' : 'Send Diagnostic Test Ping'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSaveLicenseConfig}
+                  disabled={savingConfig}
+                  className="btn-primary px-5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 w-full sm:w-auto justify-center shadow-sm"
+                >
+                  {savingConfig ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Save Webhook Settings</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Diagnostic Test Ping Result Box */}
+              {testResult && (
+                <div
+                  className={`p-4 rounded-xl border text-xs space-y-2 ${
+                    testResult.success
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200'
+                      : 'bg-red-500/10 border-red-500/30 text-red-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold flex items-center gap-1.5">
+                      {testResult.success ? (
+                        <CheckCircle className="w-4 h-4 text-emerald-400" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-red-400" />
+                      )}
+                      <span>
+                        {testResult.success ? 'Diagnostic Ping Successful' : 'Diagnostic Ping Failed'}
+                      </span>
+                    </span>
+                    <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-black/40">
+                      Latency: {testResult.latencyMs}ms • Status: {testResult.statusCode || 'N/A'}
+                    </span>
+                  </div>
+
+                  {testResult.receivedKey && (
+                    <div className="bg-black/40 p-2.5 rounded-lg border border-white/5 font-mono text-[11px] text-white flex items-center justify-between">
+                      <span>Parsed Serial: <strong>{testResult.receivedKey}</strong></span>
+                      <span className="text-[9px] text-emerald-400">Valid Format</span>
+                    </div>
+                  )}
+
+                  {testResult.error && (
+                    <p className="text-[11px] text-red-300 leading-relaxed">
+                      {testResult.error}
+                    </p>
+                  )}
+
+                  {testResult.rawPreview && (
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-zinc-400 font-semibold uppercase">Raw Server Response Preview:</span>
+                      <pre className="bg-black/60 p-2 rounded text-[10px] font-mono text-zinc-300 overflow-x-auto">
+                        {testResult.rawPreview}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Integration Specification & Code Snippet */}
+          <div className="bg-[#121212] border border-[#2a2a2a] p-5 rounded-xl space-y-3">
+            <div className="flex items-center justify-between border-b border-[#242424] pb-2">
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <Code className="w-3.5 h-3.5 text-zinc-300" />
+                <span>Developer Integration Specification</span>
+              </h4>
+              <span className="text-[10px] text-zinc-400">Node.js / Express or Python</span>
+            </div>
+
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              When a customer completes purchase, ProducerToy will send a signed <code className="text-zinc-300 font-mono">POST</code> request. Your endpoint must respond within your SLA with JSON containing the generated key:
+            </p>
+
+            <pre className="bg-[#0d0d0d] border border-[#222222] p-3 rounded-xl text-[11px] font-mono text-zinc-300 overflow-x-auto leading-relaxed">
+{`// Expected JSON Response from your Server:
+{
+  "status": "success",
+  "serial_key": "YOURBRAND-XXXX-YYYY-ZZZZ",
+  "seats": 3,
+  "instructions": "Enter this key in plugin activation dialog."
+}`}
+            </pre>
+
+            <p className="text-[11px] text-zinc-500 leading-relaxed">
+              💡 <strong>Unified API:</strong> You can use this exact same licensing microservice for checkouts on your own brand website. When verifying ProducerToy webhooks, simply compare the <code className="text-zinc-400 font-mono">X-ProducerToy-Signature</code> header with an HMAC-SHA256 digest of the request body using your secret key.
+            </p>
           </div>
         </div>
       )}
