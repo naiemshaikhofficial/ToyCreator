@@ -8,402 +8,253 @@ import {
   DollarSign,
   ShieldCheck,
   Cpu,
-  Layers,
-  HelpCircle,
   Lock,
   ArrowRight,
   ExternalLink,
-  Sparkles,
+  HelpCircle,
   FileText,
   UserCheck,
-  CheckCircle2,
-  Copy,
-  Check,
   ArrowLeft,
   X,
-  CreditCard,
-  Building,
-  AlertCircle
+  Check,
+  Copy
 } from 'lucide-react';
 
 interface FaqItem {
   id: string;
-  category: 'monetization' | 'licensing' | 'privacy' | 'products' | 'support' | 'onboarding';
+  category: 'money' | 'licensing' | 'privacy' | 'products' | 'support' | 'start';
   q: string;
   a: string;
-  details?: string[];
-  tags: string[];
+  points?: string[];
 }
 
-const FAQ_CATEGORIES = [
+const CATEGORIES = [
   { id: 'all', label: 'All Questions', icon: HelpCircle },
-  { id: 'monetization', label: 'Commissions & Payouts', icon: DollarSign },
+  { id: 'money', label: 'Earnings & Payouts', icon: DollarSign },
   { id: 'licensing', label: 'License Keys & DRM', icon: ShieldCheck },
-  { id: 'privacy', label: 'Customer Privacy & Data Sharing', icon: Lock },
-  { id: 'products', label: 'Formats & Storage', icon: Cpu },
-  { id: 'support', label: 'Support & EULA Terms', icon: FileText },
-  { id: 'onboarding', label: 'Onboarding & Guidelines', icon: UserCheck },
+  { id: 'privacy', label: 'Customer Privacy', icon: Lock },
+  { id: 'products', label: 'Products & Formats', icon: Cpu },
+  { id: 'support', label: 'Support & Terms', icon: FileText },
+  { id: 'start', label: 'Getting Started', icon: UserCheck },
 ] as const;
 
-const FAQS_DATA: FaqItem[] = [
-  // 1. Monetization & Payouts
+const FAQS: FaqItem[] = [
+  // 1. Earnings & Payouts
   {
-    id: 'commission-split',
-    category: 'monetization',
-    q: 'What is the commission split on Toy Creator?',
-    a: 'Producer Toy operates on a transparent 70% Developer / 30% Platform Fee model on eligible net sale proceeds. You keep 70% of every sale after actual payment processor fees, with zero hidden markups or surprise deductions.',
-    details: [
-      '70% of eligible net sale proceeds is disbursed directly to the developer.',
-      '30% platform fee supports global cloud hosting, fraud prevention, payment gateway integrations, and multi-region download infrastructure.',
-      'Zero listing fees, zero monthly hosting subscriptions, and zero upfront placement fees.',
+    id: 'commission',
+    category: 'money',
+    q: 'How much do I earn on each sale?',
+    a: 'You keep 70% of the net sale proceeds, and ProducerToy keeps 30%. There are zero listing fees, zero setup costs, and no monthly subscription charges. You only pay when you make a sale.',
+    points: [
+      '70% goes directly to you.',
+      '30% platform fee covers fast cloud downloads, payment processing systems, and buyer support.',
+      'No hidden costs or surprise deductions.',
     ],
-    tags: ['commission', 'revenue split', '70/30', 'percentage', 'fees'],
   },
   {
-    id: 'deduction-order',
-    category: 'monetization',
-    q: 'What is the exact deduction sequence from a customer payment?',
-    a: 'Deductions are calculated in a strict, standardized sequence so developers have complete mathematical transparency on every order.',
-    details: [
-      '1. Gross Customer Price: The actual price paid by the customer after any promotional discount.',
-      '2. Exclude Transaction Taxes: Separately collected sales taxes or VAT are excluded from revenue share.',
-      '3. Deduct Payment Gateway Processing Fees: Actual third-party processing fees (e.g. PayPal international 4.40% + $0.30 fixed fee or card gateway interchange) and transaction-specific currency conversion charges are deducted.',
-      '4. Revenue Split: The remaining net sale proceeds are divided: 70% to the Developer and 30% to Producer Toy.',
-      '5. Outbound Payout Fee: Actual bank wire / SWIFT transfer fees are deducted from the developer disbursement, itemized separately without markup.',
+    id: 'calculation-order',
+    category: 'money',
+    q: 'How is my payout calculated?',
+    a: 'We keep fee calculations simple and completely transparent:',
+    points: [
+      '1. Start with the price the customer actually paid.',
+      '2. Any official sales tax or VAT is set aside.',
+      '3. Standard payment processor fees (PayPal or credit card gateway fees) are deducted at exact cost.',
+      '4. The remaining money is split 70% for you and 30% for ProducerToy.',
+      '5. Outbound bank transfer fees (if any) are shown clearly on your monthly report with zero markup.',
     ],
-    tags: ['deductions', 'calculation sequence', 'payment processing', 'taxes', 'net proceeds'],
   },
   {
-    id: 'example-19-sale',
-    category: 'monetization',
-    q: 'Can you provide a worked calculation for an illustrative $19 sale?',
-    a: 'Here is an illustrative calculation for a standard $19.00 audio plugin or sound pack sale:',
-    details: [
-      'Customer Retail Price: $19.00',
-      'Assumed Payment Processing Fee: -$1.14 (illustrative provider fee, replaced by actual recorded fee)',
-      'Eligible Net Proceeds: $17.86',
-      'Developer Share (70%): $12.50',
-      'Producer Toy Platform Share (30%): $5.36',
-      'Note: This example assumes no applicable discounts or transaction taxes. Bank transfer fees, if applicable, appear itemized on your monthly settlement statement.',
+    id: 'example-19',
+    category: 'money',
+    q: 'Can you show a simple example of a $19 sale?',
+    a: 'Here is an easy example for a $19.00 plugin sale:',
+    points: [
+      'Customer pays: $19.00',
+      'Payment processing fee (approx. provider cost): -$1.14',
+      'Net proceeds: $17.86',
+      'You get (70%): $12.50',
+      'ProducerToy takes (30%): $5.36',
     ],
-    tags: ['19 dollar example', 'worked calculation', 'groove console', 'developer share', 'math'],
   },
   {
     id: 'payout-schedule',
-    category: 'monetization',
-    q: 'When and how are developer payouts disbursed?',
-    a: 'Developer payouts are manual, fully itemized monthly disbursements processed by the 15th calendar day of the following month for the preceding month’s earnings.',
-    details: [
-      'Payout Schedule: Payable by the 15th calendar day of the following month (e.g., January earnings are settled by February 15th).',
-      'Zero Minimum Threshold: No arbitrary $100 or $500 threshold — you receive your payout regardless of sales volume.',
-      'Payment Methods: International SWIFT / bank wire transfer to corporate bank accounts, domestic NEFT/RTGS for India-based developers, or PayPal business transfer.',
-      'Itemized CSV Accounting: Every payout includes an itemized breakdown of order IDs, customer price, processing fees, and net creator retain.',
+    category: 'money',
+    q: 'When and how do I get paid?',
+    a: 'We pay creators once a month, by the 15th of every month. For example, all your January sales are paid out by February 15th.',
+    points: [
+      'No minimum payout amount — whether you earn $15 or $5,000, you get paid.',
+      'Sent directly to your bank account via SWIFT/wire transfer, or to your business PayPal.',
+      'You can download a clean CSV statement anytime showing every sale, fee, and payout.',
     ],
-    tags: ['payout schedule', 'monthly payouts', 'wire transfer', 'swift', 'bank transfer', 'threshold', '15th'],
   },
   {
-    id: 'refunds-chargebacks',
-    category: 'monetization',
-    q: 'How are refunds and chargebacks handled in developer earnings?',
-    a: 'If a customer transaction is refunded or disputed according to our Platform Customer Support & Refund Policy, the corresponding sale is reversed.',
-    details: [
-      'The refunded amount and corresponding commission are adjusted against current or upcoming settlement cycles.',
-      'Producer Toy investigates fraudulent chargeback claims with payment processors to protect creators from malicious dispute abuse.',
-      'All refund deductions are itemized in your monthly settlement statement with full transaction references.',
-    ],
-    tags: ['refunds', 'chargebacks', 'disputes', 'accounting', 'settlement adjustment'],
+    id: 'refunds',
+    category: 'money',
+    q: 'What happens if a customer asks for a refund?',
+    a: 'If a refund or payment dispute happens under our fair customer policy, that specific transaction is reversed. The deduction is shown clearly in your next monthly statement.',
   },
 
   // 2. License Keys & DRM
   {
-    id: 'license-drm',
+    id: 'license-keys',
     category: 'licensing',
-    q: 'How does built-in license protection and key delivery work?',
-    a: 'Toy Creator provides an automated Serial Key Pool system with optimistic concurrency locking to protect your software while providing instant delivery to buyers.',
-    details: [
-      'Guaranteed Genuine Keys: Products configured for pooled delivery pull genuine keys from your uploaded serial inventory.',
-      'No Duplicate Claims: Database row-level locks prevent race conditions and duplicate key claims.',
-      'Instant Buyer Delivery: License keys appear immediately in the customer’s private Producer Toy Library and email receipt upon verified payment.',
-      'Inventory Alerts: Automatic dashboard notifications when your serial key inventory drops below safety thresholds.',
+    q: 'How do license keys work on Toy Creator?',
+    a: 'You can upload your own list of serial keys (CSV), or let our system create secure keys automatically. When a customer buys your software, a unique key is instantly placed into their private customer library.',
+    points: [
+      'Guaranteed real keys — our system never gives out fake or duplicate keys.',
+      'Automatic inventory alerts when your key stock gets low.',
+      'Instant access for the customer right after checkout.',
     ],
-    tags: ['license keys', 'serial keys', 'drm', 'piracy protection', 'activation'],
   },
   {
     id: 'computer-seats',
     category: 'licensing',
-    q: 'Can I set computer activation limits and manage customer seats?',
-    a: 'Yes. You can specify the authorized machine activation limit per customer license (e.g., 2 computers for desktop studio + laptop).',
-    details: [
-      'Configure seat limits per product listing in your developer dashboard.',
-      'View claimed serial keys and associated purchase dates directly in your dashboard.',
-      'Revoke keys with one click in the event of confirmed piracy, fraudulent purchases, or processed refunds.',
-    ],
-    tags: ['seats', 'computer activations', 'machine lock', 'revoke key'],
-  },
-  {
-    id: 'no-dummy-keys',
-    category: 'licensing',
-    q: 'Does Toy Creator ever generate fake or dummy serial keys?',
-    a: 'No. For all products that require genuine serial keys, our delivery engine strictly enforces real key inventory from your uploaded CSV pool. We never fabricate placeholder keys for commercial plugins.',
-    details: [
-      'Our licensing engine uses strict database transactions to verify key availability before completing key assignment.',
-      'If your inventory is depleted, our platform alerts you to restock immediately rather than generating unverified placeholders.',
-    ],
-    tags: ['dummy keys', 'genuine keys', 'serial pool', 'integrity'],
+    q: 'Can I choose how many computers a user can activate?',
+    a: 'Yes. You can choose the computer activation limit per license (for example, 2 computers for home studio and laptop). If a key is leaked or refunded, you can revoke it anytime from your dashboard.',
   },
 
-  // 3. Customer Privacy & Data Sharing
+  // 3. Customer Privacy
   {
-    id: 'customer-privacy-default',
+    id: 'privacy-default',
     category: 'privacy',
-    q: 'Do developers get access to customer personal emails and phone numbers?',
-    a: 'By default, NO. Producer Toy enforces a strict Privacy-First architecture. Customer personal information is never automatically shared, harvested, or sold to third parties.',
-    details: [
-      'Default Data Masking: Customer emails are masked in developer dashboards and CSV exports (e.g., r***r@example.com).',
-      'No Unnecessary PII: Customer phone numbers, physical addresses, and payment card details are never exposed to developers.',
-      'Support Mediated: Routine platform support is mediated by Producer Toy so developers do not need raw buyer emails.',
-    ],
-    tags: ['privacy', 'pii', 'data masking', 'customer emails', 'gdpr'],
+    q: 'Do I get the buyer’s personal email and phone number?',
+    a: 'No, not by default. We protect customer privacy. In your dashboard and reports, customer emails are masked (for example: r***r@example.com), and personal phone numbers or physical addresses are never shared.',
   },
   {
-    id: 'seller-data-sharing-consent',
+    id: 'data-sharing-consent',
     category: 'privacy',
-    q: 'When and how can customer data be shared with a developer?',
-    a: 'Customer information is shared ONLY when a product has a legitimate technical requirement for software licensing, online activation, or product-specific support, AND the customer gives explicit pre-purchase consent.',
-    details: [
-      'Verified Developer Notice: Checkout displays a prominent Seller Data Sharing Notice with your verified brand name, exact fields shared, and permitted purpose.',
-      'Unchecked Consent Control: The consent checkbox is NEVER pre-checked. Customers must actively opt in.',
-      'Immutable Audit Trail: Customer consent timestamp, version, and order reference are stored in our secure database.',
-      'Independent Per Product: Consent for one product does not authorize sharing for unrelated products or brands.',
+    q: 'What if my plugin needs the buyer’s email for activation?',
+    a: 'If your software genuinely needs the buyer’s email for online license activation or custom updates, we show a clear notice at checkout. The customer must actively tick a consent box before buying.',
+    points: [
+      'The buyer sees your verified brand name and exactly why the information is needed.',
+      'The consent box is never pre-checked.',
+      'You are legally required to use their email only for licensing and support — never for marketing newsletters.',
     ],
-    tags: ['data sharing', 'consent', 'checkout notice', 'activation requirement', 'audit trail'],
-  },
-  {
-    id: 'developer-privacy-covenant',
-    category: 'privacy',
-    q: 'What are the developer’s obligations regarding shared customer data?',
-    a: 'Developers who receive customer information under verified consent are legally bound by a strict Non-Marketing Covenant.',
-    details: [
-      'Permitted Purpose Only: Customer data may ONLY be used for the disclosed purpose (software licensing, computer activation, or direct bug resolution).',
-      'No Unsolicited Marketing: You may NOT add customer emails to general marketing newsletters or promotional campaigns without separate opt-in consent.',
-      'No Onward Transfer: You may not sell, rent, or disclose customer personal information to any third party.',
-      'Security Duty: You must implement reasonable administrative and technical safeguards to protect customer data.',
-    ],
-    tags: ['covenant', 'non-marketing', 'legal obligation', 'gdpr compliance', 'restrictions'],
   },
 
-  // 4. Products, Formats & Storage
+  // 4. Products & Formats
   {
-    id: 'accepted-formats',
+    id: 'supported-formats',
     category: 'products',
-    q: 'What types of audio products and formats can I sell?',
-    a: 'Toy Creator supports the full spectrum of professional music production tools and digital soundware.',
-    details: [
-      'Audio Plugins & FX: VST3, AU (Audio Units), AAX, CLAP for macOS (Apple Silicon & Intel) and Windows (64-bit).',
+    q: 'What types of audio products can I sell?',
+    a: 'You can sell virtually any digital music production tool or sound library:',
+    points: [
+      'Audio Plugins: VST3, AU (Audio Units), AAX, and CLAP for Mac and Windows.',
       'Sample Packs & Sound Kits: 24-bit WAV, AIFF, and MIDI files.',
-      'Synth Presets: Xfer Serum, Vital, u-he Diva, NI Massive, Phase Plant, Sylenth1, and more.',
-      'Sampler Instruments: Native Instruments Kontakt (full & player), Decent Sampler, SFZ.',
-      'DAW Project Templates: Ableton Live, FL Studio, Logic Pro, Cubase, Studio One.',
+      'Synth Presets: Serum, Vital, Diva, Massive, Phase Plant, etc.',
+      'Sampler Instruments: Kontakt (full/player), Decent Sampler, SFZ.',
+      'DAW Project Templates: Ableton Live, FL Studio, Logic Pro, Cubase.',
     ],
-    tags: ['formats', 'vst3', 'au', 'aax', 'clap', 'wav', 'midi', 'presets', 'kontakt'],
   },
   {
-    id: 'file-hosting-storage',
+    id: 'file-storage',
     category: 'products',
-    q: 'What are the installer hosting and file upload size limits?',
-    a: 'We provide enterprise cloud storage and multi-region CDN distribution with support for up to 10GB per product installer or archive.',
-    details: [
-      'Global Edge CDN: Fast, low-latency downloads for buyers in 100+ countries.',
-      'Cryptographic Checksums: Automated hash verification ensures downloads are never corrupted in transit.',
-      'Dual-Asset Support: Separate Mac (.dmg/.pkg) and Windows (.exe/.zip) installer files hosted cleanly under one product listing.',
-    ],
-    tags: ['file size', 'cdn', 'cloud storage', '10gb', 'fast downloads', 'dual asset'],
+    q: 'How large can my installer files be?',
+    a: 'We provide fast global cloud storage supporting files up to 10GB per product. Buyers get fast, resume-supported downloads from edge servers worldwide.',
   },
   {
     id: 'code-signing',
     category: 'products',
-    q: 'Are macOS and Windows plugin builds required to be signed and notarized?',
-    a: 'Yes. To provide a professional customer experience and prevent OS security warnings, software binaries must be properly signed.',
-    details: [
-      'macOS: Apple Silicon & Intel installers (.pkg or .dmg) must be signed with an Apple Developer ID and notarized by Apple Gatekeeper.',
-      'Windows: .exe or .msi installers should be signed with an OV/EV Code Signing Certificate to establish Microsoft SmartScreen reputation.',
-      'Security: Unsigned binaries risk buyer antivirus blocks and customer return requests.',
-    ],
-    tags: ['code signing', 'notarization', 'apple gatekeeper', 'smartscreen', 'security'],
+    q: 'Do my Mac and Windows installers need to be signed?',
+    a: 'Yes, for the best customer experience. Mac installers (.pkg or .dmg) should be signed and notarized with an Apple Developer ID to prevent Gatekeeper warnings. Windows installers should be code-signed to avoid SmartScreen alerts.',
   },
   {
-    id: 'version-updates',
+    id: 'updates',
     category: 'products',
-    q: 'Can I release version updates, hotfixes, and changelogs?',
-    a: 'Yes! Your developer dashboard lets you release version increments (e.g., v1.0.0 → v1.0.1) anytime.',
-    details: [
-      'Attach clear changelogs and release notes to notify your user base.',
-      'Past verified buyers can immediately download the updated build from their Producer Toy Customer Library at zero extra cost.',
-      'Old binary archives are safely versioned so you can rollback if necessary.',
-    ],
-    tags: ['version updates', 'patches', 'changelog', 'hotfixes', 'free updates'],
+    q: 'Can I release free updates and bug fixes for existing buyers?',
+    a: 'Yes! You can upload new versions (like v1.0.1) anytime with a changelog. Past buyers can download the updated build from their library for free.',
   },
 
-  // 5. Support & EULA Terms
+  // 5. Support & Terms
   {
-    id: 'support-responsibilities',
+    id: 'support-roles',
     category: 'support',
-    q: 'Who handles customer support — Producer Toy or the developer?',
-    a: 'Customer support is structured under our Universal Multi-Vendor Responsibility Model, clearly dividing marketplace infrastructure from software-specific support.',
-    details: [
-      'Producer Toy Platform Responsibilities: Marketplace accounts, checkout billing, order receipts, download library infrastructure, platform CDN delivery, and payment gateway dispute triage.',
-      'Developer / Brand Responsibilities: Product descriptions, system compatibility (OS/DAW), installation guides, license activation/serial keys, audio DSP glitches, software bug fixes, and product-specific troubleshooting.',
-      'Joint Cooperation: Both parties cooperate on failed digital delivery, license key investigations, refund triage, and security incident response.',
+    q: 'Who handles customer support — ProducerToy or me?',
+    a: 'We split support responsibilities based on what each party does best:',
+    points: [
+      'ProducerToy handles: User accounts, checkout, payments, download delivery, invoices, and billing issues.',
+      'You handle: Plugin sound, DSP code, DAW compatibility questions, installation guides, and software bugs.',
+      'We work together: If a download fails or a key needs verification, our teams cooperate directly.',
     ],
-    tags: ['support model', 'responsibilities', 'customer support', 'troubleshooting', 'developer role'],
   },
   {
-    id: 'eula-order-of-precedence',
+    id: 'eula-rules',
     category: 'support',
-    q: 'How does the developer product license (EULA) interact with Producer Toy terms?',
-    a: 'We uphold a clear legal Order of Precedence ensuring your software intellectual property is fully protected by your own license terms.',
-    details: [
-      '1. Mandatory Applicable Law: Takes precedence where required by statute.',
-      '2. Developer Product-Specific License (EULA): Directly governs the permitted use of the specific audio plugin, machine activations, computer seats, reverse-engineering restrictions, and intellectual property. It explicitly takes precedence on software matters.',
-      '3. Producer Toy Platform Terms: Govern user accounts, marketplace access, checkout security, and platform operations.',
-      'Customers are presented with and accept your product license prior to completing their checkout.',
-    ],
-    tags: ['eula', 'product license', 'order of precedence', 'intellectual property', 'terms'],
+    q: 'Does my own software license (EULA) protect my plugin?',
+    a: 'Yes. Your own product license explicitly governs how buyers can use your software, computer activations, and copyright. Your license takes priority over general store rules on all software matters.',
   },
 
-  // 6. Onboarding & Guidelines
+  // 6. Getting Started
   {
     id: 'who-can-join',
-    category: 'onboarding',
-    q: 'Who is eligible to become a creator on Toy Creator?',
-    a: 'Toy Creator is curated for quality. We welcome audio software developers, boutique DSP engineers, sound designers, sample label founders, and preset creators with a track record of quality releases.',
-    details: [
-      'We accept independent developers, audio startups, and established software brands.',
-      'Products are reviewed for audio quality, system stability, installer security, and accurate documentation.',
-      'You must hold complete intellectual property rights or valid distribution licenses for all content you publish.',
-    ],
-    tags: ['eligibility', 'creators', 'developers', 'quality review', 'who can join'],
+    category: 'start',
+    q: 'Who can become a creator on Toy Creator?',
+    a: 'Toy Creator is curated for quality. We welcome audio software developers, plugin creators, boutique DSP builders, sound designers, and sample label owners with original, high-quality audio tools.',
   },
   {
-    id: 'invite-process',
-    category: 'onboarding',
-    q: 'How does the application and brand invite process work?',
-    a: 'To maintain high marketplace standards, onboarding is invitation and application-based.',
-    details: [
-      '1. Submit Application: Fill out our quick Creator Application with links to your portfolio, website, or audio demos.',
-      '2. Review & Approval: Our developer relations team reviews your application within 24 to 48 business hours.',
-      '3. Secure Invite Token: Approved creators receive a cryptographic Brand Invite Token to register their developer workspace.',
-      '4. Setup & Launch: Complete your brand profile, configure payout bank details, upload product installers & serial keys, and launch on Producer Toy.',
-    ],
-    tags: ['application', 'invite token', 'registration', 'onboarding workflow', 'approval'],
+    id: 'how-to-apply',
+    category: 'start',
+    q: 'How do I apply and start selling?',
+    a: 'Click "Partner / Apply" and submit your name, website, and portfolio links. Our team reviews applications within 24 to 48 hours. Once approved, you get a secure invite link to create your brand account.',
   },
   {
-    id: 'ip-ownership',
-    category: 'onboarding',
-    q: 'Do I maintain 100% ownership of my intellectual property?',
-    a: 'Yes, absolutely. You retain 100% full ownership of your code, audio recordings, trademarks, brand identity, and intellectual property.',
-    details: [
-      'Distribution on Producer Toy is strictly non-exclusive.',
-      'You are completely free to distribute your products on your own website or other retail platforms concurrently.',
-      'You can update, modify, or unpublish your products whenever you choose.',
-    ],
-    tags: ['ip ownership', 'non-exclusive', 'copyright', 'retain rights', 'ownership'],
+    id: 'ownership',
+    category: 'start',
+    q: 'Do I keep full ownership of my audio tools?',
+    a: 'Yes, 100%. You keep full copyright and ownership of your software, sounds, trademarks, and code. Selling on ProducerToy is non-exclusive — you can keep selling on your own website anytime.',
   },
 ];
 
 export default function CreatorFaqPage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [expandedFaqs, setExpandedFaqs] = useState<Set<string>>(new Set(['commission-split', 'deduction-order']));
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState<string>('all');
+  const [openIds, setOpenIds] = useState<Set<string>>(new Set(['commission', 'calculation-order']));
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const toggleFaq = (id: string) => {
-    setExpandedFaqs((prev) => {
+  const toggle = (id: string) => {
+    setOpenIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
 
-  const expandAll = () => {
-    setExpandedFaqs(new Set(filteredFaqs.map((f) => f.id)));
-  };
-
-  const collapseAll = () => {
-    setExpandedFaqs(new Set());
-  };
-
-  const copyFaqLink = (id: string, e: React.MouseEvent) => {
+  const copyLink = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (typeof window !== 'undefined') {
-      const url = `${window.location.origin}/faq#${id}`;
-      navigator.clipboard.writeText(url);
+      navigator.clipboard.writeText(`${window.location.origin}/faq#${id}`);
       setCopiedId(id);
-      setTimeout(() => setCopiedId(null), 2000);
+      setTimeout(() => setCopiedId(null), 1800);
     }
   };
 
-  const filteredFaqs = useMemo(() => {
-    return FAQS_DATA.filter((faq) => {
-      const matchesCategory = selectedCategory === 'all' || faq.category === selectedCategory;
-      if (!matchesCategory) return false;
-
-      if (!searchQuery.trim()) return true;
-
-      const q = searchQuery.toLowerCase().trim();
-      const inQuestion = faq.q.toLowerCase().includes(q);
-      const inAnswer = faq.a.toLowerCase().includes(q);
-      const inDetails = faq.details?.some((d) => d.toLowerCase().includes(q)) ?? false;
-      const inTags = faq.tags.some((t) => t.toLowerCase().includes(q));
-
-      return inQuestion || inAnswer || inDetails || inTags;
+  const filtered = useMemo(() => {
+    return FAQS.filter((f) => {
+      if (category !== 'all' && f.category !== category) return false;
+      if (!search.trim()) return true;
+      const s = search.toLowerCase().trim();
+      return (
+        f.q.toLowerCase().includes(s) ||
+        f.a.toLowerCase().includes(s) ||
+        f.points?.some((p) => p.toLowerCase().includes(s))
+      );
     });
-  }, [searchQuery, selectedCategory]);
-
-  // Structured Data Schema for SEO
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: FAQS_DATA.map((faq) => ({
-      '@type': 'Question',
-      name: faq.q,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: `${faq.a} ${faq.details ? faq.details.join(' ') : ''}`,
-      },
-    })),
-  };
+  }, [search, category]);
 
   return (
     <div className="min-h-screen bg-[#121212] text-white flex flex-col justify-between selection:bg-white selection:text-black font-sans">
-      {/* Schema.org FAQPage Structured Data */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
-
       {/* Top Navbar */}
       <nav className="h-20 border-b border-[#222222] px-6 sm:px-12 flex items-center justify-between max-w-7xl w-full mx-auto">
         <Link href="/" className="flex items-center gap-3">
           <picture className="flex-shrink-0">
             <source srcSet="/logo.webp" type="image/webp" />
-            <img
-              src="/logo.png"
-              alt="Toy Creator Emblem"
-              className="w-10 h-10 object-contain"
-            />
+            <img src="/logo.png" alt="Toy Creator Emblem" className="w-10 h-10 object-contain" />
           </picture>
           <div className="flex flex-col">
-            <span className="font-extrabold text-base tracking-tight text-white uppercase">
-              Toy Creator
-            </span>
-            <span className="text-[10px] font-semibold text-zinc-400 tracking-wider uppercase">
-              by ProducerToy
-            </span>
+            <span className="font-extrabold text-base tracking-tight text-white uppercase">Toy Creator</span>
+            <span className="text-[10px] font-semibold text-zinc-400 tracking-wider uppercase">by ProducerToy</span>
           </div>
         </Link>
 
@@ -440,8 +291,8 @@ export default function CreatorFaqPage() {
       </nav>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-10 sm:py-16 flex flex-col">
-        {/* Breadcrumb & Header */}
+      <main className="flex-1 max-w-4xl w-full mx-auto px-6 py-10 sm:py-16 flex flex-col">
+        {/* Header */}
         <div className="mb-8">
           <Link
             href="/"
@@ -450,33 +301,28 @@ export default function CreatorFaqPage() {
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Creator Home</span>
           </Link>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="px-2.5 py-1 rounded-full bg-[#1e1e1e] border border-[#2a2a2a] text-[11px] font-bold uppercase tracking-wider text-zinc-300">
-              Developer Knowledge Base
-            </span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
             Frequently Asked Questions
           </h1>
-          <p className="text-sm sm:text-base text-zinc-400 mt-3 max-w-3xl leading-relaxed">
-            Everything audio developers, plugin creators, and sound designers need to know about publishing on Producer Toy. Clear commission splits, monthly settlement rules, license key DRM, customer privacy, and technical requirements.
+          <p className="text-sm text-zinc-400 mt-2 max-w-2xl leading-relaxed">
+            Everything you need to know about selling plugins, sample packs, and sound tools on ProducerToy. Simple answers, no confusing legalese.
           </p>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative w-full mb-8">
-          <Search className="w-5 h-5 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+        {/* Clean Search Input */}
+        <div className="relative w-full mb-6">
+          <Search className="w-4 h-4 text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search FAQs by question, topic, or keyword (e.g., 70% split, payouts, serial keys, privacy, EULA)..."
-            className="w-full h-13 pl-12 pr-10 rounded-2xl bg-[#161616] border border-[#262626] focus:border-white/30 focus:outline-none text-sm text-white placeholder:text-zinc-500 transition-colors shadow-lg"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search questions (e.g., 70% split, payouts, serial keys, privacy, formats)..."
+            className="w-full h-12 pl-11 pr-10 rounded-xl bg-[#181818] border border-[#262626] focus:border-zinc-400 focus:outline-none text-xs sm:text-sm text-white placeholder:text-zinc-500 transition-colors"
           />
-          {searchQuery && (
+          {search && (
             <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors"
+              onClick={() => setSearch('')}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
               aria-label="Clear search"
             >
               <X className="w-4 h-4" />
@@ -484,152 +330,114 @@ export default function CreatorFaqPage() {
           )}
         </div>
 
-        {/* Category Filter Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 scrollbar-none">
-          {FAQ_CATEGORIES.map((cat) => {
-            const Icon = cat.icon;
-            const isSelected = selectedCategory === cat.id;
+        {/* Minimalist Category Buttons */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-6 scrollbar-none">
+          {CATEGORIES.map((c) => {
+            const Icon = c.icon;
+            const active = category === c.id;
             return (
               <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                  isSelected
-                    ? 'bg-white text-black shadow-md'
+                key={c.id}
+                onClick={() => setCategory(c.id)}
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                  active
+                    ? 'bg-white text-black'
                     : 'bg-[#181818] border border-[#262626] text-zinc-400 hover:text-white hover:bg-[#202020]'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isSelected ? 'text-black' : 'text-zinc-400'}`} />
-                <span>{cat.label}</span>
+                <Icon className={`w-3.5 h-3.5 ${active ? 'text-black' : 'text-zinc-400'}`} />
+                <span>{c.label}</span>
               </button>
             );
           })}
         </div>
 
-        {/* Results Counter & Expand/Collapse Toggle */}
-        <div className="flex items-center justify-between text-xs text-zinc-400 mb-6 px-1">
-          <span>
-            Showing <strong className="text-white">{filteredFaqs.length}</strong> of {FAQS_DATA.length} developer questions
-          </span>
-          <div className="flex items-center gap-4">
+        {/* Results Counter */}
+        <div className="flex items-center justify-between text-xs text-zinc-500 mb-4 px-1">
+          <span>{filtered.length} questions</span>
+          <div className="flex items-center gap-3">
             <button
-              onClick={expandAll}
-              className="hover:text-white transition-colors cursor-pointer"
+              onClick={() => setOpenIds(new Set(filtered.map((f) => f.id)))}
+              className="hover:text-zinc-300 transition-colors cursor-pointer"
             >
-              Expand All
+              Open all
             </button>
-            <span className="text-zinc-600">•</span>
+            <span>•</span>
             <button
-              onClick={collapseAll}
-              className="hover:text-white transition-colors cursor-pointer"
+              onClick={() => setOpenIds(new Set())}
+              className="hover:text-zinc-300 transition-colors cursor-pointer"
             >
-              Collapse All
+              Close all
             </button>
           </div>
         </div>
 
-        {/* FAQ Accordion List */}
-        {filteredFaqs.length === 0 ? (
-          <div className="p-12 text-center rounded-2xl bg-[#161616] border border-[#262626] my-6">
-            <HelpCircle className="w-10 h-10 text-zinc-500 mx-auto mb-3" />
-            <h3 className="text-base font-bold text-white mb-1">No matching questions found</h3>
-            <p className="text-xs text-zinc-400 max-w-md mx-auto mb-6">
-              We couldn’t find any answers matching &ldquo;{searchQuery}&rdquo;. Try another search term or browse by category.
-            </p>
+        {/* FAQ Accordion */}
+        {filtered.length === 0 ? (
+          <div className="p-10 text-center rounded-2xl bg-[#161616] border border-[#242424] my-6">
+            <p className="text-sm font-semibold text-zinc-300 mb-1">No matching questions found</p>
+            <p className="text-xs text-zinc-500 mb-4">Try searching for something else or clear your search.</p>
             <button
               onClick={() => {
-                setSearchQuery('');
-                setSelectedCategory('all');
+                setSearch('');
+                setCategory('all');
               }}
-              className="px-4 py-2 rounded-xl bg-white text-black text-xs font-bold uppercase tracking-wider"
+              className="px-4 py-2 rounded-lg bg-[#242424] hover:bg-[#2c2c2c] text-xs font-semibold text-white transition-colors"
             >
-              Reset Filters
+              Show all questions
             </button>
           </div>
         ) : (
-          <div className="space-y-3.5">
-            {filteredFaqs.map((faq) => {
-              const isExpanded = expandedFaqs.has(faq.id);
-              const isCopied = copiedId === faq.id;
+          <div className="space-y-2.5">
+            {filtered.map((item) => {
+              const isOpen = openIds.has(item.id);
+              const isCopied = copiedId === item.id;
 
               return (
                 <div
-                  key={faq.id}
-                  id={faq.id}
-                  className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
-                    isExpanded
-                      ? 'bg-[#18181c] border-white/20 shadow-xl'
-                      : 'bg-[#161616] border-[#262626] hover:border-[#353535]'
-                  }`}
+                  key={item.id}
+                  id={item.id}
+                  className="rounded-xl bg-[#161616] border border-[#242424] hover:border-[#2f2f2f] transition-colors overflow-hidden"
                 >
                   <button
                     type="button"
-                    onClick={() => toggleFaq(faq.id)}
-                    aria-expanded={isExpanded}
-                    className="w-full p-5 sm:p-6 text-left flex items-start justify-between gap-4 cursor-pointer"
+                    onClick={() => toggle(item.id)}
+                    className="w-full p-5 text-left flex items-start justify-between gap-4 cursor-pointer"
                   >
-                    <div className="flex-1 pr-2">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white/[0.06] text-zinc-400 border border-white/[0.04]">
-                          {FAQ_CATEGORIES.find((c) => c.id === faq.category)?.label || faq.category}
-                        </span>
-                      </div>
-                      <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
-                        {faq.q}
-                      </h2>
-                    </div>
-
-                    <div className="flex items-center gap-2 flex-shrink-0 mt-1">
+                    <span className="text-sm sm:text-base font-bold text-white leading-snug">
+                      {item.q}
+                    </span>
+                    <div className="flex items-center gap-1.5 flex-shrink-0 mt-0.5">
                       <button
                         type="button"
-                        onClick={(e) => copyFaqLink(faq.id, e)}
-                        title="Copy direct link to question"
-                        className="p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-white/10 transition-colors"
-                        aria-label="Copy link"
+                        onClick={(e) => copyLink(item.id, e)}
+                        title="Copy link"
+                        className="p-1 text-zinc-500 hover:text-white transition-colors"
+                        aria-label="Copy link to question"
                       >
-                        {isCopied ? (
-                          <Check className="w-4 h-4 text-emerald-400" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
+                        {isCopied ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
                       </button>
                       <ChevronDown
-                        className={`w-5 h-5 text-zinc-400 transition-transform duration-200 ${
-                          isExpanded ? 'rotate-180 text-white' : ''
+                        className={`w-4 h-4 text-zinc-400 transition-transform duration-200 ${
+                          isOpen ? 'rotate-180 text-white' : ''
                         }`}
                       />
                     </div>
                   </button>
 
-                  {isExpanded && (
-                    <div className="px-5 sm:px-6 pb-6 pt-1 text-sm text-zinc-300 leading-relaxed border-t border-white/[0.06] animate-in fade-in duration-150">
-                      <p className="mb-3 text-zinc-200 font-medium">{faq.a}</p>
+                  {isOpen && (
+                    <div className="px-5 pb-5 pt-0 text-xs sm:text-sm text-zinc-400 leading-relaxed border-t border-[#202020] mt-1 pt-3.5">
+                      <p className="text-zinc-300">{item.a}</p>
 
-                      {faq.details && faq.details.length > 0 && (
-                        <div className="p-4 rounded-xl bg-[#121214] border border-white/[0.06] space-y-2 mt-3 text-xs sm:text-sm text-zinc-300">
-                          {faq.details.map((detail, dIdx) => (
-                            <div key={dIdx} className="flex items-start gap-2.5">
-                              <CheckCircle2 className="w-4 h-4 text-zinc-400 flex-shrink-0 mt-0.5" />
-                              <span>{detail}</span>
-                            </div>
+                      {item.points && item.points.length > 0 && (
+                        <div className="mt-3 p-3.5 rounded-lg bg-[#111111] border border-[#202020] space-y-1.5 text-xs text-zinc-400">
+                          {item.points.map((pt, pIdx) => (
+                            <p key={pIdx} className="leading-relaxed">
+                              {pt}
+                            </p>
                           ))}
                         </div>
                       )}
-
-                      {/* Tags */}
-                      <div className="flex flex-wrap items-center gap-1.5 mt-4 pt-3 border-t border-white/[0.04]">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mr-1">
-                          Tags:
-                        </span>
-                        {faq.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#202020] text-zinc-400 border border-white/[0.04]"
-                          >
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
                     </div>
                   )}
                 </div>
@@ -638,108 +446,44 @@ export default function CreatorFaqPage() {
           </div>
         )}
 
-        {/* Quick Resource Links Card */}
-        <div className="w-full mt-16 p-6 sm:p-8 rounded-3xl bg-[#161616] border border-[#262626] grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="flex items-start gap-4">
-            <div className="p-3 rounded-xl bg-[#202020] border border-[#2e2e2e] text-white">
-              <FileText className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-white">Universal Support Model</h4>
-              <p className="text-xs text-zinc-400 mt-1">
-                Clearly defined roles dividing marketplace billing from developer DSP troubleshooting.
-              </p>
-              <a
-                href="https://producertoy.com/support"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-white mt-2 hover:underline"
-              >
-                <span>Read Support Policy</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-4">
-            <div className="p-3 rounded-xl bg-[#202020] border border-[#2e2e2e] text-white">
-              <Lock className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-white">Privacy &amp; Data Sharing</h4>
-              <p className="text-xs text-zinc-400 mt-1">
-                Privacy-first default masking with explicit pre-purchase customer consent for software licensing.
-              </p>
-              <a
-                href="https://producertoy.com/privacy"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-white mt-2 hover:underline"
-              >
-                <span>Read Privacy Terms</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-4">
-            <div className="p-3 rounded-xl bg-[#202020] border border-[#2e2e2e] text-white">
-              <DollarSign className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-white">Monthly Settlements</h4>
-              <p className="text-xs text-zinc-400 mt-1">
-                Disbursements payable by the 15th of the following month with zero minimum threshold.
-              </p>
-              <Link
-                href="/login"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-white mt-2 hover:underline"
-              >
-                <span>View Payout Reports</span>
-                <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom CTA Card */}
-        <section className="w-full mt-16 p-10 sm:p-14 rounded-3xl bg-[#161616] border border-[#2a2a2f] text-center shadow-2xl relative overflow-hidden">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-3">
-            Have more questions about publishing?
+        {/* Minimal Bottom CTA Card */}
+        <div className="w-full mt-16 p-8 sm:p-10 rounded-2xl bg-[#161616] border border-[#242424] text-center">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-white mb-2">
+            Ready to sell your audio tools?
           </h2>
-          <p className="text-xs sm:text-sm text-zinc-400 max-w-xl mx-auto mb-8 leading-relaxed">
-            Our developer relations team is here to assist audio software developers, DSP engineers, and sound designers through every step of distribution.
+          <p className="text-xs sm:text-sm text-zinc-400 max-w-lg mx-auto mb-6 leading-relaxed">
+            Join independent audio developers and sound designers worldwide. Submit your application today.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href="/signup"
-              className="w-full sm:w-auto btn-white py-3.5 px-8 text-xs font-bold uppercase tracking-wider rounded-full flex items-center justify-center gap-2 shadow-xl"
+              className="w-full sm:w-auto btn-white py-3 px-6 text-xs font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-2"
             >
               <span>Apply for Creator Access</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
             <Link
               href="/login"
-              className="w-full sm:w-auto py-3.5 px-8 text-xs font-semibold uppercase tracking-wider rounded-full bg-[#202020] hover:bg-[#282828] border border-[#2e2e2e] text-white flex items-center justify-center gap-2 transition-colors"
+              className="w-full sm:w-auto py-3 px-6 text-xs font-semibold uppercase tracking-wider rounded-xl bg-[#202020] hover:bg-[#282828] border border-[#2a2a2a] text-white flex items-center justify-center transition-colors"
             >
-              <span>Sign In to Dashboard</span>
+              <span>Sign In</span>
             </Link>
           </div>
-        </section>
+        </div>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-[#202020] py-8 px-6 sm:px-12 text-center text-xs text-zinc-400 flex flex-col sm:flex-row items-center justify-between gap-4 max-w-7xl w-full mx-auto">
+      <footer className="border-t border-[#202020] py-8 px-6 sm:px-12 text-center text-xs text-zinc-500 flex flex-col sm:flex-row items-center justify-between gap-4 max-w-7xl w-full mx-auto">
         <p>&copy; {new Date().getFullYear()} Producer Toy Inc. All rights reserved. Toy Creator Portal.</p>
         <div className="flex items-center gap-6">
-          <Link href="/faq" className="text-white font-medium hover:underline">
+          <Link href="/faq" className="text-zinc-300 hover:text-white transition-colors">
             Developer FAQ
           </Link>
           <a
             href="https://producertoy.com"
             target="_blank"
             rel="noreferrer"
-            className="hover:text-white transition-colors"
+            className="hover:text-zinc-300 transition-colors"
           >
             ProducerToy Marketplace &rarr;
           </a>
@@ -747,7 +491,7 @@ export default function CreatorFaqPage() {
             href="https://producertoy.com/privacy"
             target="_blank"
             rel="noreferrer"
-            className="hover:text-white transition-colors"
+            className="hover:text-zinc-300 transition-colors"
           >
             Privacy
           </a>
@@ -755,7 +499,7 @@ export default function CreatorFaqPage() {
             href="https://producertoy.com/terms"
             target="_blank"
             rel="noreferrer"
-            className="hover:text-white transition-colors"
+            className="hover:text-zinc-300 transition-colors"
           >
             Terms
           </a>
