@@ -3,6 +3,7 @@
 import { getAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 import { SerialKeyPoolStats } from '@/lib/types';
+import { maskCustomerPii } from '@/lib/privacy/dataSharing';
 
 /**
  * Server Action: Get serial key pool statistics and latest keys for a product
@@ -34,7 +35,7 @@ export async function getProductSerialStatsAction(productId: string): Promise<{
     // 2. Fetch purchases for this product to enrich claimed licenses
     const { data: purchases } = await admin
       .from('purchases')
-      .select('id, serial_key, customer_name, customer_email, purchased_at, razorpay_order_id, razorpay_payment_id, amount_paid, currency')
+      .select('id, serial_key, customer_name, customer_email, seller_data_sharing_consented, purchased_at, razorpay_order_id, razorpay_payment_id, amount_paid, currency')
       .eq('product_id', productId)
       .order('purchased_at', { ascending: false });
 
@@ -57,8 +58,8 @@ export async function getProductSerialStatsAction(productId: string): Promise<{
         is_used: Boolean(k.is_used || match),
         assigned_to_user_id: k.assigned_to_user_id,
         created_at: k.created_at,
-        customer_email: match?.customer_email || null,
-        customer_name: match?.customer_name || null,
+        customer_email: match ? maskCustomerPii(match.customer_email, Boolean(match.seller_data_sharing_consented), 'email') : null,
+        customer_name: match ? maskCustomerPii(match.customer_name, Boolean(match.seller_data_sharing_consented), 'name') : null,
         order_id: match?.razorpay_order_id || match?.razorpay_payment_id || match?.id || null,
         purchased_at: match?.purchased_at || null,
         amount_paid: match?.amount_paid ? Number(match.amount_paid) : null,
@@ -75,8 +76,8 @@ export async function getProductSerialStatsAction(productId: string): Promise<{
         serial_key: p.serial_key.trim(),
         is_used: true,
         created_at: p.purchased_at || new Date().toISOString(),
-        customer_email: p.customer_email || null,
-        customer_name: p.customer_name || null,
+        customer_email: maskCustomerPii(p.customer_email, Boolean(p.seller_data_sharing_consented), 'email'),
+        customer_name: maskCustomerPii(p.customer_name, Boolean(p.seller_data_sharing_consented), 'name'),
         order_id: p.razorpay_order_id || p.razorpay_payment_id || p.id || null,
         purchased_at: p.purchased_at || null,
         amount_paid: p.amount_paid ? Number(p.amount_paid) : null,

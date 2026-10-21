@@ -1,5 +1,6 @@
 import { getSupabaseBrowserClient } from './client';
 import { getAdminClient } from './admin';
+import { maskCustomerPii } from '../privacy/dataSharing';
 
 // Types
 export interface BrandData {
@@ -276,7 +277,20 @@ export async function getBrandPurchases(brandId: string) {
     console.error('Error fetching purchases:', error);
     return [];
   }
-  return data || [];
+  return (data || []).map((p: any) => {
+    const isConsented = Boolean(p.seller_data_sharing_consented);
+    return {
+      ...p,
+      customer_email: maskCustomerPii(p.customer_email, isConsented, 'email'),
+      customer_name: maskCustomerPii(p.customer_name, isConsented, 'name'),
+      customer_phone: isConsented ? p.customer_phone : null,
+      billing_address: isConsented ? p.billing_address : null,
+      billing_city: isConsented ? p.billing_city : null,
+      billing_state: isConsented ? p.billing_state : null,
+      billing_zip: isConsented ? p.billing_zip : null,
+      billing_country: isConsented ? p.billing_country : null,
+    };
+  });
 }
 
 /**
