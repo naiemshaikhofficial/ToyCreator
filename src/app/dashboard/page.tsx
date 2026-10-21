@@ -3,11 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useBrand } from '@/context/BrandContext';
-import {
-  getBrandProducts,
-  getBrandPurchases,
-  getBrandDeviceActivations,
-} from '@/lib/supabase/actions';
+import { getBrandFullAnalyticsAction, BrandAnalyticsData } from '@/actions/analyticsActions';
 import {
   DollarSign,
   TrendingUp,
@@ -19,6 +15,8 @@ import {
   ChevronRight,
   Laptop,
   Music,
+  ShoppingBag,
+  RefreshCw,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -29,61 +27,40 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import {
-  AUDIO_OS_TELEMETRY,
-  AUDIO_DAW_TELEMETRY,
-  INITIAL_ORDERS,
-} from '@/lib/data/mockData';
 
 export default function DashboardOverviewPage() {
   const { brand } = useBrand();
-
-  const [products, setProducts] = useState<any[]>([]);
-  const [purchases, setPurchases] = useState<any[]>([]);
-  const [activations, setActivations] = useState<any[]>([]);
+  const [data, setData] = useState<BrandAnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function loadDashboardData() {
-      if (!brand?.id) return;
-      setLoading(true);
-      try {
-        const [prodList, purchList, actList] = await Promise.all([
-          getBrandProducts(brand.id),
-          getBrandPurchases(brand.id),
-          getBrandDeviceActivations(brand.id),
-        ]);
-        setProducts(prodList);
-        setPurchases(purchList);
-        setActivations(actList);
-      } catch (err) {
-        console.error('Failed to load dashboard data:', err);
-      } finally {
-        setLoading(false);
+  const loadDashboardData = async () => {
+    if (!brand?.id) return;
+    setLoading(true);
+    try {
+      const res = await getBrandFullAnalyticsAction(brand.id);
+      if (res.success && res.data) {
+        setData(res.data);
       }
+    } catch (err) {
+      console.error('Failed to load dashboard data:', err);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     loadDashboardData();
   }, [brand?.id]);
 
-  const totalGrossRevenue = purchases.reduce(
-    (acc, p) => acc + (parseFloat(p.amount_paid) || 0),
-    0
-  );
-  const netEarnings = totalGrossRevenue * 0.70;
-  const activeProductsCount = products.filter((p) => p.is_active).length;
-  const activeDeviceSeats = activations.filter((a) => a.is_active).length;
-
-  // Chart data
-  const chartData = [
-    { date: 'Mon', revenue: Math.round(totalGrossRevenue * 0.1) || 120, orders: 4 },
-    { date: 'Tue', revenue: Math.round(totalGrossRevenue * 0.15) || 280, orders: 8 },
-    { date: 'Wed', revenue: Math.round(totalGrossRevenue * 0.12) || 190, orders: 5 },
-    { date: 'Thu', revenue: Math.round(totalGrossRevenue * 0.22) || 350, orders: 11 },
-    { date: 'Fri', revenue: Math.round(totalGrossRevenue * 0.18) || 310, orders: 9 },
-    { date: 'Sat', revenue: Math.round(totalGrossRevenue * 0.25) || 440, orders: 14 },
-    { date: 'Sun', revenue: Math.round(totalGrossRevenue * 0.2) || 380, orders: 12 },
-  ];
+  const totalGrossRevenue = data?.grossRevenue ?? 0;
+  const netEarnings = data?.netRoyalty70 ?? 0;
+  const activeProductsCount = data?.activeProductsCount ?? 0;
+  const activeDeviceSeats = data?.activeDeviceSeats ?? 0;
+  const products = data?.products || [];
+  const purchases = data?.purchases || [];
+  const osTelemetry = data?.osTelemetry || [];
+  const dawTelemetry = data?.dawTelemetry || [];
+  const chartData = data?.revenueTimeline || [];
 
   return (
     <div className="space-y-6 sm:space-y-8 font-sans">
@@ -137,31 +114,27 @@ export default function DashboardOverviewPage() {
           <div className="text-xl sm:text-2xl font-black text-white font-mono">
             ${totalGrossRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <div className="text-[11px] text-zinc-400 mt-1">
-            <span>All-time verified payments</span>
-          </div>
+          <div className="text-[11px] text-zinc-400 mt-1">Verified gross checkout volume</div>
         </div>
 
-        {/* Net Brand Earnings (70%) */}
+        {/* Net Royalty (70%) */}
         <div className="toy-card p-5">
           <div className="flex items-center justify-between text-zinc-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Net Earnings (70%)</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Net Retain (70%)</span>
             <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-xl sm:text-2xl font-black text-white font-mono">
+          <div className="text-xl sm:text-2xl font-black text-zinc-100 font-mono">
             ${netEarnings.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <div className="text-[11px] text-zinc-400 mt-1">
-            Creator share after 30% platform split
-          </div>
+          <div className="text-[11px] text-zinc-400 mt-1">Direct publisher royalties</div>
         </div>
 
         {/* Active Products */}
         <div className="toy-card p-5">
           <div className="flex items-center justify-between text-zinc-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Active Products</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Active Catalog</span>
             <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
               <Package className="w-4 h-4" />
             </div>
@@ -169,15 +142,13 @@ export default function DashboardOverviewPage() {
           <div className="text-xl sm:text-2xl font-black text-white font-mono">
             {activeProductsCount}
           </div>
-          <div className="text-[11px] text-zinc-400 mt-1">
-            {products.length} total in catalog
-          </div>
+          <div className="text-[11px] text-zinc-400 mt-1">Live in marketplace store</div>
         </div>
 
-        {/* Hardware Activations */}
+        {/* Device Activations */}
         <div className="toy-card p-5">
           <div className="flex items-center justify-between text-zinc-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Active Devices</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Active Studio Seats</span>
             <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
               <KeyRound className="w-4 h-4" />
             </div>
@@ -185,24 +156,22 @@ export default function DashboardOverviewPage() {
           <div className="text-xl sm:text-2xl font-black text-white font-mono">
             {activeDeviceSeats}
           </div>
-          <div className="text-[11px] text-zinc-400 mt-1">
-            Hardware machine licenses
-          </div>
+          <div className="text-[11px] text-zinc-400 mt-1">Customer hardware rigs authorized</div>
         </div>
       </div>
 
-      {/* Analytics Chart & Catalog Snapshot */}
+      {/* Main Charts & Catalog Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Sales Chart */}
-        <div className="lg:col-span-2 toy-card p-5 sm:p-6 flex flex-col justify-between">
+        {/* Sales Trajectory Chart */}
+        <div className="toy-card p-6 lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider">Sales Velocity</h2>
-              <p className="text-xs text-zinc-400">Revenue activity across the ProducerToy marketplace</p>
+              <h2 className="text-sm font-bold text-white uppercase tracking-wider">Sales Velocity Trajectory</h2>
+              <p className="text-xs text-zinc-400">Gross revenue across verified orders</p>
             </div>
             <Link
               href="/dashboard/analytics"
-              className="text-xs text-zinc-300 hover:text-white font-medium flex items-center gap-1"
+              className="text-xs text-zinc-300 hover:text-white flex items-center gap-1 font-medium transition-colors"
             >
               <span>Full Analytics</span>
               <ChevronRight className="w-3.5 h-3.5" />
@@ -210,42 +179,52 @@ export default function DashboardOverviewPage() {
           </div>
 
           <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="charcoalRevenueGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ffffff" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#ffffff" stopOpacity={0.0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#252525" vertical={false} />
-                <XAxis dataKey="date" stroke="#606060" fontSize={11} tickLine={false} />
-                <YAxis stroke="#606060" fontSize={11} tickLine={false} tickFormatter={(val) => `$${val}`} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#181818',
-                    borderColor: '#2e2e2e',
-                    borderRadius: '8px',
-                    fontSize: '12px',
-                    color: '#fff',
-                  }}
-                  formatter={(val: any) => [`$${val}`, 'Revenue']}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#ffffff"
-                  strokeWidth={2}
-                  fillOpacity={1}
-                  fill="url(#charcoalRevenueGradient)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            {chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="charcoalGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#ffffff" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#ffffff" stopOpacity={0.0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#252525" vertical={false} />
+                  <XAxis dataKey="name" stroke="#606060" fontSize={11} tickLine={false} />
+                  <YAxis stroke="#606060" fontSize={11} tickLine={false} tickFormatter={(v) => `$${v}`} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#181818',
+                      borderColor: '#2e2e2e',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      color: '#fff',
+                    }}
+                    formatter={(val: any) => [`$${Number(val).toFixed(2)}`, 'Revenue']}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#ffffff"
+                    strokeWidth={2}
+                    fillOpacity={1}
+                    fill="url(#charcoalGrad)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-center p-6 border border-dashed border-[#262626] rounded-xl space-y-2">
+                <TrendingUp className="w-6 h-6 text-zinc-600" />
+                <p className="text-xs text-zinc-300 font-medium">No sales activity in this timeframe</p>
+                <p className="text-[11px] text-zinc-500 max-w-xs">
+                  As buyers purchase plugins and sound libraries from your catalog, live order volume will plot here.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Real Products Snapshot */}
-        <div className="toy-card p-5 sm:p-6 flex flex-col">
+        {/* Quick Catalog Snapshot */}
+        <div className="toy-card p-6 flex flex-col justify-between">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-bold text-white uppercase tracking-wider">Catalog Snapshot</h2>
             <Link
@@ -257,12 +236,12 @@ export default function DashboardOverviewPage() {
           </div>
 
           {products.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-6 border border-dashed border-[#2a2a2a] rounded-xl">
-              <Package className="w-8 h-8 text-zinc-500 mb-2" />
+            <div className="flex-1 flex flex-col items-center justify-center text-center p-6 border border-dashed border-[#2a2a2a] rounded-xl space-y-2">
+              <Package className="w-6 h-6 text-zinc-500" />
               <p className="text-xs text-zinc-400">No products published yet</p>
               <Link
                 href="/dashboard/products/new"
-                className="mt-3 text-xs text-zinc-300 hover:text-white font-medium underline"
+                className="mt-1 text-xs text-white underline font-medium"
               >
                 + Add your first plugin / pack
               </Link>
@@ -282,7 +261,7 @@ export default function DashboardOverviewPage() {
                         alt={p.name}
                         className="w-full h-full object-cover"
                         onError={(e: any) => {
-                          e.target.src = '/Icon.webp';
+                          e.target.src = '/icon.png';
                         }}
                       />
                     ) : (
@@ -330,19 +309,25 @@ export default function DashboardOverviewPage() {
               <ChevronRight className="w-3 h-3" />
             </Link>
           </div>
-          <div className="space-y-2.5">
-            {AUDIO_OS_TELEMETRY.map((os) => (
-              <div key={os.os} className="space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-zinc-300 font-medium">{os.os}</span>
-                  <span className="font-mono font-bold text-white">{os.share_percent}%</span>
+          {osTelemetry.length > 0 ? (
+            <div className="space-y-2.5">
+              {osTelemetry.slice(0, 3).map((os) => (
+                <div key={os.os} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-300 font-medium">{os.os}</span>
+                    <span className="font-mono font-bold text-white">{os.share_percent}%</span>
+                  </div>
+                  <div className="w-full h-1.5 rounded-full bg-[#202020] overflow-hidden">
+                    <div className="h-full bg-zinc-200 rounded-full" style={{ width: `${os.share_percent}%` }} />
+                  </div>
                 </div>
-                <div className="w-full h-1.5 rounded-full bg-[#202020] overflow-hidden">
-                  <div className="h-full bg-zinc-200 rounded-full" style={{ width: `${os.share_percent}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-6 text-center border border-dashed border-[#262626] rounded-xl text-xs text-zinc-400">
+              No device activations recorded yet
+            </div>
+          )}
         </div>
 
         {/* Primary Host DAWs */}
@@ -357,38 +342,37 @@ export default function DashboardOverviewPage() {
               <ChevronRight className="w-3 h-3" />
             </Link>
           </div>
-          <div className="space-y-2.5">
-            {AUDIO_DAW_TELEMETRY.slice(0, 3).map((daw) => (
-              <div key={daw.daw} className="space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-zinc-300 font-medium">{daw.daw}</span>
-                  <span className="font-mono font-bold text-white">{daw.share_percent}%</span>
+          {dawTelemetry.length > 0 ? (
+            <div className="space-y-2.5">
+              {dawTelemetry.slice(0, 3).map((daw) => (
+                <div key={daw.daw} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-300 font-medium">{daw.daw}</span>
+                    <span className="font-mono font-bold text-white">{daw.share_percent}%</span>
+                  </div>
+                  <div className="w-full h-1.5 rounded-full bg-[#202020] overflow-hidden">
+                    <div className="h-full bg-[#34363d] rounded-full" style={{ width: `${daw.share_percent}%` }} />
+                  </div>
                 </div>
-                <div className="w-full h-1.5 rounded-full bg-[#202020] overflow-hidden">
-                  <div className="h-full bg-[#34363d] rounded-full" style={{ width: `${daw.share_percent}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-6 text-center border border-dashed border-[#262626] rounded-xl text-xs text-zinc-400">
+              No DAW host telemetry recorded yet
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Recent Purchases & Orders Table (Live Supabase with Demo Catalog Preview fallback) */}
+      {/* Recent Purchases & Orders Table (100% Genuine Database Records) */}
       <div className="toy-card p-5 sm:p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-bold text-white uppercase tracking-wider">Recent Orders & Purchases</h2>
-              {purchases.length === 0 && (
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#1e1e1e] text-zinc-400 border border-[#2b2b2b]">
-                  Catalog Preview
-                </span>
-              )}
             </div>
             <p className="text-xs text-zinc-400">
-              {purchases.length > 0
-                ? 'Direct customer orders recorded on ProducerToy'
-                : 'Sample demonstration stream — live orders from producertoy.com will populate here automatically'}
+              Direct verified customer orders recorded on ProducerToy
             </p>
           </div>
           <Link
@@ -400,49 +384,58 @@ export default function DashboardOverviewPage() {
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="border-b border-[#2a2a2a] text-zinc-400 uppercase text-[10px] tracking-wider">
-                <th className="py-2.5 px-3">Order / Purchase ID</th>
-                <th className="py-2.5 px-3">Customer</th>
-                <th className="py-2.5 px-3">Product</th>
-                <th className="py-2.5 px-3">Date</th>
-                <th className="py-2.5 px-3 text-right">Amount</th>
-                <th className="py-2.5 px-3 text-right">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#222222]">
-              {(purchases.length > 0 ? purchases.slice(0, 5) : INITIAL_ORDERS.slice(0, 5)).map((ord: any) => (
-                <tr key={ord.id} className="hover:bg-[#1a1a1a] transition-colors">
-                  <td className="py-3 px-3 font-mono text-zinc-300">
-                    {(ord.order_number || ord.id).slice(0, 12)}
-                  </td>
-                  <td className="py-3 px-3">
-                    <p className="font-medium text-white">{ord.customer_name || 'Customer'}</p>
-                    <p className="text-[11px] text-zinc-400">{ord.customer_email}</p>
-                  </td>
-                  <td className="py-3 px-3 text-zinc-200">
-                    {ord.products?.name || ord.product_name || 'Audio Product'}
-                  </td>
-                  <td className="py-3 px-3 text-zinc-400">
-                    {new Date(ord.purchased_at || ord.created_at).toLocaleDateString()}
-                  </td>
-                  <td className="py-3 px-3 text-right font-mono font-bold text-white">
-                    ${parseFloat(ord.amount_paid || ord.amount || 0).toFixed(2)}
-                  </td>
-                  <td className="py-3 px-3 text-right">
-                    <span className="toy-badge toy-badge-charcoal">
-                      Completed
-                    </span>
-                  </td>
+        {purchases.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-[#2a2a2a] text-zinc-400 uppercase text-[10px] tracking-wider">
+                  <th className="py-2.5 px-3">Order / Purchase ID</th>
+                  <th className="py-2.5 px-3">Customer</th>
+                  <th className="py-2.5 px-3">Product</th>
+                  <th className="py-2.5 px-3">Date</th>
+                  <th className="py-2.5 px-3 text-right">Amount</th>
+                  <th className="py-2.5 px-3 text-right">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-[#222222]">
+                {purchases.slice(0, 5).map((ord: any) => (
+                  <tr key={ord.id} className="hover:bg-[#1a1a1a] transition-colors">
+                    <td className="py-3 px-3 font-mono text-zinc-300">
+                      {(ord.razorpay_order_id || ord.razorpay_payment_id || ord.id).slice(0, 14)}
+                    </td>
+                    <td className="py-3 px-3">
+                      <p className="font-medium text-white">{ord.customer_name || 'Customer'}</p>
+                      <p className="text-[11px] text-zinc-400">{ord.customer_email}</p>
+                    </td>
+                    <td className="py-3 px-3 text-zinc-200">
+                      {ord.products?.name || ord.product_name || 'Audio Product'}
+                    </td>
+                    <td className="py-3 px-3 text-zinc-400">
+                      {new Date(ord.purchased_at || ord.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="py-3 px-3 text-right font-mono font-bold text-white">
+                      ${parseFloat(ord.amount_paid || 0).toFixed(2)}
+                    </td>
+                    <td className="py-3 px-3 text-right">
+                      <span className="toy-badge toy-badge-charcoal">
+                        Completed
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="p-8 text-center border border-dashed border-[#262626] rounded-xl space-y-2">
+            <ShoppingBag className="w-6 h-6 text-zinc-600 mx-auto" />
+            <p className="text-xs text-zinc-300 font-medium">No customer orders placed yet</p>
+            <p className="text-[11px] text-zinc-500 max-w-xs mx-auto">
+              When customers purchase your plugins or sound packs on ProducerToy, their orders will appear here automatically.
+            </p>
+          </div>
+        )}
       </div>
-
     </div>
   );
 }
