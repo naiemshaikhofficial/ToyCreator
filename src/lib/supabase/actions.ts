@@ -22,7 +22,7 @@ export interface BrandMembership {
   id: string;
   user_id: string;
   brand_id: string;
-  role: 'owner' | 'admin' | 'developer' | 'finance';
+  role: 'owner' | 'admin' | 'developer' | 'support' | 'finance';
   status: 'active' | 'pending_approval' | 'suspended';
   payout_email: string | null;
   payout_method: string;
@@ -61,6 +61,33 @@ export async function getCurrentUserBrand(): Promise<{
       isRegisteredBrand: true,
     };
   }
+
+  // 1b. Check if there are pending invites for this user's email
+  if (user.email) {
+    try {
+      const { claimPendingInvitesForUser } = await import('@/actions/brandTeamActions');
+      const claimRes = await claimPendingInvitesForUser(user.id, user.email);
+      if (claimRes.claimed > 0) {
+        const { data: claimedMember } = await supabase
+          .from('brand_members')
+          .select('*, brands(*)')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        if (claimedMember && claimedMember.brands) {
+          return {
+            user,
+            membership: claimedMember as BrandMembership,
+            isRegisteredBrand: true,
+          };
+        }
+      }
+    } catch (e) {
+      console.error('Error claiming pending invites:', e);
+    }
+  }
+
 
   // 2. Check if user email matches the default platform brand (Producer Toy)
   if (

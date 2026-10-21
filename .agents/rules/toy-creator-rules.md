@@ -119,3 +119,26 @@ These rules are mandatory invariants for the **Toy Creator** portal (`creators.p
 - **Zero Hallucinated Serials**:
   - Never generate or assign dummy serial keys to sample packs, loops, or keyless freebies.
 
+---
+
+## 14. Brand Team Architecture & Role-Based Access Control (RBAC)
+- **Brand Ownership & Multi-Tenancy**:
+  - Every audio studio or developer operates as a distinct `Brand`.
+  - A Brand can have multiple authorized team members stored in `brand_members`.
+  - The creator who completes brand onboarding is designated as `Owner`.
+- **Standard Developer Portal Roles**:
+  - **Owner**: Full administrative control (brand profile, bank payouts, contract terms, product deletion, team invites & member revocation).
+  - **Admin**: Catalog management, release publishing, serial pool uploads, and team member management. Cannot alter bank payout details or transfer brand ownership.
+  - **Developer / Sound Designer**: Product catalog access (editing DSP specs, uploading installer binaries, sample archives, presets). No access to bank payout details or raw earnings statements.
+  - **Support Agent**: Access to customer orders, serial key audits, license lookup, and developer support tickets. Cannot modify binaries or financials.
+  - **Finance / Operations**: View-only access to sales analytics, transaction logs, monthly payout receipts, and statements.
+- **Invite & Login Workflow**:
+  - Brand Owner/Admin invites a colleague by entering their email address and selecting their role.
+  - System registers the pending invite. When the invited user logs into Toy Creator with that email, they are instantly linked to the Brand with their designated role.
+  - If an invite is revoked, the team member loses dashboard access on next session check.
+- **Privacy & White-label Guardrail**:
+  - Never expose internal database names, authentication vendors, or external marketplace brand names in any team management UI.
+  - Use clean, native terminology: *"Brand Team Access"*, *"Seat Allocation"*, *"Publisher Permissions"*.
+
+
+

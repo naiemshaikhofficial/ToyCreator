@@ -13,6 +13,7 @@ import {
   Copy,
   Check,
 } from 'lucide-react';
+import { BrandTeamManager } from '@/components/BrandTeamManager';
 
 export default function SettingsPage() {
   const { user, brand } = useBrand();
@@ -77,9 +78,12 @@ export default function SettingsPage() {
           Portal & Developer Settings
         </h1>
         <p className="text-xs text-zinc-400">
-          Security credentials, webhook endpoints, and notification preferences
+          Team access, security credentials, webhook endpoints, and notification preferences
         </p>
       </div>
+
+      {/* Brand Team & RBAC Management */}
+      <BrandTeamManager />
 
       {/* Notifications */}
       <div className="toy-card p-6 space-y-4">
