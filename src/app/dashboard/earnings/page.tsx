@@ -78,7 +78,9 @@ export default function EarningsPage() {
       const periodKey = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
       const current = monthMap.get(periodKey) || { units: 0, gross: 0 };
       current.units += 1;
-      current.gross += parseFloat(p.amount_paid) || 0;
+      const isUsd = p.currency === 'USD' || (!p.currency && p.paypal_order_id);
+      const amt = isUsd ? (parseFloat(p.amount_paid) || 0) : 0;
+      current.gross += amt;
       monthMap.set(periodKey, current);
     });
 
@@ -95,7 +97,7 @@ export default function EarningsPage() {
         platform_fee_30: parseFloat(fee.toFixed(2)),
         net_royalty_70: parseFloat(net.toFixed(2)),
         status: index === 0 ? 'in_review' : 'cleared',
-        payout_date: index === 0 ? null : '1st of month',
+        payout_date: index === 0 ? '15th of next month (Scheduled)' : 'Disbursed',
       });
     });
   }
@@ -111,19 +113,21 @@ export default function EarningsPage() {
     setDownloadingId(stmt.id);
     const content = [
       ['PRODUCERTOY DEVELOPER ROYALTY ACCOUNTING STATEMENT'],
-      ['Brand', brand?.name || 'Producer Toy'],
+      ['Brand', brand?.name || 'Producer Toy Developer'],
       ['Reference ID', stmt.reference_no],
       ['Accounting Period', stmt.period],
       ['Statement Date', new Date().toISOString().slice(0, 10)],
+      ['Settlement Schedule', 'Monthly by the 15th calendar day of following month'],
+      ['Minimum Payout Threshold', 'None ($0.00)'],
       ['Tax / VAT Status', 'Self-Billing Schedule Compliant'],
       [''],
       ['Item Description', 'Units / Rate', 'Amount (USD)'],
       ['Total Gross Customer Sales (GMV)', `${stmt.units_sold} units`, `$${stmt.gross_revenue.toFixed(2)}`],
-      ['ProducerToy Platform Fee (30%)', 'PCI Gateway + CDN + Licensing Engine', `-$${stmt.platform_fee_30.toFixed(2)}`],
-      ['Net Developer Royalty (70%)', 'Guaranteed Publisher Retain', `$${stmt.net_royalty_70.toFixed(2)}`],
+      ['ProducerToy Platform Fee (30%)', 'CDN, Licensing Engine, Platform Hosting', `-$${stmt.platform_fee_30.toFixed(2)}`],
+      ['Net Developer Share (70%)', 'Contractual Revenue Share on Net Proceeds', `$${stmt.net_royalty_70.toFixed(2)}`],
       [''],
       ['Disbursement Status', stmt.status.toUpperCase()],
-      ['Payout Date', stmt.payout_date || 'N/A'],
+      ['Scheduled Payout Date', stmt.payout_date || '15th of following month'],
     ];
 
     const csv = content.map((row) => row.map((cell) => `"${cell}"`).join(',')).join('\n');

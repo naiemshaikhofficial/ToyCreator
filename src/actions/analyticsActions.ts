@@ -1,11 +1,15 @@
 'use server';
 
 import { getAdminClient } from '@/lib/supabase/admin';
+import { calculateItemizedSettlement } from '@/lib/accounting';
 
 export interface BrandAnalyticsData {
   grossRevenue: number;
+  grossRevenueUsd: number;
+  grossRevenueInr: number;
   netRoyalty70: number;
   platformFee30: number;
+  netRoyaltyInr70?: number;
   totalUnits: number;
   totalProducts: number;
   activeProductsCount: number;
@@ -95,44 +99,79 @@ export async function getBrandFullAnalyticsAction(brandId: string): Promise<{
       payouts = payData || [];
     }
 
-    // 5. Compute real financial metrics
-    const grossRevenue = purchases.reduce(
-      (acc, p) => acc + (parseFloat(p.amount_paid) || 0),
-      0
-    );
-    const netRoyalty70 = grossRevenue * 0.70;
-    const platformFee30 = grossRevenue * 0.30;
+    // 5. Compute real financial metrics separated by currency to prevent raw INR/USD blending
+    let grossRevenueUsd = 0;
+    let grossRevenueInr = 0;
+    let netRoyaltyUsd70 = 0;
+    let platformFeeUsd30 = 0;
+    let netRoyaltyInr70 = 0;
+    let platformFeeInr30 = 0;
+
+    purchases.forEach((p) => {
+      const isUsd = p.currency === 'USD' || (!p.currency && p.paypal_order_id);
+      const rawAmt = parseFloat(p.amount_paid) || (p.products?.price_usd ? parseFloat(p.products.price_usd) : 0);
+      const isRefunded = p.status === 'refunded';
+
+      if (isUsd) {
+        grossRevenueUsd += rawAmt;
+        const settlement = calculateItemizedSettlement({
+          productPrice: rawAmt,
+          currency: 'USD',
+          paymentGateway: 'paypal',
+          isRefunded,
+        });
+        netRoyaltyUsd70 += settlement.sellerFinalPayable;
+        platformFeeUsd30 += settlement.platformGrossShare;
+      } else {
+        grossRevenueInr += rawAmt;
+        const settlement = calculateItemizedSettlement({
+          productPrice: rawAmt,
+          currency: 'INR',
+          paymentGateway: 'razorpay',
+          isRefunded,
+        });
+        netRoyaltyInr70 += settlement.sellerFinalPayable;
+        platformFeeInr30 += settlement.platformGrossShare;
+      }
+    });
+
+    const grossRevenue = Number(grossRevenueUsd.toFixed(2));
+    const netRoyalty70 = Number(netRoyaltyUsd70.toFixed(2));
+    const platformFee30 = Number(platformFeeUsd30.toFixed(2));
     const totalUnits = purchases.length;
     const totalProducts = products.length;
     const activeProductsCount = products.filter((p) => p.is_active).length;
     const activeDeviceSeats = activations.filter((a) => a.is_active).length;
 
-    // 6. Compute real product performance
+    // 6. Compute real product performance (separating currencies)
     const productPerformance = products.map((p) => {
       const pPurchases = purchases.filter((ord) => ord.product_id === p.id);
-      const rev = pPurchases.reduce(
-        (acc, ord) => acc + (parseFloat(ord.amount_paid) || 0),
-        0
-      );
+      const rev = pPurchases.reduce((acc, ord) => {
+        const isUsd = ord.currency === 'USD' || (!ord.currency && ord.paypal_order_id);
+        const amt = parseFloat(ord.amount_paid) || parseFloat(p.price_usd) || 0;
+        return isUsd ? acc + amt : acc;
+      }, 0);
       return {
         id: p.id,
         name: p.name,
-        revenue: rev,
+        revenue: Number(rev.toFixed(2)),
         sales: pPurchases.length,
         price: parseFloat(p.price_usd) || 0,
       };
     });
 
-    // 7. Compute real revenue timeline (grouped by date from real purchases)
+    // 7. Compute real revenue timeline (grouped by date from real purchases in USD)
     let revenueTimeline: { name: string; revenue: number; sales: number }[] = [];
     if (purchases.length > 0) {
       const dateMap = new Map<string, { revenue: number; sales: number }>();
       purchases.forEach((p) => {
+        const isUsd = p.currency === 'USD' || (!p.currency && p.paypal_order_id);
+        const amt = isUsd ? (parseFloat(p.amount_paid) || 0) : 0;
         const dateStr = p.purchased_at
           ? new Date(p.purchased_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
           : 'Recent';
         const existing = dateMap.get(dateStr) || { revenue: 0, sales: 0 };
-        existing.revenue += parseFloat(p.amount_paid) || 0;
+        existing.revenue += amt;
         existing.sales += 1;
         dateMap.set(dateStr, existing);
       });
@@ -243,8 +282,11 @@ export async function getBrandFullAnalyticsAction(brandId: string): Promise<{
       success: true,
       data: {
         grossRevenue,
+        grossRevenueUsd: Number(grossRevenueUsd.toFixed(2)),
+        grossRevenueInr: Number(grossRevenueInr.toFixed(2)),
         netRoyalty70,
         platformFee30,
+        netRoyaltyInr70: Number(netRoyaltyInr70.toFixed(2)),
         totalUnits,
         totalProducts,
         activeProductsCount,

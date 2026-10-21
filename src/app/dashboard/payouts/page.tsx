@@ -26,6 +26,8 @@ export default function PayoutsPage() {
   const [statusMsg, setStatusMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
+  const [netEarnings, setNetEarnings] = useState(0);
+
   const loadData = async () => {
     if (!brand?.id) return;
     setLoading(true);
@@ -34,6 +36,7 @@ export default function PayoutsPage() {
       if (res.success && res.data) {
         setPayouts(res.data.payouts || []);
         setPurchases(res.data.purchases || []);
+        setNetEarnings(res.data.netRoyalty70 || 0);
       }
     } catch (err) {
       console.error('Failed to load payouts:', err);
@@ -45,12 +48,6 @@ export default function PayoutsPage() {
   useEffect(() => {
     loadData();
   }, [brand?.id]);
-
-  const totalGross = purchases.reduce(
-    (acc, p) => acc + (parseFloat(p.amount_paid) || 0),
-    0
-  );
-  const netEarnings = totalGross * 0.70;
 
   const totalPaidOut = payouts
     .filter((p) => p.status === 'completed')
@@ -119,7 +116,7 @@ export default function PayoutsPage() {
             Payout Management
           </h1>
           <p className="text-xs text-zinc-400">
-            Automated and manual creator payouts for {brand?.name || 'Producer Toy'}
+            Monthly itemized manual settlements and creator disbursements for {brand?.name || 'Producer Toy'}
           </p>
         </div>
 
