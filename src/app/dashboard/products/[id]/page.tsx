@@ -228,6 +228,12 @@ export default function ProductDetailPage() {
             >
               {isActive ? 'Live' : 'Draft'}
             </span>
+            {!downloadUrl && !downloadUrlWin && !downloadUrlMac && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                <span>Out of Stock (No Files)</span>
+              </span>
+            )}
           </div>
         </div>
 
@@ -500,6 +506,18 @@ export default function ProductDetailPage() {
                 Step 3 of 5
               </span>
             </div>
+
+            {!downloadUrl && !downloadUrlWin && !downloadUrlMac && (
+              <div className="p-3.5 bg-amber-500/10 border border-amber-500/25 rounded-xl flex items-start gap-3 text-xs text-amber-300">
+                <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <span className="font-bold text-amber-200">No Downloadable Deliverables Attached:</span>
+                  <p className="text-zinc-300 text-[11px] leading-relaxed">
+                    This product is currently marked as <strong>Out of Stock</strong> on ProducerToy. Checkout is locked so customers cannot accidentally purchase an empty product without files. Upload an installer or paste a drive link below.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* OS Specific Binary Installers with Dual Mode */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0 w-full">

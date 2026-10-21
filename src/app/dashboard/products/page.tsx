@@ -223,15 +223,22 @@ export default function ProductsListPage() {
 
                     {/* Status */}
                     <td className="py-3.5 px-4">
-                      <button
-                        onClick={() => toggleProductActive(p.id, p.is_active)}
-                        className={`toy-badge cursor-pointer transition-colors ${
-                          p.is_active ? 'toy-badge-charcoal' : 'bg-zinc-800 text-zinc-500 border-zinc-700/50'
-                        }`}
-                        title="Click to toggle active/inactive"
-                      >
-                        {p.is_active ? 'Active' : 'Draft'}
-                      </button>
+                      <div className="flex flex-col gap-1 items-start">
+                        <button
+                          onClick={() => toggleProductActive(p.id, p.is_active)}
+                          className={`toy-badge cursor-pointer transition-colors ${
+                            p.is_active ? 'toy-badge-charcoal' : 'bg-zinc-800 text-zinc-500 border-zinc-700/50'
+                          }`}
+                          title="Click to toggle active/inactive"
+                        >
+                          {p.is_active ? 'Active' : 'Draft'}
+                        </button>
+                        {!p.download_url && !p.download_url_win && !p.download_url_mac && !p.external_url && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 whitespace-nowrap">
+                            No Files Attached
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     {/* Actions */}
