@@ -47,12 +47,20 @@ export interface ProductSerialKey {
   is_used: boolean;
   assigned_to_user_id?: string | null;
   created_at: string;
+  customer_email?: string | null;
+  customer_name?: string | null;
+  order_id?: string | null;
+  purchased_at?: string | null;
+  amount_paid?: number | null;
+  currency?: string | null;
 }
 
 export interface SerialKeyPoolStats {
   total: number;
   available: number;
   used: number;
+  availableKeys: ProductSerialKey[];
+  claimedKeys: ProductSerialKey[];
   recentKeys: ProductSerialKey[];
 }
 

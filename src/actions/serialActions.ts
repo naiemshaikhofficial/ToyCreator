@@ -31,11 +31,64 @@ export async function getProductSerialStatsAction(productId: string): Promise<{
       return { success: false, error: error.message };
     }
 
-    const allKeys = keys || [];
-    const total = allKeys.length;
-    const available = allKeys.filter((k) => !k.is_used).length;
-    const used = allKeys.filter((k) => k.is_used).length;
-    const recentKeys = allKeys.slice(0, 20);
+    // 2. Fetch purchases for this product to enrich claimed licenses
+    const { data: purchases } = await admin
+      .from('purchases')
+      .select('id, serial_key, customer_name, customer_email, purchased_at, razorpay_order_id, razorpay_payment_id, amount_paid, currency')
+      .eq('product_id', productId)
+      .order('purchased_at', { ascending: false });
+
+    const purchaseMap = new Map<string, any>();
+    const trackedKeysSet = new Set<string>();
+
+    (purchases || []).forEach((p) => {
+      if (p.serial_key) {
+        purchaseMap.set(p.serial_key.trim(), p);
+      }
+    });
+
+    const poolKeys = (keys || []).map((k) => {
+      const match = purchaseMap.get(k.serial_key.trim());
+      trackedKeysSet.add(k.serial_key.trim());
+      return {
+        id: k.id,
+        product_id: k.product_id,
+        serial_key: k.serial_key,
+        is_used: Boolean(k.is_used || match),
+        assigned_to_user_id: k.assigned_to_user_id,
+        created_at: k.created_at,
+        customer_email: match?.customer_email || null,
+        customer_name: match?.customer_name || null,
+        order_id: match?.razorpay_order_id || match?.razorpay_payment_id || match?.id || null,
+        purchased_at: match?.purchased_at || null,
+        amount_paid: match?.amount_paid ? Number(match.amount_paid) : null,
+        currency: match?.currency || 'USD',
+      };
+    });
+
+    // 3. Include any direct purchases that issued genuine keys not in pre-pool
+    const extraClaimedFromPurchases = (purchases || [])
+      .filter((p) => p.serial_key && !trackedKeysSet.has(p.serial_key.trim()))
+      .map((p) => ({
+        id: p.id,
+        product_id: productId,
+        serial_key: p.serial_key.trim(),
+        is_used: true,
+        created_at: p.purchased_at || new Date().toISOString(),
+        customer_email: p.customer_email || null,
+        customer_name: p.customer_name || null,
+        order_id: p.razorpay_order_id || p.razorpay_payment_id || p.id || null,
+        purchased_at: p.purchased_at || null,
+        amount_paid: p.amount_paid ? Number(p.amount_paid) : null,
+        currency: p.currency || 'USD',
+      }));
+
+    const availableKeys = poolKeys.filter((k) => !k.is_used);
+    const claimedKeys = [...poolKeys.filter((k) => k.is_used), ...extraClaimedFromPurchases];
+    const total = availableKeys.length + claimedKeys.length;
+    const available = availableKeys.length;
+    const used = claimedKeys.length;
+    const recentKeys = [...availableKeys, ...claimedKeys].slice(0, 30);
 
     return {
       success: true,
@@ -43,6 +96,8 @@ export async function getProductSerialStatsAction(productId: string): Promise<{
         total,
         available,
         used,
+        availableKeys,
+        claimedKeys,
         recentKeys,
       },
     };

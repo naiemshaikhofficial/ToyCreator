@@ -89,3 +89,21 @@ These rules are mandatory invariants for the **Toy Creator** portal (`creators.p
 - **Serial Pool Monitoring**: Provide clear visibility into available serial keys and flag low-stock warnings before keys run out.
 - **Itemized Payout Statements**: Maintain clean downloadable payout summaries with transparent order-by-order gross, fee, and net breakdowns.
 - **Minimalist Audio UI**: Display financial data using high-contrast charcoal surfaces, mono numbers, and clear financial terminology without marketing jargon or external marketplace branding.
+
+---
+
+## 12. Plugin Boutique-Style License & Serial Pool Architecture Invariant
+- **Dual-Pool Segregation**:
+  - Always provide distinct views for **Available Pool** (keys ready for automated checkout) and **Claimed Licenses** (keys assigned to verified buyers).
+  - Never mix unassigned and claimed keys in a single unfilterable list.
+- **Order & Customer Audit Integrity**:
+  - For every claimed serial key, display the linked purchase metadata: Buyer Email, Buyer Name, Order / Payment Reference, and Claim Timestamp.
+  - Allow searching across serial keys, customer emails, and order IDs.
+- **Dedicated Non-Intrusive Ingestion**:
+  - Keep batch upload (pasting keys / importing CSV) in a dedicated tab or collapsible panel to keep the daily monitoring view clean.
+  - Automatically deduplicate new keys against existing records.
+- **Inventory Threshold Awareness**:
+  - Display clear pool health indicators and flag low inventory warnings (threshold < 10 keys) before a product's serial pool runs out.
+- **Export & Support Utility**:
+  - Provide easy one-click copy and CSV export for both available and claimed key pools for creator bookkeeping and customer support reconciliation.
+
