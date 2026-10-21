@@ -6,6 +6,11 @@ import {
   LegalDocument,
   CreatorProfile,
   AnalyticsDataPoint,
+  OsShare,
+  DawShare,
+  FormatShare,
+  PromotionTierStat,
+  MonthlyStatementSummary,
 } from '@/lib/types';
 
 export const INITIAL_CREATOR_PROFILE: CreatorProfile = {
@@ -447,3 +452,74 @@ export const ANALYTICS_30_DAYS: AnalyticsDataPoint[] = [
   { date: 'Oct 18', revenue: 1480, sales: 55, units: 69 },
   { date: 'Oct 20', revenue: 1890, sales: 74, units: 88 },
 ];
+
+export const AUDIO_OS_TELEMETRY: OsShare[] = [
+  { os: 'Windows 11 / 10', architecture: 'x86_64', share_percent: 56.4, count: 801 },
+  { os: 'macOS Apple Silicon', architecture: 'ARM64 (M1-M4)', share_percent: 34.2, count: 485 },
+  { os: 'macOS Intel', architecture: 'x86_64 legacy', share_percent: 9.4, count: 134 },
+];
+
+export const AUDIO_DAW_TELEMETRY: DawShare[] = [
+  { daw: 'FL Studio', share_percent: 39.5, count: 561 },
+  { daw: 'Ableton Live', share_percent: 28.2, count: 401 },
+  { daw: 'Logic Pro', share_percent: 16.8, count: 239 },
+  { daw: 'Studio One', share_percent: 7.4, count: 105 },
+  { daw: 'Reaper', share_percent: 4.8, count: 68 },
+  { daw: 'Cubase', share_percent: 3.3, count: 46 },
+];
+
+export const AUDIO_FORMAT_TELEMETRY: FormatShare[] = [
+  { format: 'VST3 (64-bit)', share_percent: 47.8, count: 679 },
+  { format: 'AU (Audio Units)', share_percent: 31.2, count: 443 },
+  { format: 'CLAP (CLever Audio Plugin)', share_percent: 11.6, count: 165 },
+  { format: 'Universal ZIP / WAV', share_percent: 9.4, count: 133 },
+];
+
+export const PROMOTION_TIER_DATA: PromotionTierStat[] = [
+  { tier: 'Standard Retail ($49.00)', units: 420, revenue: 20580.0, avg_discount: '0%' },
+  { tier: 'Launch Promotion ($29.00)', units: 680, revenue: 19720.0, avg_discount: '41%' },
+  { tier: 'Flash / Holiday Sale ($19.00)', units: 320, revenue: 6080.0, avg_discount: '61%' },
+];
+
+export const MONTHLY_ACCOUNTING_STATEMENTS: MonthlyStatementSummary[] = [
+  {
+    id: 'stmt-2026-10',
+    period: 'Oct 1 - Oct 31, 2026',
+    month: 'October',
+    year: 2026,
+    units_sold: 438,
+    gross_revenue: 12450.0,
+    platform_fee_30: 3735.0,
+    net_royalty_70: 8715.0,
+    status: 'processing',
+    payout_date: 'Nov 5, 2026',
+    reference_no: 'PT-STMT-2026-10-001',
+  },
+  {
+    id: 'stmt-2026-09',
+    period: 'Sep 1 - Sep 30, 2026',
+    month: 'September',
+    year: 2026,
+    units_sold: 512,
+    gross_revenue: 10240.0,
+    platform_fee_30: 3072.0,
+    net_royalty_70: 7168.0,
+    status: 'cleared',
+    payout_date: 'Oct 5, 2026',
+    reference_no: 'PT-STMT-2026-09-001',
+  },
+  {
+    id: 'stmt-2026-08',
+    period: 'Aug 1 - Aug 31, 2026',
+    month: 'August',
+    year: 2026,
+    units_sold: 470,
+    gross_revenue: 5760.0,
+    platform_fee_30: 1728.0,
+    net_royalty_70: 4032.0,
+    status: 'cleared',
+    payout_date: 'Sep 5, 2026',
+    reference_no: 'PT-STMT-2026-08-001',
+  },
+];
+

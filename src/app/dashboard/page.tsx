@@ -17,6 +17,8 @@ import {
   ShieldCheck,
   ExternalLink,
   ChevronRight,
+  Laptop,
+  Music,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -27,6 +29,11 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import {
+  AUDIO_OS_TELEMETRY,
+  AUDIO_DAW_TELEMETRY,
+  INITIAL_ORDERS,
+} from '@/lib/data/mockData';
 
 export default function DashboardOverviewPage() {
   const { brand } = useBrand();
@@ -309,12 +316,80 @@ export default function DashboardOverviewPage() {
         </div>
       </div>
 
-      {/* Recent Purchases & Orders Table (Live Supabase) */}
+      {/* Audio Platform & Host DAW Snapshot */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* OS Platform Breakdown */}
+        <div className="toy-card p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Laptop className="w-4 h-4 text-zinc-300" />
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider">Top Operating Systems</h3>
+            </div>
+            <Link href="/dashboard/analytics" className="text-[11px] text-zinc-400 hover:text-white flex items-center gap-1 font-medium">
+              <span>View Specs</span>
+              <ChevronRight className="w-3 h-3" />
+            </Link>
+          </div>
+          <div className="space-y-2.5">
+            {AUDIO_OS_TELEMETRY.map((os) => (
+              <div key={os.os} className="space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-zinc-300 font-medium">{os.os}</span>
+                  <span className="font-mono font-bold text-white">{os.share_percent}%</span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-[#202020] overflow-hidden">
+                  <div className="h-full bg-zinc-200 rounded-full" style={{ width: `${os.share_percent}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Primary Host DAWs */}
+        <div className="toy-card p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Music className="w-4 h-4 text-zinc-300" />
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider">Top Digital Audio Workstations</h3>
+            </div>
+            <Link href="/dashboard/analytics" className="text-[11px] text-zinc-400 hover:text-white flex items-center gap-1 font-medium">
+              <span>Telemetry</span>
+              <ChevronRight className="w-3 h-3" />
+            </Link>
+          </div>
+          <div className="space-y-2.5">
+            {AUDIO_DAW_TELEMETRY.slice(0, 3).map((daw) => (
+              <div key={daw.daw} className="space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-zinc-300 font-medium">{daw.daw}</span>
+                  <span className="font-mono font-bold text-white">{daw.share_percent}%</span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-[#202020] overflow-hidden">
+                  <div className="h-full bg-[#34363d] rounded-full" style={{ width: `${daw.share_percent}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Purchases & Orders Table (Live Supabase with Demo Catalog Preview fallback) */}
       <div className="toy-card p-5 sm:p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider">Recent Orders & Purchases</h2>
-            <p className="text-xs text-zinc-400">Direct customer orders recorded in Supabase database</p>
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-white uppercase tracking-wider">Recent Orders & Purchases</h2>
+              {purchases.length === 0 && (
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#1e1e1e] text-zinc-400 border border-[#2b2b2b]">
+                  Catalog Preview
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-zinc-400">
+              {purchases.length > 0
+                ? 'Direct customer orders recorded in Supabase database'
+                : 'Sample demonstration stream — live orders from producertoy.com will populate here automatically'}
+            </p>
           </div>
           <Link
             href="/dashboard/orders"
@@ -325,54 +400,49 @@ export default function DashboardOverviewPage() {
           </Link>
         </div>
 
-        {purchases.length === 0 ? (
-          <div className="p-8 text-center border border-dashed border-[#2a2a2a] rounded-xl text-xs text-zinc-400">
-            No purchases recorded yet for {brand?.name || 'this brand'}. New orders from producertoy.com will appear here automatically.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-[#2a2a2a] text-zinc-400 uppercase text-[10px] tracking-wider">
-                  <th className="py-2.5 px-3">Order / Purchase ID</th>
-                  <th className="py-2.5 px-3">Customer</th>
-                  <th className="py-2.5 px-3">Product</th>
-                  <th className="py-2.5 px-3">Date</th>
-                  <th className="py-2.5 px-3 text-right">Amount</th>
-                  <th className="py-2.5 px-3 text-right">Status</th>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="border-b border-[#2a2a2a] text-zinc-400 uppercase text-[10px] tracking-wider">
+                <th className="py-2.5 px-3">Order / Purchase ID</th>
+                <th className="py-2.5 px-3">Customer</th>
+                <th className="py-2.5 px-3">Product</th>
+                <th className="py-2.5 px-3">Date</th>
+                <th className="py-2.5 px-3 text-right">Amount</th>
+                <th className="py-2.5 px-3 text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#222222]">
+              {(purchases.length > 0 ? purchases.slice(0, 5) : INITIAL_ORDERS.slice(0, 5)).map((ord: any) => (
+                <tr key={ord.id} className="hover:bg-[#1a1a1a] transition-colors">
+                  <td className="py-3 px-3 font-mono text-zinc-300">
+                    {(ord.order_number || ord.id).slice(0, 12)}
+                  </td>
+                  <td className="py-3 px-3">
+                    <p className="font-medium text-white">{ord.customer_name || 'Customer'}</p>
+                    <p className="text-[11px] text-zinc-400">{ord.customer_email}</p>
+                  </td>
+                  <td className="py-3 px-3 text-zinc-200">
+                    {ord.products?.name || ord.product_name || 'Audio Product'}
+                  </td>
+                  <td className="py-3 px-3 text-zinc-400">
+                    {new Date(ord.purchased_at || ord.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="py-3 px-3 text-right font-mono font-bold text-white">
+                    ${parseFloat(ord.amount_paid || ord.amount || 0).toFixed(2)}
+                  </td>
+                  <td className="py-3 px-3 text-right">
+                    <span className="toy-badge toy-badge-charcoal">
+                      Completed
+                    </span>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-[#222222]">
-                {purchases.slice(0, 5).map((ord) => (
-                  <tr key={ord.id} className="hover:bg-[#1a1a1a] transition-colors">
-                    <td className="py-3 px-3 font-mono text-zinc-300">
-                      {ord.id.slice(0, 8)}...
-                    </td>
-                    <td className="py-3 px-3">
-                      <p className="font-medium text-white">{ord.customer_name || 'Customer'}</p>
-                      <p className="text-[11px] text-zinc-400">{ord.customer_email}</p>
-                    </td>
-                    <td className="py-3 px-3 text-zinc-200">
-                      {ord.products?.name || 'Audio Product'}
-                    </td>
-                    <td className="py-3 px-3 text-zinc-400">
-                      {new Date(ord.purchased_at).toLocaleDateString()}
-                    </td>
-                    <td className="py-3 px-3 text-right font-mono font-bold text-white">
-                      ${parseFloat(ord.amount_paid || 0).toFixed(2)}
-                    </td>
-                    <td className="py-3 px-3 text-right">
-                      <span className="toy-badge toy-badge-charcoal">
-                        Completed
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
+
     </div>
   );
 }

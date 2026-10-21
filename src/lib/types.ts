@@ -148,3 +148,43 @@ export interface AnalyticsDataPoint {
   sales: number;
   units: number;
 }
+
+export interface OsShare {
+  os: string;
+  share_percent: number;
+  count: number;
+  architecture: string;
+}
+
+export interface DawShare {
+  daw: string;
+  share_percent: number;
+  count: number;
+}
+
+export interface FormatShare {
+  format: string;
+  share_percent: number;
+  count: number;
+}
+
+export interface PromotionTierStat {
+  tier: string;
+  units: number;
+  revenue: number;
+  avg_discount: string;
+}
+
+export interface MonthlyStatementSummary {
+  id: string;
+  period: string;
+  month: string;
+  year: number;
+  units_sold: number;
+  gross_revenue: number;
+  platform_fee_30: number;
+  net_royalty_70: number;
+  status: 'cleared' | 'processing';
+  payout_date?: string;
+  reference_no: string;
+}
