@@ -102,17 +102,9 @@ export default function HomePage() {
         </div>
       </nav>
 
-      <main className="flex-1 max-w-6xl mx-auto px-6 py-16 sm:py-24 flex flex-col items-center text-center">
-        {/* Gumroad-Style Hero Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1c1c1f] border border-[#2a2a2f] text-xs font-medium text-zinc-300 mb-8">
-          <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-          <span className="font-semibold text-white">The Creator Economy for Audio</span>
-          <span className="text-zinc-600">•</span>
-          <span className="text-zinc-400">Keep 70% of Every Sale</span>
-        </div>
-
+      <main className="flex-1 max-w-6xl mx-auto px-6 py-8 sm:py-14 flex flex-col items-center text-center">
         {/* Spotlight Hero Banner (ProducerToy 1:1 Mascot Showcase) */}
-        <div className="w-full my-4">
+        <div className="w-full mb-6">
           <CreatorSpotlightBanner />
         </div>
 
