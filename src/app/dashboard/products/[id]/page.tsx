@@ -330,7 +330,7 @@ export default function ProductDetailPage() {
       </div>
 
       {/* Main Step Content Container */}
-      <form onSubmit={handleSave} className="space-y-6">
+      <div className="space-y-6">
         {/* STEP 1: Details & Pricing */}
         {activeStep === 1 && (
           <div className="toy-card p-6 space-y-4">
@@ -664,7 +664,7 @@ export default function ProductDetailPage() {
         {/* STEP 4: Licensing & Serials */}
         {activeStep === 4 && (
           <div className="space-y-6">
-            {/* Delivery Architecture Selector (Plugin Boutique Standard) */}
+            {/* Delivery Architecture Selector */}
             <div className="toy-card p-6 space-y-4">
               <div className="flex items-center justify-between border-b border-[#2a2a2a] pb-3">
                 <div className="flex items-center gap-2">
@@ -808,7 +808,7 @@ export default function ProductDetailPage() {
                     <h3 className="text-sm font-bold text-white flex items-center gap-2">
                       <span>Keyless Direct Download Delivery Active</span>
                       <span className="text-[9px] font-mono text-zinc-400 bg-[#1e1e1e] px-2 py-0.5 rounded border border-zinc-700/50">
-                        Plugin Boutique Standard
+                        Royalty-Free Delivery
                       </span>
                     </h3>
                     <p className="text-xs text-zinc-300 leading-relaxed">
@@ -939,9 +939,10 @@ export default function ProductDetailPage() {
             ) : null}
 
             <button
-              type="submit"
+              type="button"
+              onClick={() => handleSave()}
               disabled={saving}
-              className="btn-primary px-6 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-lg uppercase tracking-wider"
+              className="btn-primary px-6 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-lg uppercase tracking-wider cursor-pointer"
             >
               {saving ? (
                 <>
@@ -957,7 +958,7 @@ export default function ProductDetailPage() {
             </button>
           </div>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

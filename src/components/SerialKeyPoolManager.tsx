@@ -69,8 +69,8 @@ export default function SerialKeyPoolManager({
     fetchStats();
   }, [productId]);
 
-  const handleBatchUpload = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleBatchUpload = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) e.preventDefault();
     if (!rawInput.trim()) return;
 
     setUploading(true);
@@ -215,7 +215,7 @@ export default function SerialKeyPoolManager({
             <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
               <span>License Keys & Automated Pool</span>
               <span className="text-[10px] font-mono font-normal text-zinc-400 bg-[#202020] px-2 py-0.5 rounded border border-zinc-700/50">
-                Plugin Boutique Architecture
+                Automated License Pool
               </span>
             </h2>
             <p className="text-[11px] text-zinc-400">
@@ -633,7 +633,7 @@ export default function SerialKeyPoolManager({
 
       {/* TAB 3: BATCH UPLOAD / INGEST */}
       {activeTab === 'upload' && (
-        <form onSubmit={handleBatchUpload} className="space-y-4 bg-[#141414] border border-[#262626] p-5 rounded-xl">
+        <div className="space-y-4 bg-[#141414] border border-[#262626] p-5 rounded-xl">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#262626] pb-3">
             <div>
               <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
@@ -689,9 +689,10 @@ export default function SerialKeyPoolManager({
             </div>
 
             <button
-              type="submit"
+              type="button"
+              onClick={handleBatchUpload}
               disabled={uploading || !rawInput.trim()}
-              className="btn-primary px-4 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-sm"
+              className="btn-primary px-4 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-sm cursor-pointer"
             >
               {uploading ? (
                 <>
@@ -706,7 +707,7 @@ export default function SerialKeyPoolManager({
               )}
             </button>
           </div>
-        </form>
+        </div>
       )}
     </div>
   );
