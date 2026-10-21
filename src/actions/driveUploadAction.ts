@@ -1,5 +1,7 @@
 'use server';
 
+import { getAdminClient } from '@/lib/supabase/admin';
+
 export interface DriveUploadResult {
   success: boolean;
   fileId?: string;
@@ -10,7 +12,7 @@ export interface DriveUploadResult {
 }
 
 /**
- * Server Action: Upload file directly to owner's Google Drive via Google Apps Script Webhook
+ * Server Action: Upload file directly to cloud storage (Supabase Storage product-assets bucket)
  */
 export async function uploadAssetToDriveAction(formData: FormData): Promise<DriveUploadResult> {
   const file = formData.get('file') as File;
@@ -31,67 +33,53 @@ export async function uploadAssetToDriveAction(formData: FormData): Promise<Driv
     formattedSize = `${Math.round(sizeInBytes / 1024)} KB`;
   }
 
-  const WEBHOOK_URL = process.env.GOOGLE_WEBHOOK_URL;
-  if (!WEBHOOK_URL) {
-    console.error('Missing GOOGLE_WEBHOOK_URL in environment configuration.');
-    return {
-      success: false,
-      error: 'Cloud storage webhook is not configured. For large files (2GB, 5GB+), switch to External Link to paste your Google Drive or Dropbox link directly.',
-    };
-  }
-
   try {
-    // Convert File buffer to Base64
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const base64Data = buffer.toString('base64');
+    const admin = getAdminClient();
+    const bucketName = 'product-assets';
 
     // File name formatting
     const sanitizedOriginalName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const cloudFileName = `PT_${assetCategory}_${Date.now()}_${sanitizedOriginalName}`;
+    const storagePath = `${assetCategory}/${Date.now()}_${sanitizedOriginalName}`;
 
-    const payload = new URLSearchParams();
-    payload.append('fileName', cloudFileName);
-    payload.append('mimeType', file.type || 'application/octet-stream');
-    payload.append('data', base64Data);
+    // Convert file to buffer
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
-    const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
-    if (folderId) {
-      payload.append('folderId', folderId);
-    }
+    // Upload directly to Supabase Storage
+    const { data, error: uploadError } = await admin.storage
+      .from(bucketName)
+      .upload(storagePath, buffer, {
+        contentType: file.type || 'application/octet-stream',
+        upsert: true,
+      });
 
-    const response = await fetch(WEBHOOK_URL, {
-      method: 'POST',
-      body: payload,
-    });
-
-    const rawText = await response.text();
-    let result: any;
-    try {
-      result = JSON.parse(rawText);
-    } catch (parseError) {
-      console.error('Non-JSON response from Google Apps Script Webhook:', rawText.substring(0, 300));
+    if (uploadError) {
+      console.error('[STORAGE_UPLOAD_ERROR]', uploadError);
+      if (
+        uploadError.message?.includes('exceeded') ||
+        uploadError.message?.includes('EntityTooLarge') ||
+        uploadError.message?.includes('413')
+      ) {
+        return {
+          success: false,
+          error: `File is ${formattedSize}. For multi-gigabyte files (2GB - 5GB+), please switch to 'External Link' to paste your Google Drive, Dropbox, or AWS S3 link directly.`,
+        };
+      }
       return {
         success: false,
-        error: 'Cloud storage webhook returned an unexpected response. Please try again.',
+        error: `Cloud upload error: ${uploadError.message}`,
       };
     }
 
-    if (!result.success && !result.fileId) {
-      return {
-        success: false,
-        error: result.error || 'Failed to save file to cloud storage.',
-      };
-    }
-
-    const fileId = result.fileId || result.id;
-    // Standard Google Drive direct download / viewable link
-    const fileUrl = result.downloadUrl || result.webViewLink || `https://drive.google.com/uc?id=${fileId}&export=download`;
+    // Get public CDN URL
+    const { data: publicUrlData } = admin.storage
+      .from(bucketName)
+      .getPublicUrl(storagePath);
 
     return {
       success: true,
-      fileId,
-      fileUrl,
+      fileId: data.id || data.path,
+      fileUrl: publicUrlData.publicUrl,
       fileName: file.name,
       fileSize: formattedSize,
     };
@@ -99,7 +87,7 @@ export async function uploadAssetToDriveAction(formData: FormData): Promise<Driv
     console.error('uploadAssetToDriveAction exception:', error);
     return {
       success: false,
-      error: error.message || 'Network error communicating with Google Drive.',
+      error: error.message || 'Error uploading file to cloud storage.',
     };
   }
 }

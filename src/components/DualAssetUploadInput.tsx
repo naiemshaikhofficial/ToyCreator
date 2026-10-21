@@ -88,10 +88,10 @@ export default function DualAssetUploadInput({
         if (res.fileSize && onFileSizeDetected) {
           onFileSizeDetected(res.fileSize);
         }
-        setSuccessMsg(`Uploaded to Google Drive (${res.fileSize || 'Saved'})`);
+        setSuccessMsg(`Uploaded to Cloud Storage (${res.fileSize || 'Saved'})`);
         setSelectedFile(null);
       } else {
-        setErrorMsg(res.error || 'Failed to upload file to Google Drive.');
+        setErrorMsg(res.error || 'Failed to upload file to cloud storage.');
       }
     } catch (err: any) {
       console.error('Upload exception:', err);
