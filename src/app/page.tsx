@@ -18,6 +18,7 @@ import {
   ChevronDown,
   Sparkles,
 } from 'lucide-react';
+import { CreatorSpotlightBanner } from '@/components/CreatorSpotlightBanner';
 
 export default function HomePage() {
   const { user, isRegisteredBrand, isLoading } = useBrand();
@@ -110,32 +111,9 @@ export default function HomePage() {
           <span className="text-zinc-400">Keep 70% of Every Sale</span>
         </div>
 
-        {/* Hero Heading */}
-        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white mb-6 max-w-4xl leading-[1.08]">
-          Sell your audio plugins &amp; sounds directly to music producers.
-        </h1>
-
-        <p className="text-base sm:text-xl text-zinc-400 max-w-2xl mb-10 font-normal leading-relaxed">
-          Toy Creator is the premier publisher platform for VST developers, DSP engineers, and sample designers. Distribute digital audio software worldwide with machine licensing and automated payouts.
-        </p>
-
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full sm:w-auto">
-          <Link
-            href="/signup"
-            className="w-full sm:w-auto btn-white py-4 px-8 text-sm font-bold rounded-full flex items-center justify-center gap-2 shadow-2xl hover:scale-[1.02] transition-transform"
-          >
-            <span>Apply for Brand Creator Access</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-
-          <Link
-            href="/login"
-            className="w-full sm:w-auto py-4 px-8 text-sm font-semibold rounded-full bg-[#1c1c1f] hover:bg-[#26262a] border border-[#2e2e33] text-white flex items-center justify-center gap-2 transition-colors"
-          >
-            <Lock className="w-4 h-4 text-zinc-400" />
-            <span>Developer Sign In</span>
-          </Link>
+        {/* Spotlight Hero Banner (ProducerToy 1:1 Mascot Showcase) */}
+        <div className="w-full my-4">
+          <CreatorSpotlightBanner />
         </div>
 
         {/* Formats Ticker */}

@@ -43,23 +43,23 @@ export function CreatorSpotlightBanner() {
       {/* Fainted Black Ambient Glow on Bottom for Subtle Depth */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/[0.03] pointer-events-none z-10" />
 
-      {/* Text & Action Block */}
-      <div className="relative z-20 w-full p-6 sm:p-8 lg:p-12 pl-6 sm:pl-[6%] lg:pl-[7%] sm:max-w-[540px] lg:max-w-[580px] flex flex-col items-center sm:items-start text-center sm:text-left gap-3.5 sm:gap-4 pointer-events-auto my-auto">
+      {/* Text & Action Block - Fully Centered & Proportioned */}
+      <div className="relative z-20 w-full p-5 sm:p-8 lg:p-10 pl-5 sm:pl-[6%] lg:pl-[7%] sm:max-w-[500px] flex flex-col items-center text-center gap-3 sm:gap-4 pointer-events-auto my-auto">
         {/* Minimalist Editorial Heading */}
-        <h1 className="text-[24px] xs:text-[28px] sm:text-[34px] lg:text-[40px] font-black text-black tracking-tight leading-[1.1] font-sans">
+        <h1 className="text-[22px] xs:text-[26px] sm:text-[32px] lg:text-[36px] font-black text-black tracking-tight leading-[1.12] font-sans text-center">
           Sell your audio plugins &amp; sounds
-          <span className="block text-zinc-500 font-extrabold mt-1 text-[18px] xs:text-[20px] sm:text-[24px] lg:text-[28px]">
+          <span className="block text-zinc-500 font-extrabold mt-1 text-[17px] xs:text-[19px] sm:text-[22px] lg:text-[24px]">
             directly to music producers.
           </span>
         </h1>
 
         {/* Minimalist Subtitle */}
-        <p className="text-[13px] sm:text-[14px] text-zinc-600 font-medium tracking-normal max-w-[460px] leading-relaxed">
+        <p className="text-[13px] sm:text-[14px] text-zinc-500 font-medium tracking-wide max-w-[420px] leading-relaxed text-center">
           Toy Creator is the premier publisher platform for VST developers, DSP engineers, and sample designers. Distribute digital audio software worldwide with machine licensing and automated payouts.
         </p>
 
-        {/* Action Buttons */}
-        <div className="pt-2 sm:pt-3 w-full flex flex-col sm:flex-row items-center sm:items-center gap-3.5">
+        {/* Action Button: Developer Sign In */}
+        <div className="pt-2 sm:pt-3 w-full flex flex-col items-center justify-center gap-2.5">
           <Link
             href="/login"
             prefetch={true}
@@ -71,9 +71,9 @@ export function CreatorSpotlightBanner() {
 
           <Link
             href="/signup"
-            className="text-[12px] sm:text-[13px] font-semibold text-zinc-600 hover:text-black underline underline-offset-4 transition-colors py-1"
+            className="text-[11px] sm:text-[12px] font-semibold text-zinc-500 hover:text-black transition-colors"
           >
-            Apply for Brand Access &rarr;
+            Not a partner yet? Apply for access &rarr;
           </Link>
         </div>
       </div>
