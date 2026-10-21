@@ -150,6 +150,7 @@ export default function NewProductPage() {
         plugin_identifier: productType === 'plugin' && pluginIdentifier ? pluginIdentifier.trim() : null,
         max_activation_seats: productType === 'plugin' ? Number(maxSeats) : 1,
         offline_grace_days: productType === 'plugin' ? Number(offlineGraceDays) : 14,
+        delivery_method: productType === 'sample_pack' || productType === 'preset' ? 'direct_download' : 'serial_key',
         is_active: isActive,
         is_featured: false,
       };

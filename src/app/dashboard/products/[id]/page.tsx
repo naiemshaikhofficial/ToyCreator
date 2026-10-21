@@ -27,6 +27,8 @@ import {
   ChevronLeft,
   CheckCircle2,
   Info,
+  ShieldCheck,
+  Check,
 } from 'lucide-react';
 import SerialKeyPoolManager from '@/components/SerialKeyPoolManager';
 import DualAssetUploadInput from '@/components/DualAssetUploadInput';
@@ -101,6 +103,7 @@ export default function ProductDetailPage() {
   const [maxSeats, setMaxSeats] = useState(3);
   const [offlineGraceDays, setOfflineGraceDays] = useState(14);
   const [isActive, setIsActive] = useState(true);
+  const [deliveryMethod, setDeliveryMethod] = useState<'direct_download' | 'serial_key' | 'dedicated_licensing_server'>('serial_key');
 
   useEffect(() => {
     async function loadProduct() {
@@ -130,6 +133,8 @@ export default function ProductDetailPage() {
           setMaxSeats(data.max_activation_seats || 3);
           setOfflineGraceDays(data.offline_grace_days || 14);
           setIsActive(data.is_active ?? true);
+          const initialDelivery = data.delivery_method || (data.product_type === 'sample_pack' || data.product_type === 'preset' ? 'direct_download' : 'serial_key');
+          setDeliveryMethod(initialDelivery as any);
         }
       } catch (err) {
         console.error('Failed to load product:', err);
@@ -169,6 +174,7 @@ export default function ProductDetailPage() {
         vst_format: vstFormat.trim() || null,
         max_activation_seats: Number(maxSeats),
         offline_grace_days: Number(offlineGraceDays),
+        delivery_method: deliveryMethod,
         is_active: isActive,
       });
 
@@ -658,71 +664,165 @@ export default function ProductDetailPage() {
         {/* STEP 4: Licensing & Serials */}
         {activeStep === 4 && (
           <div className="space-y-6">
+            {/* Delivery Architecture Selector (Plugin Boutique Standard) */}
             <div className="toy-card p-6 space-y-4">
               <div className="flex items-center justify-between border-b border-[#2a2a2a] pb-3">
                 <div className="flex items-center gap-2">
-                  <Cpu className="w-4 h-4 text-zinc-300" />
+                  <ShieldCheck className="w-4 h-4 text-zinc-300" />
                   <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-                    Plugin Licensing Configuration
+                    Delivery & License Architecture
                   </h2>
                 </div>
-                <span className="font-mono text-[10px] text-zinc-400">
-                  Step 4 of 5
+                <span className="text-[10px] font-mono text-zinc-400">
+                  {deliveryMethod === 'direct_download' ? 'Direct CDN Delivery' : 'License Controlled'}
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <FormLabel
-                    label="Plugin Formats"
-                    info="Architectures (e.g. VST3, AU, AAX, CLAP 64-bit)"
-                  />
-                  <input
-                    type="text"
-                    placeholder="VST3, AU, AAX (64-bit)"
-                    value={vstFormat}
-                    onChange={(e) => setVstFormat(e.target.value)}
-                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
-                  />
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setDeliveryMethod('direct_download')}
+                  className={`p-3.5 rounded-xl border text-left transition-all ${
+                    deliveryMethod === 'direct_download'
+                      ? 'bg-[#181818] border-white text-white shadow-sm'
+                      : 'bg-[#121212] border-[#262626] text-zinc-400 hover:border-zinc-700'
+                  }`}
+                >
+                  <div className="text-xs font-bold flex items-center justify-between text-white">
+                    <span>Direct Download</span>
+                    {deliveryMethod === 'direct_download' && <Check className="w-3.5 h-3.5 text-white" />}
+                  </div>
+                  <p className="text-[10px] text-zinc-400 mt-1 leading-relaxed">
+                    Keyless delivery. Perfect for Sample Packs, Loops, Presets, and freeware audio tools.
+                  </p>
+                </button>
 
-                <div>
-                  <FormLabel
-                    label="Machine Seats"
-                    info="Concurrent hardware activations per user license"
-                  />
-                  <input
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={maxSeats}
-                    onChange={(e) => setMaxSeats(parseInt(e.target.value) || 3)}
-                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
-                  />
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setDeliveryMethod('serial_key')}
+                  className={`p-3.5 rounded-xl border text-left transition-all ${
+                    deliveryMethod === 'serial_key'
+                      ? 'bg-[#181818] border-white text-white shadow-sm'
+                      : 'bg-[#121212] border-[#262626] text-zinc-400 hover:border-zinc-700'
+                  }`}
+                >
+                  <div className="text-xs font-bold flex items-center justify-between text-white">
+                    <span>Serial Key Pool</span>
+                    {deliveryMethod === 'serial_key' && <Check className="w-3.5 h-3.5 text-white" />}
+                  </div>
+                  <p className="text-[10px] text-zinc-400 mt-1 leading-relaxed">
+                    Pre-loaded pool of unique serial keys assigned automatically to buyers upon checkout.
+                  </p>
+                </button>
 
-                <div>
-                  <FormLabel
-                    label="Offline Grace"
-                    info="Days a workstation can run offline before requiring license ping"
-                  />
-                  <input
-                    type="number"
-                    min="1"
-                    max="90"
-                    value={offlineGraceDays}
-                    onChange={(e) => setOfflineGraceDays(parseInt(e.target.value) || 14)}
-                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
-                  />
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setDeliveryMethod('dedicated_licensing_server')}
+                  className={`p-3.5 rounded-xl border text-left transition-all ${
+                    deliveryMethod === 'dedicated_licensing_server'
+                      ? 'bg-[#181818] border-white text-white shadow-sm'
+                      : 'bg-[#121212] border-[#262626] text-zinc-400 hover:border-zinc-700'
+                  }`}
+                >
+                  <div className="text-xs font-bold flex items-center justify-between text-white">
+                    <span>Machine Seat Auth</span>
+                    {deliveryMethod === 'dedicated_licensing_server' && <Check className="w-3.5 h-3.5 text-white" />}
+                  </div>
+                  <p className="text-[10px] text-zinc-400 mt-1 leading-relaxed">
+                    Cryptographic machine-bound seat challenge activation server (ProVerb model).
+                  </p>
+                </button>
               </div>
             </div>
 
-            {/* Embedded Serial Key Pool */}
-            <SerialKeyPoolManager
-              productId={product.id}
-              productName={product.name}
-            />
+            {deliveryMethod !== 'direct_download' && (
+              <div className="toy-card p-6 space-y-4">
+                <div className="flex items-center justify-between border-b border-[#2a2a2a] pb-3">
+                  <div className="flex items-center gap-2">
+                    <Cpu className="w-4 h-4 text-zinc-300" />
+                    <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+                      Plugin Licensing Configuration
+                    </h2>
+                  </div>
+                  <span className="font-mono text-[10px] text-zinc-400">
+                    Step 4 of 5
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <FormLabel
+                      label="Plugin Formats"
+                      info="Architectures (e.g. VST3, AU, AAX, CLAP 64-bit)"
+                    />
+                    <input
+                      type="text"
+                      placeholder="VST3, AU, AAX (64-bit)"
+                      value={vstFormat}
+                      onChange={(e) => setVstFormat(e.target.value)}
+                      className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <FormLabel
+                      label="Machine Seats"
+                      info="Concurrent hardware activations per user license"
+                    />
+                    <input
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={maxSeats}
+                      onChange={(e) => setMaxSeats(parseInt(e.target.value) || 3)}
+                      className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <FormLabel
+                      label="Offline Grace"
+                      info="Days a workstation can run offline before requiring license ping"
+                    />
+                    <input
+                      type="number"
+                      min="1"
+                      max="90"
+                      value={offlineGraceDays}
+                      onChange={(e) => setOfflineGraceDays(parseInt(e.target.value) || 14)}
+                      className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Conditional Delivery View: Keyless vs Serial Key Pool */}
+            {deliveryMethod === 'direct_download' ? (
+              <div className="toy-card p-6 space-y-3 bg-[#131313] border-[#282828]">
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#202020] border border-[#34363d] flex items-center justify-center flex-shrink-0">
+                    <Download className="w-4 h-4 text-zinc-300" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      <span>Keyless Direct Download Delivery Active</span>
+                      <span className="text-[9px] font-mono text-zinc-400 bg-[#1e1e1e] px-2 py-0.5 rounded border border-zinc-700/50">
+                        Plugin Boutique Standard
+                      </span>
+                    </h3>
+                    <p className="text-xs text-zinc-300 leading-relaxed">
+                      Buyers receive instant download access upon purchase with full royalty-free commercial rights. No serial key entry is required. This product is exempt from serial inventory thresholds and maintains 100% in-stock availability as long as installer files or audio archives are attached in Step 3.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <SerialKeyPoolManager
+                productId={product.id}
+                productName={product.name}
+              />
+            )}
           </div>
         )}
 
