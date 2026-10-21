@@ -412,40 +412,23 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Cover Artwork */}
-            {/* Cover Artwork with Live Preview & Dual Mode */}
-            <div>
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                <div className="w-16 h-16 rounded-xl bg-[#121212] border border-[#2a2a2a] overflow-hidden flex-shrink-0 flex items-center justify-center shadow-inner mt-6 sm:mt-0">
-                  {coverImage ? (
-                    <img
-                      src={coverImage}
-                      alt="Product Cover"
-                      className="w-full h-full object-cover"
-                      onError={(e: any) => {
-                        e.target.src = '/icon.png';
-                      }}
-                    />
-                  ) : (
-                    <Package className="w-6 h-6 text-zinc-500" />
-                  )}
-                </div>
-                <div className="flex-1 w-full">
-                  <DualAssetUploadInput
-                    label="Square Cover Artwork (600x600 recommended)"
-                    value={coverImage}
-                    onChange={setCoverImage}
-                    assetCategory="cover"
-                    accept="image/png,image/jpeg,image/webp"
-                    placeholder="https://... or /products/proverb.png"
-                    hint="High-resolution square PNG or WebP artwork displayed across marketplace cards"
-                    icon={ImageIcon}
-                  />
-                </div>
-              </div>
+            {/* Cover Artwork Dual Mode with Integrated Live Preview */}
+            <div className="w-full min-w-0">
+              <DualAssetUploadInput
+                label="Square Cover Artwork (600x600 recommended)"
+                value={coverImage}
+                onChange={setCoverImage}
+                assetCategory="cover"
+                accept="image/png,image/jpeg,image/webp"
+                placeholder="https://... or /products/proverb.png"
+                hint="High-resolution square PNG or WebP artwork displayed across marketplace cards"
+                icon={ImageIcon}
+                thumbnailUrl={coverImage}
+              />
             </div>
 
             {/* Audio Preview Dual Mode */}
-            <div className="pt-3 border-t border-[#262626]">
+            <div className="pt-3 border-t border-[#262626] w-full min-w-0">
               <DualAssetUploadInput
                 label="Audio Demo Preview (.mp3 or .wav)"
                 value={demoAudioUrl}
@@ -458,7 +441,7 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Video Demo */}
-            <div className="pt-3 border-t border-[#262626] space-y-2">
+            <div className="pt-3 border-t border-[#262626] space-y-2 w-full min-w-0">
               <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                 <Video className="w-3.5 h-3.5 text-zinc-400" />
                 <span>YouTube Walkthrough Demo URL</span>
@@ -476,7 +459,7 @@ export default function ProductDetailPage() {
 
         {/* STEP 3: Installers & Specs */}
         {activeStep === 3 && (
-          <div className="toy-card p-6 space-y-5">
+          <div className="toy-card p-6 space-y-5 w-full min-w-0">
             <div className="flex items-center justify-between border-b border-[#2a2a2a] pb-3">
               <div className="flex items-center gap-2">
                 <HardDrive className="w-4 h-4 text-zinc-300" />
@@ -490,44 +473,51 @@ export default function ProductDetailPage() {
             </div>
 
             {/* OS Specific Binary Installers with Dual Mode (Direct Drive Upload + External Link) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <DualAssetUploadInput
-                label="Windows Installer (.exe / .zip)"
-                value={downloadUrlWin}
-                onChange={setDownloadUrlWin}
-                onFileSizeDetected={setFileSize}
-                assetCategory="win_installer"
-                accept=".exe,.zip,.msi"
-                placeholder="https://.../ProVerb-Win-Setup.exe"
-                hint="64-bit VST3 installer for Windows workstations"
-                icon={Monitor}
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0 w-full">
+              <div className="min-w-0 w-full overflow-hidden">
+                <DualAssetUploadInput
+                  label="Windows Installer (.exe / .zip)"
+                  value={downloadUrlWin}
+                  onChange={setDownloadUrlWin}
+                  onFileSizeDetected={setFileSize}
+                  assetCategory="win_installer"
+                  accept=".exe,.zip,.msi"
+                  placeholder="https://.../ProVerb-Win-Setup.exe"
+                  hint="64-bit VST3 installer for Windows workstations"
+                  icon={Monitor}
+                />
+              </div>
 
-              <DualAssetUploadInput
-                label="macOS Installer (.pkg / .dmg)"
-                value={downloadUrlMac}
-                onChange={setDownloadUrlMac}
-                onFileSizeDetected={setFileSize}
-                assetCategory="mac_installer"
-                accept=".pkg,.dmg,.zip"
-                placeholder="https://.../ProVerb-macOS-Universal.pkg"
-                hint="Universal package for Apple Silicon (M1/M2/M3) & Intel"
-                icon={Download}
-              />
+              <div className="min-w-0 w-full overflow-hidden">
+                <DualAssetUploadInput
+                  label="macOS Installer (.pkg / .dmg)"
+                  value={downloadUrlMac}
+                  onChange={setDownloadUrlMac}
+                  onFileSizeDetected={setFileSize}
+                  assetCategory="mac_installer"
+                  accept=".pkg,.dmg,.zip"
+                  placeholder="https://.../ProVerb-macOS-Universal.pkg"
+                  hint="Universal package for Apple Silicon (M1/M2/M3) & Intel"
+                  icon={Download}
+                />
+              </div>
             </div>
 
             {/* Universal Archive & Size */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-[#262626]">
-              <DualAssetUploadInput
-                label="Universal / Preset Pack Archive (.zip)"
-                value={downloadUrl}
-                onChange={setDownloadUrl}
-                onFileSizeDetected={setFileSize}
-                assetCategory="universal_zip"
-                accept=".zip,.rar,.7z"
-                placeholder="https://.../Presets-Universal.zip"
-                hint="Sound libraries, preset banks, or cross-platform archives"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-[#262626] min-w-0 w-full">
+              <div className="min-w-0 w-full overflow-hidden">
+                <DualAssetUploadInput
+                  label="Universal / Preset Pack Archive (.zip)"
+                  value={downloadUrl}
+                  onChange={setDownloadUrl}
+                  onFileSizeDetected={setFileSize}
+                  assetCategory="universal_zip"
+                  accept=".zip,.rar,.7z"
+                  placeholder="https://.../Presets-Universal.zip"
+                  hint="Sound libraries, preset banks, or cross-platform archives"
+                />
+              </div>
+
 
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider block">

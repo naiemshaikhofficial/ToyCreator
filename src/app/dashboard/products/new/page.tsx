@@ -380,36 +380,19 @@ export default function NewProductPage() {
               <span className="font-mono text-[10px] text-zinc-400">Step 2 of 5</span>
             </div>
 
-            {/* Cover Artwork with Live Preview & Dual Mode */}
-            <div>
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                <div className="w-16 h-16 rounded-xl bg-[#121212] border border-[#2a2a2a] overflow-hidden flex-shrink-0 flex items-center justify-center shadow-inner mt-6 sm:mt-0">
-                  {coverImage ? (
-                    <img
-                      src={coverImage}
-                      alt="Cover Preview"
-                      className="w-full h-full object-cover"
-                      onError={(e: any) => {
-                        e.target.src = '/icon.png';
-                      }}
-                    />
-                  ) : (
-                    <Package className="w-6 h-6 text-zinc-500" />
-                  )}
-                </div>
-                <div className="flex-1 w-full">
-                  <DualAssetUploadInput
-                    label="Square Cover Image URL (600x600 recommended)"
-                    value={coverImage}
-                    onChange={setCoverImage}
-                    assetCategory="cover"
-                    accept="image/png,image/jpeg,image/webp"
-                    placeholder="https://.../cover.png or /products/proverb.png"
-                    hint="High-quality artwork displayed across all marketplace cards and detail pages"
-                    icon={ImageIcon}
-                  />
-                </div>
-              </div>
+            {/* Cover Artwork Dual Mode with Integrated Live Preview */}
+            <div className="w-full min-w-0">
+              <DualAssetUploadInput
+                label="Square Cover Image URL (600x600 recommended)"
+                value={coverImage}
+                onChange={setCoverImage}
+                assetCategory="cover"
+                accept="image/png,image/jpeg,image/webp"
+                placeholder="https://.../cover.png or /products/proverb.png"
+                hint="High-quality artwork displayed across all marketplace cards and detail pages"
+                icon={ImageIcon}
+                thumbnailUrl={coverImage}
+              />
             </div>
 
             {/* Audio Preview Dual Mode */}
@@ -455,44 +438,50 @@ export default function NewProductPage() {
             </div>
 
             {/* OS Specific Binary Installers with Dual Mode */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <DualAssetUploadInput
-                label="Windows Installer (.exe / .zip)"
-                value={downloadUrlWin}
-                onChange={setDownloadUrlWin}
-                onFileSizeDetected={setFileSize}
-                assetCategory="win_installer"
-                accept=".exe,.zip,.msi"
-                placeholder="https://.../Setup-Win-x64.exe"
-                hint="64-bit VST3 installer for Windows workstations"
-                icon={Monitor}
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0 w-full">
+              <div className="min-w-0 w-full overflow-hidden">
+                <DualAssetUploadInput
+                  label="Windows Installer (.exe / .zip)"
+                  value={downloadUrlWin}
+                  onChange={setDownloadUrlWin}
+                  onFileSizeDetected={setFileSize}
+                  assetCategory="win_installer"
+                  accept=".exe,.zip,.msi"
+                  placeholder="https://.../Setup-Win-x64.exe"
+                  hint="64-bit VST3 installer for Windows workstations"
+                  icon={Monitor}
+                />
+              </div>
 
-              <DualAssetUploadInput
-                label="macOS Installer (.pkg / .dmg)"
-                value={downloadUrlMac}
-                onChange={setDownloadUrlMac}
-                onFileSizeDetected={setFileSize}
-                assetCategory="mac_installer"
-                accept=".pkg,.dmg,.zip"
-                placeholder="https://.../Universal-macOS.pkg"
-                hint="Universal package for Apple Silicon (M1/M2/M3) & Intel"
-                icon={Download}
-              />
+              <div className="min-w-0 w-full overflow-hidden">
+                <DualAssetUploadInput
+                  label="macOS Installer (.pkg / .dmg)"
+                  value={downloadUrlMac}
+                  onChange={setDownloadUrlMac}
+                  onFileSizeDetected={setFileSize}
+                  assetCategory="mac_installer"
+                  accept=".pkg,.dmg,.zip"
+                  placeholder="https://.../Universal-macOS.pkg"
+                  hint="Universal package for Apple Silicon (M1/M2/M3) & Intel"
+                  icon={Download}
+                />
+              </div>
             </div>
 
             {/* Universal Archive & Size */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-[#262626]">
-              <DualAssetUploadInput
-                label="Universal / Presets Archive (.zip)"
-                value={downloadUrl}
-                onChange={setDownloadUrl}
-                onFileSizeDetected={setFileSize}
-                assetCategory="universal_zip"
-                accept=".zip,.rar,.7z"
-                placeholder="https://.../presets.zip"
-                hint="Sound libraries, preset banks, or cross-platform archives"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-[#262626] min-w-0 w-full">
+              <div className="min-w-0 w-full overflow-hidden">
+                <DualAssetUploadInput
+                  label="Universal / Presets Archive (.zip)"
+                  value={downloadUrl}
+                  onChange={setDownloadUrl}
+                  onFileSizeDetected={setFileSize}
+                  assetCategory="universal_zip"
+                  accept=".zip,.rar,.7z"
+                  placeholder="https://.../presets.zip"
+                  hint="Sound libraries, preset banks, or cross-platform archives"
+                />
+              </div>
 
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider block">
