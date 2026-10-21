@@ -10,7 +10,7 @@ export interface DriveUploadResult {
 }
 
 /**
- * Server Action: Upload file directly to owner's 5TB Google Drive storage via Apps Script Webhook
+ * Server Action: Upload file directly to dedicated cloud storage via automated webhook pipeline
  */
 export async function uploadAssetToDriveAction(formData: FormData): Promise<DriveUploadResult> {
   const file = formData.get('file') as File;
@@ -33,18 +33,18 @@ export async function uploadAssetToDriveAction(formData: FormData): Promise<Driv
 
   const WEBHOOK_URL = process.env.GOOGLE_WEBHOOK_URL;
   if (!WEBHOOK_URL) {
-    console.error('Missing GOOGLE_WEBHOOK_URL in environment configuration.');
+    console.error('Missing cloud storage webhook URL in environment configuration.');
     return {
       success: false,
-      error: 'Google Drive Webhook URL is missing in .env.local. Please configure GOOGLE_WEBHOOK_URL to upload to your 5TB Google Drive.',
+      error: 'Cloud storage endpoint is not configured. Please switch to the "External Link" tab to link your cloud asset directly.',
     };
   }
 
-  // Google Apps Script and Node V8 string limit protection (base64 of >50MB crashes Node V8 memory with ERR_STRING_TOO_LONG)
+  // Browser in-memory upload limit protection (prevent memory crash on files >50MB)
   if (file.size > 50 * 1024 * 1024) {
     return {
       success: false,
-      error: `File is ${formattedSize}. Direct browser upload 50MB tak support karta hai. Bade VST installers (400MB–5GB+) ko direct apne 5TB Google Drive (drive.google.com) me daal kar 'External Link' tab me link paste karein. ProducerToy direct high-speed download provide karega.`,
+      error: `File size is ${formattedSize}. Direct browser upload supports files up to 50MB. For larger installers and sample libraries (50MB–10GB), please switch to the "External Link" tab to paste your direct cloud link.`,
     };
   }
 
@@ -79,28 +79,28 @@ export async function uploadAssetToDriveAction(formData: FormData): Promise<Driv
     try {
       result = JSON.parse(rawText);
     } catch {
-      console.error('Non-JSON response from Google Drive Webhook:', rawText.substring(0, 300));
+      console.error('Non-JSON response from cloud storage webhook:', rawText.substring(0, 300));
       if (response.status === 404 || rawText.includes('Page not found') || rawText.includes('does not exist')) {
         return {
           success: false,
-          error: 'Google Drive Webhook URL 404 return kar raha hai. Google Apps Script me "Deploy > New Deployment > Anyone" karke new URL daalein.',
+          error: 'Cloud storage upload endpoint returned 404 Not Found. If using an automated cloud webhook, ensure deployment access is set to "Anyone", or use the "External Link" tab to link your file directly.',
         };
       }
       return {
         success: false,
-        error: 'Google Drive Webhook ne unexpected response diya. Please check script deployment.',
+        error: 'Cloud storage service returned an unexpected response. Please switch to the "External Link" tab to link your asset directly.',
       };
     }
 
     if (!result.success && !result.fileId) {
       return {
         success: false,
-        error: result.error || 'Google Drive me file save karne me error aaya.',
+        error: result.error || 'Failed to save asset to cloud storage. Please try again or use the "External Link" tab.',
       };
     }
 
     const fileId = result.fileId || result.id;
-    // Standard Google Drive direct download link
+    // Standard direct streaming download link
     const fileUrl = result.downloadUrl || result.webViewLink || `https://drive.google.com/uc?id=${fileId}&export=download`;
 
     return {
@@ -114,13 +114,13 @@ export async function uploadAssetToDriveAction(formData: FormData): Promise<Driv
     console.error('uploadAssetToDriveAction exception:', error);
     return {
       success: false,
-      error: error.message || 'Google Drive se connect karne me network error aaya.',
+      error: 'A network error occurred while uploading to cloud storage. Please try again or use the "External Link" tab.',
     };
   }
 }
 
 /**
- * Server Action: Verifies Google Drive link, extracts File ID, and auto-detects name & size
+ * Server Action: Verifies cloud storage link, extracts File ID, and auto-detects name & size
  * Matches ProducerToy download engine format
  */
 export async function verifyDriveLinkAction(url: string) {

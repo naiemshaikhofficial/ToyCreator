@@ -156,7 +156,7 @@ export default function LicensingPage() {
 
         {loading ? (
           <div className="p-12 text-center text-xs text-zinc-400">
-            Querying active device signatures from Supabase...
+            Querying active machine activations...
           </div>
         ) : filteredActivations.length === 0 ? (
           <div className="p-12 text-center space-y-2">

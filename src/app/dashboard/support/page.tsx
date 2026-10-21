@@ -136,7 +136,7 @@ export default function SupportPage() {
 
         {loading ? (
           <div className="p-12 text-center text-xs text-zinc-400">
-            Loading tickets from Supabase support_tickets...
+            Loading support tickets...
           </div>
         ) : tickets.length === 0 ? (
           <div className="p-12 text-center space-y-2">

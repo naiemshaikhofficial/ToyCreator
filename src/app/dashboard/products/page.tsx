@@ -113,7 +113,7 @@ export default function ProductsListPage() {
       <div className="toy-card overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-xs text-zinc-400">
-            Loading products from Supabase...
+            Loading audio products...
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="p-12 text-center space-y-3">

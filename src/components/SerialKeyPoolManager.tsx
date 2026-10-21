@@ -247,7 +247,7 @@ export default function SerialKeyPoolManager({
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
             <ShieldCheck className="w-3.5 h-3.5 text-zinc-400" />
-            <span>Encrypted & stored securely in Supabase</span>
+            <span>Encrypted & stored securely in ProducerToy Vault</span>
           </div>
 
           <button

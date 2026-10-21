@@ -387,7 +387,7 @@ export default function DashboardOverviewPage() {
             </div>
             <p className="text-xs text-zinc-400">
               {purchases.length > 0
-                ? 'Direct customer orders recorded in Supabase database'
+                ? 'Direct customer orders recorded on ProducerToy'
                 : 'Sample demonstration stream — live orders from producertoy.com will populate here automatically'}
             </p>
           </div>
