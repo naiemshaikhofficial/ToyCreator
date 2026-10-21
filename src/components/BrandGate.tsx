@@ -5,6 +5,7 @@ import { useBrand } from '@/context/BrandContext';
 import { useRouter } from 'next/navigation';
 import { ShieldAlert, LogOut } from 'lucide-react';
 import { CreatorApplicationForm } from './CreatorApplicationForm';
+import { BrandOnboardingWizard } from './BrandOnboardingWizard';
 
 export function BrandGate({ children }: { children: React.ReactNode }) {
   const { user, isRegisteredBrand, isLoading, brand, signOut } = useBrand();
@@ -91,6 +92,12 @@ export function BrandGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Brand is authorized!
+  // Approved brand, but has NOT completed initial profile setup & executed legal contract
+  if (!brand.contract_accepted_at) {
+    return <BrandOnboardingWizard />;
+  }
+
+  // Brand is authorized & contract is accepted!
   return <>{children}</>;
 }
+

@@ -9,8 +9,14 @@ export interface BrandData {
   logo_url: string | null;
   description: string | null;
   website_url: string | null;
+  support_email?: string | null;
+  country?: string | null;
+  contract_accepted_at?: string | null;
+  contract_signatory_name?: string | null;
+  contract_version?: string | null;
   created_at: string;
 }
+
 
 export interface BrandMembership {
   id: string;
