@@ -42,23 +42,27 @@ export default function HomePage() {
   const faqs = [
     {
       q: 'What types of audio products can I sell?',
-      a: 'You can sell Audio Plugins (VST3, AU, AAX, CLAP for Mac and Windows), Sample Packs and Sound Kits (WAV, AIFF, MIDI), Synth Presets (Serum, Diva, Vital, Phase Plant), and DAW Project Templates.',
+      a: 'You can sell Audio Plugins (VST3, AU, AAX, CLAP for Mac and Windows), Sample Packs and Sound Kits (24-bit WAV, AIFF, MIDI), Synth Presets (Serum, Diva, Vital, Phase Plant), and DAW Project Templates.',
     },
     {
       q: 'How does the 70% creator revenue split work?',
-      a: 'You keep 70% of every sale. ProducerToy takes care of all credit card fees, fraud protection, sales tax/VAT compliance, and fast cloud download servers.',
+      a: 'You receive 70% of eligible net sale proceeds. Deductions follow a transparent sequence: gross price, minus actual payment processing fees, split 70% Developer / 30% Platform. Zero hidden listing or monthly subscription fees.',
     },
     {
       q: 'Can I protect my plugins with license keys?',
-      a: 'Yes! Toy Creator includes built-in license protection. You can choose how many computers each customer can activate (e.g. 2 devices per license) and revoke stolen or pirated keys anytime.',
+      a: 'Yes! Toy Creator includes genuine serial key pool protection with concurrency locking. You can set computer activation limits per user, view claimed keys, and revoke compromised licenses anytime.',
     },
     {
-      q: 'How do payouts work?',
-      a: 'Payouts are sent automatically every month directly to your bank account or PayPal. You can check your sales and earnings live on your dashboard anytime.',
+      q: 'When and how do payouts work?',
+      a: 'Settlements are manual, fully itemized monthly disbursements payable by the 15th calendar day of the following month with zero minimum payout threshold. Disbursed via SWIFT international bank wire, domestic transfer, or PayPal.',
+    },
+    {
+      q: 'How does customer privacy and data sharing work?',
+      a: 'By default, customer personal data is masked (r***r@example.com). Customer details are shared only when software activation strictly requires it and the buyer gives explicit pre-purchase consent under a strict non-marketing covenant.',
     },
     {
       q: 'Who can become a creator on Toy Creator?',
-      a: 'Toy Creator is curated for quality. Audio software developers, plugin makers, and sound designers can apply to join our brand partner roster.',
+      a: 'Toy Creator is curated for quality. Audio software developers, plugin makers, and sound designers can apply to join our brand partner roster with fast 24–48h review.',
     },
   ];
 
@@ -86,6 +90,12 @@ export default function HomePage() {
         </Link>
 
         <div className="flex items-center gap-3 sm:gap-4">
+          <Link
+            href="/faq"
+            className="text-xs sm:text-sm font-semibold text-zinc-400 hover:text-white transition-colors hidden sm:block"
+          >
+            Developer FAQ
+          </Link>
           <Link
             href="/login"
             className="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-zinc-300 hover:text-white hover:bg-[#1f1f1f] transition-colors"
@@ -268,6 +278,16 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+
+          <div className="mt-8 text-center">
+            <Link
+              href="/faq"
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#1c1c1f] hover:bg-[#252528] border border-white/10 text-xs sm:text-sm font-bold text-white transition-colors cursor-pointer group shadow-lg"
+            >
+              <span>View All 22+ Developer FAQs & Knowledge Base</span>
+              <ArrowRight className="w-4 h-4 text-zinc-400 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
+            </Link>
+          </div>
         </section>
 
         {/* Final CTA Card */}
@@ -300,6 +320,12 @@ export default function HomePage() {
       <footer className="border-t border-[#202020] py-8 px-6 sm:px-12 text-center text-xs text-zinc-400 flex flex-col sm:flex-row items-center justify-between gap-4 max-w-7xl w-full mx-auto">
         <p>&copy; {new Date().getFullYear()} Producer Toy Inc. All rights reserved. Toy Creator Portal.</p>
         <div className="flex items-center gap-6">
+          <Link
+            href="/faq"
+            className="hover:text-white transition-colors"
+          >
+            Developer FAQ
+          </Link>
           <a
             href="https://producertoy.com"
             target="_blank"
