@@ -102,3 +102,20 @@ These rules are mandatory invariants for the **Toy Creator** portal (`creators.p
   - Display clear pool health indicators and flag low inventory warnings (threshold < 10 keys) before a product's serial pool runs out.
 - **Export & Support Utility**:
   - Provide easy one-click copy and CSV export for both available and claimed key pools for creator bookkeeping and customer support reconciliation.
+
+---
+
+## 13. Product Delivery Matrix & Keyless Product Invariant (Plugin Boutique Standard)
+- **Multi-Tier Delivery Classification**:
+  - Every audio product must be classified into its genuine delivery mode:
+    1. `direct_download`: Keyless direct download for Sample Packs, Loops, MIDI, Synth Presets, and DRM-free utilities.
+    2. `serial_key`: Automated per-buyer serial key distribution from a pre-loaded pool for commercial plugins.
+    3. `dedicated_licensing_server`: Cryptographic machine-bound seat challenge activation for first-party plugins (ProVerb model).
+- **Keyless Stock Exemption**:
+  - Products designated as `direct_download`, `sample_pack`, or `preset` must NEVER be flagged as "Out of Stock" due to serial key counts.
+  - Their in-stock status is determined solely by the presence of valid download deliverables (installer/archive URL).
+- **Adaptive Licensing UI**:
+  - Step 4 (Licensing & Serials) must adapt to the product type: keyless soundware must show a clear "Keyless Direct Delivery" confirmation instead of an empty or depleted serial key pool warning.
+- **Zero Hallucinated Serials**:
+  - Never generate or assign dummy serial keys to sample packs, loops, or keyless freebies.
+
