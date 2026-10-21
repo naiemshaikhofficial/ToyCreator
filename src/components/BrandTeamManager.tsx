@@ -261,31 +261,31 @@ export function BrandTeamManager() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
-            <div className="sm:col-span-6">
+            <div className="sm:col-span-5">
               <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">
                 Colleague Email
               </label>
               <div className="relative">
-                <Mail className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-3 pointer-events-none" />
+                <Mail className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-3.5 pointer-events-none" />
                 <input
                   type="email"
                   required
                   placeholder="collaborator@yourbrand.com"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:border-[#42454e] transition-colors placeholder:text-zinc-600"
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors placeholder:text-zinc-600"
                 />
               </div>
             </div>
 
-            <div className="sm:col-span-4">
+            <div className="sm:col-span-5">
               <label className="block text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">
                 Publisher Role
               </label>
               <select
                 value={inviteRole}
                 onChange={(e) => setInviteRole(e.target.value as any)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3 py-2 text-xs text-white focus:border-[#42454e] transition-colors"
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors cursor-pointer"
               >
                 <option value="developer">Developer / Sound Designer</option>
                 <option value="admin">Brand Admin</option>
@@ -298,7 +298,7 @@ export function BrandTeamManager() {
               <button
                 type="submit"
                 disabled={inviting || !inviteEmail.trim()}
-                className="btn-primary w-full py-2 px-3 text-xs font-semibold flex items-center justify-center gap-1.5 uppercase tracking-wider disabled:opacity-50"
+                className="btn-primary w-full py-2.5 px-3 text-xs font-semibold flex items-center justify-center gap-1.5 uppercase tracking-wider disabled:opacity-50"
               >
                 {inviting ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -384,7 +384,7 @@ export function BrandTeamManager() {
                         value={member.role}
                         disabled={isCurrentMemberActionLoading}
                         onChange={(e) => handleRoleChange(member.id, e.target.value as any)}
-                        className="bg-[#121212] border border-[#2e2e2e] rounded-lg px-2.5 py-1 text-[11px] text-white focus:border-[#42454e] transition-colors"
+                        className="bg-[#121212] border border-[#2e2e2e] rounded-lg pl-2.5 pr-8 py-1.5 text-[11px] text-white focus:border-[#42454e] transition-colors cursor-pointer"
                       >
                         <option value="admin">Brand Admin</option>
                         <option value="developer">Developer</option>
