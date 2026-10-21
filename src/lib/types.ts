@@ -12,6 +12,9 @@ export interface CreatorProduct {
   demo_audio_url?: string;
   external_url?: string;
   download_url?: string;
+  download_url_win?: string;
+  download_url_mac?: string;
+  youtube_url?: string;
   short_description?: string;
   full_description?: string;
   vst_format?: string;
@@ -33,6 +36,22 @@ export interface CreatorProduct {
   downloads_count: number;
   rating?: number;
   review_count?: number;
+}
+
+export interface ProductSerialKey {
+  id: string;
+  product_id: string;
+  serial_key: string;
+  is_used: boolean;
+  assigned_to_user_id?: string | null;
+  created_at: string;
+}
+
+export interface SerialKeyPoolStats {
+  total: number;
+  available: number;
+  used: number;
+  recentKeys: ProductSerialKey[];
 }
 
 export interface CreatorOrder {

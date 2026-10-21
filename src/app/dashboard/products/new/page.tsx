@@ -14,6 +14,10 @@ import {
   Loader2,
   AlertCircle,
   Plus,
+  Monitor,
+  Download,
+  HardDrive,
+  Video,
 } from 'lucide-react';
 
 export default function NewProductPage() {
@@ -30,6 +34,10 @@ export default function NewProductPage() {
   const [coverImage, setCoverImage] = useState('');
   const [demoAudioUrl, setDemoAudioUrl] = useState('');
   const [downloadUrl, setDownloadUrl] = useState('');
+  const [downloadUrlWin, setDownloadUrlWin] = useState('');
+  const [downloadUrlMac, setDownloadUrlMac] = useState('');
+  const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [fileSize, setFileSize] = useState('');
   const [vstFormat, setVstFormat] = useState('VST3, AU, AAX (64-bit)');
   const [operatingSystem, setOperatingSystem] = useState('macOS (Apple Silicon & Intel), Windows 10/11');
   const [supportedDaws, setSupportedDaws] = useState('Ableton Live, FL Studio, Logic Pro, Pro Tools, Studio One, Reaper, Cubase');
@@ -82,6 +90,10 @@ export default function NewProductPage() {
         cover_image: coverImage.trim() || null,
         demo_audio_url: demoAudioUrl.trim() || null,
         download_url: downloadUrl.trim() || null,
+        download_url_win: downloadUrlWin.trim() || null,
+        download_url_mac: downloadUrlMac.trim() || null,
+        youtube_url: youtubeUrl.trim() || null,
+        file_size: fileSize.trim() || null,
         vst_format: productType === 'plugin' ? vstFormat.trim() : null,
         operating_system: operatingSystem.trim() || null,
         supported_daws: supportedDaws.trim() || null,
@@ -373,7 +385,7 @@ export default function NewProductPage() {
 
           <div>
             <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-              Secure Download File / Cloud Link
+              Secure Universal Download File / Cloud Link
             </label>
             <input
               type="url"
@@ -385,6 +397,75 @@ export default function NewProductPage() {
             <span className="text-[10px] text-zinc-500 mt-1 block">
               Provided securely to verified customers after completed purchase
             </span>
+          </div>
+
+          {/* Multi-OS Binary Installers (Plugin Boutique Architecture) */}
+          <div className="pt-2 border-t border-[#2a2a2a] space-y-4">
+            <div className="flex items-center gap-2">
+              <HardDrive className="w-4 h-4 text-zinc-300" />
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                Multi-Platform Installers & Media (Optional)
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                  <Monitor className="w-3.5 h-3.5 text-zinc-400" />
+                  <span>Windows Installer URL (.exe / .zip)</span>
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://.../Setup-Win-x64.exe"
+                  value={downloadUrlWin}
+                  onChange={(e) => setDownloadUrlWin(e.target.value)}
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                  <Download className="w-3.5 h-3.5 text-zinc-400" />
+                  <span>macOS Installer URL (.pkg / .dmg)</span>
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://.../Universal-macOS.pkg"
+                  value={downloadUrlMac}
+                  onChange={(e) => setDownloadUrlMac(e.target.value)}
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
+                  Download Archive File Size
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 450 MB or 1.2 GB"
+                  value={fileSize}
+                  onChange={(e) => setFileSize(e.target.value)}
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                  <Video className="w-3.5 h-3.5 text-zinc-400" />
+                  <span>YouTube Walkthrough Demo URL</span>
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  value={youtubeUrl}
+                  onChange={(e) => setYoutubeUrl(e.target.value)}
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="pt-2 flex items-center gap-3">

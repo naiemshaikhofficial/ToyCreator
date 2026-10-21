@@ -14,7 +14,13 @@ import {
   CheckCircle,
   AlertCircle,
   Save,
+  Monitor,
+  Download,
+  HardDrive,
+  Video,
+  Layers,
 } from 'lucide-react';
+import SerialKeyPoolManager from '@/components/SerialKeyPoolManager';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -37,6 +43,12 @@ export default function ProductDetailPage() {
   const [coverImage, setCoverImage] = useState('');
   const [demoAudioUrl, setDemoAudioUrl] = useState('');
   const [downloadUrl, setDownloadUrl] = useState('');
+  const [downloadUrlWin, setDownloadUrlWin] = useState('');
+  const [downloadUrlMac, setDownloadUrlMac] = useState('');
+  const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [fileSize, setFileSize] = useState('');
+  const [supportedDaws, setSupportedDaws] = useState('');
+  const [operatingSystem, setOperatingSystem] = useState('');
   const [vstFormat, setVstFormat] = useState('');
   const [maxSeats, setMaxSeats] = useState(3);
   const [offlineGraceDays, setOfflineGraceDays] = useState(14);
@@ -58,6 +70,12 @@ export default function ProductDetailPage() {
           setCoverImage(data.cover_image || '');
           setDemoAudioUrl(data.demo_audio_url || '');
           setDownloadUrl(data.download_url || '');
+          setDownloadUrlWin(data.download_url_win || '');
+          setDownloadUrlMac(data.download_url_mac || '');
+          setYoutubeUrl(data.youtube_url || '');
+          setFileSize(data.file_size || '');
+          setSupportedDaws(data.supported_daws || '');
+          setOperatingSystem(data.operating_system || '');
           setVstFormat(data.vst_format || '');
           setMaxSeats(data.max_activation_seats || 3);
           setOfflineGraceDays(data.offline_grace_days || 14);
@@ -90,6 +108,12 @@ export default function ProductDetailPage() {
         cover_image: coverImage.trim() || null,
         demo_audio_url: demoAudioUrl.trim() || null,
         download_url: downloadUrl.trim() || null,
+        download_url_win: downloadUrlWin.trim() || null,
+        download_url_mac: downloadUrlMac.trim() || null,
+        youtube_url: youtubeUrl.trim() || null,
+        file_size: fileSize.trim() || null,
+        supported_daws: supportedDaws.trim() || null,
+        operating_system: operatingSystem.trim() || null,
         vst_format: vstFormat.trim() || null,
         max_activation_seats: Number(maxSeats),
         offline_grace_days: Number(offlineGraceDays),
@@ -394,16 +418,124 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
-              Secure Download File / Cloud Link
-            </label>
-            <input
-              type="text"
-              value={downloadUrl}
-              onChange={(e) => setDownloadUrl(e.target.value)}
-              className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
-            />
+          {/* Multi-OS Binary Installers (Plugin Boutique Architecture) */}
+          <div className="pt-2 border-t border-[#2a2a2a] space-y-4">
+            <div className="flex items-center gap-2">
+              <HardDrive className="w-4 h-4 text-zinc-300" />
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                Multi-Platform Installers & Binaries
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                  <Monitor className="w-3.5 h-3.5 text-zinc-400" />
+                  <span>Windows Installer URL (.exe / .zip)</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="https://.../ProVerb-Win-x64-Setup.exe"
+                  value={downloadUrlWin}
+                  onChange={(e) => setDownloadUrlWin(e.target.value)}
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                  <Download className="w-3.5 h-3.5 text-zinc-400" />
+                  <span>macOS Installer URL (.pkg / .dmg)</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="https://.../ProVerb-macOS-Universal.pkg"
+                  value={downloadUrlMac}
+                  onChange={(e) => setDownloadUrlMac(e.target.value)}
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
+                  Universal / Presets Archive URL
+                </label>
+                <input
+                  type="text"
+                  placeholder="https://.../ProVerb-Presets-Pack.zip"
+                  value={downloadUrl}
+                  onChange={(e) => setDownloadUrl(e.target.value)}
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
+                  Download File Size
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 240 MB or 1.2 GB"
+                  value={fileSize}
+                  onChange={(e) => setFileSize(e.target.value)}
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Compatibility & Video Demo */}
+          <div className="pt-2 border-t border-[#2a2a2a] space-y-4">
+            <div className="flex items-center gap-2">
+              <Layers className="w-4 h-4 text-zinc-300" />
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                System Compatibility & Video Walkthrough
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
+                  Operating System Requirements
+                </label>
+                <input
+                  type="text"
+                  placeholder="Windows 10/11 64-bit, macOS 12+ (Apple Silicon & Intel)"
+                  value={operatingSystem}
+                  onChange={(e) => setOperatingSystem(e.target.value)}
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
+                  Supported DAWs
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ableton Live, FL Studio, Logic Pro, Pro Tools, Studio One, Reaper"
+                  value={supportedDaws}
+                  onChange={(e) => setSupportedDaws(e.target.value)}
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <Video className="w-3.5 h-3.5 text-zinc-400" />
+                <span>YouTube Demo / Video Walkthrough URL</span>
+              </label>
+              <input
+                type="text"
+                placeholder="https://www.youtube.com/watch?v=..."
+                value={youtubeUrl}
+                onChange={(e) => setYoutubeUrl(e.target.value)}
+                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+              />
+            </div>
           </div>
 
           <div className="pt-2 flex items-center gap-3">
@@ -447,6 +579,12 @@ export default function ProductDetailPage() {
           </button>
         </div>
       </form>
+
+      {/* Serial Key Pool Management (Plugin Boutique Architecture) */}
+      <SerialKeyPoolManager
+        productId={product.id}
+        productName={product.name}
+      />
     </div>
   );
 }

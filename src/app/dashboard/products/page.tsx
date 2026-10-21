@@ -11,6 +11,7 @@ import {
   Filter,
   ExternalLink,
   Edit,
+  Key,
 } from 'lucide-react';
 
 export default function ProductsListPage() {
@@ -189,11 +190,23 @@ export default function ProductsListPage() {
                       <p className="truncate max-w-[200px]">
                         {p.vst_format || p.operating_system || 'Standard Audio'}
                       </p>
-                      {p.max_activation_seats && (
-                        <span className="text-[10px] text-zinc-400 font-mono">
-                          {p.max_activation_seats} seats allowed
-                        </span>
-                      )}
+                      <div className="flex items-center gap-1.5 mt-1">
+                        {p.download_url_win && (
+                          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#202020] text-zinc-300 border border-zinc-700/50">
+                            WIN
+                          </span>
+                        )}
+                        {p.download_url_mac && (
+                          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#202020] text-zinc-300 border border-zinc-700/50">
+                            MAC
+                          </span>
+                        )}
+                        {p.max_activation_seats && (
+                          <span className="text-[10px] text-zinc-500 font-mono">
+                            {p.max_activation_seats} seats
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     {/* Price */}
@@ -218,7 +231,14 @@ export default function ProductsListPage() {
 
                     {/* Actions */}
                     <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Link
+                          href={`/dashboard/products/${p.id}`}
+                          className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-[#282828] transition-colors"
+                          title="Manage License Pool & Serials"
+                        >
+                          <Key className="w-3.5 h-3.5" />
+                        </Link>
                         <Link
                           href={`/dashboard/products/${p.id}`}
                           className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-[#282828] transition-colors"
