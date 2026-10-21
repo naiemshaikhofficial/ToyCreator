@@ -22,6 +22,8 @@ import {
   Building,
 } from 'lucide-react';
 
+import { canAccessRoute, hasPermission, ROLE_BADGES, BrandRole } from '@/lib/rbac';
+
 export const NAV_ITEMS = [
   { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
   { name: 'My Products', href: '/dashboard/products', icon: Package },
@@ -38,6 +40,11 @@ export const NAV_ITEMS = [
 export function Sidebar() {
   const pathname = usePathname();
   const { brand, user, membership, signOut } = useBrand();
+
+  const currentRole = membership?.role as BrandRole | undefined;
+  const filteredNavItems = NAV_ITEMS.filter((item) => canAccessRoute(currentRole, item.href));
+  const canAddProduct = hasPermission(currentRole, 'canManageProducts');
+  const roleBadge = currentRole ? ROLE_BADGES[currentRole] : null;
 
   return (
     <aside className="hidden lg:flex w-64 flex-col fixed inset-y-0 left-0 bg-[#141414] border-r border-[#242424] z-30 select-none">
@@ -66,7 +73,7 @@ export function Sidebar() {
       </div>
 
       {/* Active Brand Card Badge */}
-      <div className="px-4 py-3.5 border-b border-[#202020] bg-[#161616]/70">
+      <div className="px-4 py-3 border-b border-[#202020] bg-[#161616]/70">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/60 flex items-center justify-center text-zinc-300 flex-shrink-0">
@@ -82,19 +89,33 @@ export function Sidebar() {
               </div>
             </div>
           </div>
-          <Link
-            href="/dashboard/products/new"
-            title="Create New Product"
-            className="w-6 h-6 rounded-md bg-[#262626] hover:bg-[#34363d] text-zinc-300 hover:text-white flex items-center justify-center transition-colors border border-white/5"
-          >
-            <Plus className="w-3.5 h-3.5" />
-          </Link>
+          {canAddProduct && (
+            <Link
+              href="/dashboard/products/new"
+              title="Create New Product"
+              className="w-6 h-6 rounded-md bg-[#262626] hover:bg-[#34363d] text-zinc-300 hover:text-white flex items-center justify-center transition-colors border border-white/5"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </Link>
+          )}
         </div>
+
+        {/* Current Role Badge */}
+        {roleBadge && (
+          <div className="mt-2.5 pt-2 border-t border-zinc-800/60 flex items-center justify-between">
+            <span className="text-[10px] text-zinc-500 font-medium">Role:</span>
+            <span
+              className={`text-[9px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${roleBadge.badgeClass}`}
+            >
+              {roleBadge.label}
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* Nav Menu */}
+      {/* Nav Menu (Role Filtered) */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {NAV_ITEMS.map((item) => {
+        {filteredNavItems.map((item) => {
           const Icon = item.icon;
           const isActive =
             item.href === '/dashboard'

@@ -13,6 +13,7 @@ import {
   Loader2,
   RefreshCw,
 } from 'lucide-react';
+import { RoleGate } from '@/components/RoleGate';
 
 export default function PayoutsPage() {
   const { brand, user, membership } = useBrand();
@@ -109,7 +110,8 @@ export default function PayoutsPage() {
   };
 
   return (
-    <div className="space-y-6 font-sans">
+    <RoleGate allowedRoles={['owner', 'finance']} sectionName="Payouts & Banking Disbursements">
+      <div className="space-y-6 font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -324,5 +326,6 @@ export default function PayoutsPage() {
         </div>
       )}
     </div>
+    </RoleGate>
   );
 }

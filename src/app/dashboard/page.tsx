@@ -27,9 +27,17 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { hasPermission, BrandRole, ROLE_BADGES } from '@/lib/rbac';
 
 export default function DashboardOverviewPage() {
-  const { brand } = useBrand();
+  const { brand, membership } = useBrand();
+  const currentRole = membership?.role as BrandRole | undefined;
+  const canManageProducts = hasPermission(currentRole, 'canManageProducts');
+  const canViewEarnings = hasPermission(currentRole, 'canViewEarnings');
+  const canViewOrders = hasPermission(currentRole, 'canViewOrders');
+  const canManageLicensing = hasPermission(currentRole, 'canManageLicensing');
+  const roleBadge = currentRole ? ROLE_BADGES[currentRole] : null;
+
   const [data, setData] = useState<BrandAnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -68,9 +76,16 @@ export default function DashboardOverviewPage() {
       <div className="relative rounded-2xl bg-[#181818] border border-zinc-800 p-6 sm:p-8 overflow-hidden shadow-sm">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#242424] border border-zinc-700/60 text-[11px] font-semibold text-zinc-300">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Verified Audio Developer Portal</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#242424] border border-zinc-700/60 text-[11px] font-semibold text-zinc-300">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Verified Audio Developer Portal</span>
+              </div>
+              {roleBadge && (
+                <span className={`text-[10px] px-2.5 py-0.5 rounded-full border uppercase tracking-wider font-bold ${roleBadge.badgeClass}`}>
+                  {roleBadge.label}
+                </span>
+              )}
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
               {brand?.name || 'Producer Toy'}
@@ -81,13 +96,15 @@ export default function DashboardOverviewPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Link
-              href="/dashboard/products/new"
-              className="btn-primary px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Publish Product</span>
-            </Link>
+            {canManageProducts && (
+              <Link
+                href="/dashboard/products/new"
+                className="btn-primary px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Publish Product</span>
+              </Link>
+            )}
             <a
               href={`https://producertoy.com/brands/${brand?.slug || 'producer-toy'}`}
               target="_blank"
@@ -103,33 +120,67 @@ export default function DashboardOverviewPage() {
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
-        {/* Gross Revenue */}
-        <div className="toy-card p-5">
-          <div className="flex items-center justify-between text-zinc-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Gross Sales</span>
-            <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
-              <DollarSign className="w-4 h-4" />
+        {canViewEarnings ? (
+          <>
+            {/* Gross Revenue */}
+            <div className="toy-card p-5">
+              <div className="flex items-center justify-between text-zinc-400 mb-2">
+                <span className="text-xs font-semibold uppercase tracking-wider">Gross Sales</span>
+                <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
+                  <DollarSign className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-xl sm:text-2xl font-black text-white font-mono">
+                ${totalGrossRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <div className="text-[11px] text-zinc-400 mt-1">Verified gross checkout volume</div>
             </div>
-          </div>
-          <div className="text-xl sm:text-2xl font-black text-white font-mono">
-            ${totalGrossRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </div>
-          <div className="text-[11px] text-zinc-400 mt-1">Verified gross checkout volume</div>
-        </div>
 
-        {/* Net Royalty (70%) */}
-        <div className="toy-card p-5">
-          <div className="flex items-center justify-between text-zinc-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Net Retain (70%)</span>
-            <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
-              <TrendingUp className="w-4 h-4" />
+            {/* Net Royalty (70%) */}
+            <div className="toy-card p-5">
+              <div className="flex items-center justify-between text-zinc-400 mb-2">
+                <span className="text-xs font-semibold uppercase tracking-wider">Net Retain (70%)</span>
+                <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
+                  <TrendingUp className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-xl sm:text-2xl font-black text-zinc-100 font-mono">
+                ${netEarnings.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <div className="text-[11px] text-zinc-400 mt-1">Direct publisher royalties</div>
             </div>
-          </div>
-          <div className="text-xl sm:text-2xl font-black text-zinc-100 font-mono">
-            ${netEarnings.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </div>
-          <div className="text-[11px] text-zinc-400 mt-1">Direct publisher royalties</div>
-        </div>
+          </>
+        ) : (
+          <>
+            {/* Supported DAWs */}
+            <div className="toy-card p-5">
+              <div className="flex items-center justify-between text-zinc-400 mb-2">
+                <span className="text-xs font-semibold uppercase tracking-wider">Host DAWs</span>
+                <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
+                  <Music className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-xl sm:text-2xl font-black text-white font-mono">
+                {dawTelemetry.length > 0 ? `${dawTelemetry.length} DAWs` : 'Universal'}
+              </div>
+              <div className="text-[11px] text-zinc-400 mt-1">DAW host integrations verified</div>
+            </div>
+
+            {/* Client OS Platforms */}
+            <div className="toy-card p-5">
+              <div className="flex items-center justify-between text-zinc-400 mb-2">
+                <span className="text-xs font-semibold uppercase tracking-wider">OS Platforms</span>
+                <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
+                  <Laptop className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-xl sm:text-2xl font-black text-white font-mono">
+                {osTelemetry.length > 0 ? `${osTelemetry.length} Systems` : 'Win / Mac'}
+              </div>
+              <div className="text-[11px] text-zinc-400 mt-1">Active client architectures</div>
+            </div>
+          </>
+        )}
 
         {/* Active Products */}
         <div className="toy-card p-5">
@@ -161,67 +212,69 @@ export default function DashboardOverviewPage() {
       </div>
 
       {/* Main Charts & Catalog Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Sales Trajectory Chart */}
-        <div className="toy-card p-6 lg:col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider">Sales Velocity Trajectory</h2>
-              <p className="text-xs text-zinc-400">Gross revenue across verified orders</p>
-            </div>
-            <Link
-              href="/dashboard/analytics"
-              className="text-xs text-zinc-300 hover:text-white flex items-center gap-1 font-medium transition-colors"
-            >
-              <span>Full Analytics</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          <div className="h-64 w-full">
-            {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="charcoalGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ffffff" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#ffffff" stopOpacity={0.0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#252525" vertical={false} />
-                  <XAxis dataKey="name" stroke="#606060" fontSize={11} tickLine={false} />
-                  <YAxis stroke="#606060" fontSize={11} tickLine={false} tickFormatter={(v) => `$${v}`} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#181818',
-                      borderColor: '#2e2e2e',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                      color: '#fff',
-                    }}
-                    formatter={(val: any) => [`$${Number(val).toFixed(2)}`, 'Revenue']}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#ffffff"
-                    strokeWidth={2}
-                    fillOpacity={1}
-                    fill="url(#charcoalGrad)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center text-center p-6 border border-dashed border-[#262626] rounded-xl space-y-2">
-                <TrendingUp className="w-6 h-6 text-zinc-600" />
-                <p className="text-xs text-zinc-300 font-medium">No sales activity in this timeframe</p>
-                <p className="text-[11px] text-zinc-500 max-w-xs">
-                  As buyers purchase plugins and sound libraries from your catalog, live order volume will plot here.
-                </p>
+      <div className={`grid grid-cols-1 ${canViewEarnings ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-6`}>
+        {/* Sales Trajectory Chart (Roles with earnings permissions) */}
+        {canViewEarnings && (
+          <div className="toy-card p-6 lg:col-span-2">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-sm font-bold text-white uppercase tracking-wider">Sales Velocity Trajectory</h2>
+                <p className="text-xs text-zinc-400">Gross revenue across verified orders</p>
               </div>
-            )}
+              <Link
+                href="/dashboard/analytics"
+                className="text-xs text-zinc-300 hover:text-white flex items-center gap-1 font-medium transition-colors"
+              >
+                <span>Full Analytics</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="h-64 w-full">
+              {chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="charcoalGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#ffffff" stopOpacity={0.2} />
+                        <stop offset="95%" stopColor="#ffffff" stopOpacity={0.0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#252525" vertical={false} />
+                    <XAxis dataKey="name" stroke="#606060" fontSize={11} tickLine={false} />
+                    <YAxis stroke="#606060" fontSize={11} tickLine={false} tickFormatter={(v) => `$${v}`} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#181818',
+                        borderColor: '#2e2e2e',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                        color: '#fff',
+                      }}
+                      formatter={(val: any) => [`$${Number(val).toFixed(2)}`, 'Revenue']}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#ffffff"
+                      strokeWidth={2}
+                      fillOpacity={1}
+                      fill="url(#charcoalGrad)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center p-6 border border-dashed border-[#262626] rounded-xl space-y-2">
+                  <TrendingUp className="w-6 h-6 text-zinc-600" />
+                  <p className="text-xs text-zinc-300 font-medium">No sales activity in this timeframe</p>
+                  <p className="text-[11px] text-zinc-500 max-w-xs">
+                    As buyers purchase plugins and sound libraries from your catalog, live order volume will plot here.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Quick Catalog Snapshot */}
         <div className="toy-card p-6 flex flex-col justify-between">
@@ -364,78 +417,80 @@ export default function DashboardOverviewPage() {
         </div>
       </div>
 
-      {/* Recent Purchases & Orders Table (100% Genuine Database Records) */}
-      <div className="toy-card p-5 sm:p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider">Recent Orders & Purchases</h2>
+      {/* Recent Purchases & Orders Table (Only for roles with order access) */}
+      {canViewOrders && (
+        <div className="toy-card p-5 sm:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-bold text-white uppercase tracking-wider">Recent Orders & Purchases</h2>
+              </div>
+              <p className="text-xs text-zinc-400">
+                Direct verified customer orders recorded on ProducerToy
+              </p>
             </div>
-            <p className="text-xs text-zinc-400">
-              Direct verified customer orders recorded on ProducerToy
-            </p>
+            <Link
+              href="/dashboard/orders"
+              className="text-xs text-zinc-300 hover:text-white font-medium flex items-center gap-1"
+            >
+              <span>View All Orders</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
-          <Link
-            href="/dashboard/orders"
-            className="text-xs text-zinc-300 hover:text-white font-medium flex items-center gap-1"
-          >
-            <span>View All Orders</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
 
-        {purchases.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-[#2a2a2a] text-zinc-400 uppercase text-[10px] tracking-wider">
-                  <th className="py-2.5 px-3">Order / Purchase ID</th>
-                  <th className="py-2.5 px-3">Customer</th>
-                  <th className="py-2.5 px-3">Product</th>
-                  <th className="py-2.5 px-3">Date</th>
-                  <th className="py-2.5 px-3 text-right">Amount</th>
-                  <th className="py-2.5 px-3 text-right">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#222222]">
-                {purchases.slice(0, 5).map((ord: any) => (
-                  <tr key={ord.id} className="hover:bg-[#1a1a1a] transition-colors">
-                    <td className="py-3 px-3 font-mono text-zinc-300">
-                      {(ord.razorpay_order_id || ord.razorpay_payment_id || ord.id).slice(0, 14)}
-                    </td>
-                    <td className="py-3 px-3">
-                      <p className="font-medium text-white">{ord.customer_name || 'Customer'}</p>
-                      <p className="text-[11px] text-zinc-400">{ord.customer_email}</p>
-                    </td>
-                    <td className="py-3 px-3 text-zinc-200">
-                      {ord.products?.name || ord.product_name || 'Audio Product'}
-                    </td>
-                    <td className="py-3 px-3 text-zinc-400">
-                      {new Date(ord.purchased_at || ord.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="py-3 px-3 text-right font-mono font-bold text-white">
-                      ${parseFloat(ord.amount_paid || 0).toFixed(2)}
-                    </td>
-                    <td className="py-3 px-3 text-right">
-                      <span className="toy-badge toy-badge-charcoal">
-                        Completed
-                      </span>
-                    </td>
+          {purchases.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-[#2a2a2a] text-zinc-400 uppercase text-[10px] tracking-wider">
+                    <th className="py-2.5 px-3">Order / Purchase ID</th>
+                    <th className="py-2.5 px-3">Customer</th>
+                    <th className="py-2.5 px-3">Product</th>
+                    <th className="py-2.5 px-3">Date</th>
+                    <th className="py-2.5 px-3 text-right">Amount</th>
+                    <th className="py-2.5 px-3 text-right">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="p-8 text-center border border-dashed border-[#262626] rounded-xl space-y-2">
-            <ShoppingBag className="w-6 h-6 text-zinc-600 mx-auto" />
-            <p className="text-xs text-zinc-300 font-medium">No customer orders placed yet</p>
-            <p className="text-[11px] text-zinc-500 max-w-xs mx-auto">
-              When customers purchase your plugins or sound packs on ProducerToy, their orders will appear here automatically.
-            </p>
-          </div>
-        )}
-      </div>
+                </thead>
+                <tbody className="divide-y divide-[#222222]">
+                  {purchases.slice(0, 5).map((ord: any) => (
+                    <tr key={ord.id} className="hover:bg-[#1a1a1a] transition-colors">
+                      <td className="py-3 px-3 font-mono text-zinc-300">
+                        {(ord.razorpay_order_id || ord.razorpay_payment_id || ord.id).slice(0, 14)}
+                      </td>
+                      <td className="py-3 px-3">
+                        <p className="font-medium text-white">{ord.customer_name || 'Customer'}</p>
+                        <p className="text-[11px] text-zinc-400">{ord.customer_email}</p>
+                      </td>
+                      <td className="py-3 px-3 text-zinc-200">
+                        {ord.products?.name || ord.product_name || 'Audio Product'}
+                      </td>
+                      <td className="py-3 px-3 text-zinc-400">
+                        {new Date(ord.purchased_at || ord.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="py-3 px-3 text-right font-mono font-bold text-white">
+                        ${parseFloat(ord.amount_paid || 0).toFixed(2)}
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <span className="toy-badge toy-badge-charcoal">
+                          Completed
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="p-8 text-center border border-dashed border-[#262626] rounded-xl space-y-2">
+              <ShoppingBag className="w-6 h-6 text-zinc-600 mx-auto" />
+              <p className="text-xs text-zinc-300 font-medium">No customer orders placed yet</p>
+              <p className="text-[11px] text-zinc-500 max-w-xs mx-auto">
+                When customers purchase your plugins or sound packs on ProducerToy, their orders will appear here automatically.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

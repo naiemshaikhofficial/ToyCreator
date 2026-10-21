@@ -20,6 +20,7 @@ import {
   Loader2,
   RefreshCw,
 } from 'lucide-react';
+import { RoleGate } from '@/components/RoleGate';
 import {
   AreaChart,
   Area,
@@ -97,7 +98,8 @@ export default function AnalyticsPage() {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8 font-sans">
+    <RoleGate allowedRoles={['owner', 'admin', 'finance']} sectionName="Sales & Financial Analytics">
+      <div className="space-y-6 sm:space-y-8 font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -494,5 +496,6 @@ export default function AnalyticsPage() {
         </div>
       </div>
     </div>
+    </RoleGate>
   );
 }

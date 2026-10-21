@@ -13,6 +13,7 @@ import {
   Edit,
   Key,
 } from 'lucide-react';
+import { RoleGate } from '@/components/RoleGate';
 
 export default function ProductsListPage() {
   const { brand } = useBrand();
@@ -59,7 +60,8 @@ export default function ProductsListPage() {
   });
 
   return (
-    <div className="space-y-6 font-sans">
+    <RoleGate allowedRoles={['owner', 'admin', 'developer']} sectionName="Audio Products Catalog">
+      <div className="space-y-6 font-sans">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -277,5 +279,6 @@ export default function ProductsListPage() {
         )}
       </div>
     </div>
+    </RoleGate>
   );
 }

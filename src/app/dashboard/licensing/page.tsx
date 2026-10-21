@@ -14,6 +14,7 @@ import {
   Cpu,
   CheckCircle,
 } from 'lucide-react';
+import { RoleGate } from '@/components/RoleGate';
 
 export default function LicensingPage() {
   const { brand } = useBrand();
@@ -75,7 +76,8 @@ export default function LicensingPage() {
   const revokedCount = activations.filter((a) => !a.is_active).length;
 
   return (
-    <div className="space-y-6 font-sans">
+    <RoleGate allowedRoles={['owner', 'admin', 'developer', 'support']} sectionName="DSP Machine Seats & Licensing">
+      <div className="space-y-6 font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -256,5 +258,6 @@ export default function LicensingPage() {
         )}
       </div>
     </div>
+    </RoleGate>
   );
 }

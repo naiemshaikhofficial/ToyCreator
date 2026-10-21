@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   CheckCircle2,
 } from 'lucide-react';
+import { RoleGate } from '@/components/RoleGate';
 
 export default function DocumentsPage() {
   const { brand } = useBrand();
@@ -52,7 +53,8 @@ export default function DocumentsPage() {
   ];
 
   return (
-    <div className="space-y-6 font-sans">
+    <RoleGate allowedRoles={['owner', 'finance']} sectionName="Legal Contracts & Tax Documents">
+      <div className="space-y-6 font-sans">
       {/* Header */}
       <div>
         <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
@@ -112,5 +114,6 @@ export default function DocumentsPage() {
         ))}
       </div>
     </div>
+    </RoleGate>
   );
 }

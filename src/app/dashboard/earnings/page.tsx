@@ -16,6 +16,7 @@ import {
   ExternalLink,
   RefreshCw,
 } from 'lucide-react';
+import { RoleGate } from '@/components/RoleGate';
 
 export default function EarningsPage() {
   const { brand } = useBrand();
@@ -137,7 +138,8 @@ export default function EarningsPage() {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8 font-sans">
+    <RoleGate allowedRoles={['owner', 'admin', 'finance']} sectionName="Earnings & Revenue Balance">
+      <div className="space-y-6 sm:space-y-8 font-sans">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -390,5 +392,6 @@ export default function EarningsPage() {
         )}
       </div>
     </div>
+    </RoleGate>
   );
 }

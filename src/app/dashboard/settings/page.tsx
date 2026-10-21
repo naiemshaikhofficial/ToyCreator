@@ -15,6 +15,7 @@ import {
   Check,
 } from 'lucide-react';
 import { BrandTeamManager } from '@/components/BrandTeamManager';
+import { RoleGate } from '@/components/RoleGate';
 
 type SettingsTab = 'notifications' | 'api' | 'security' | 'team';
 
@@ -102,7 +103,8 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 font-sans">
+    <RoleGate allowedRoles={['owner', 'admin']} sectionName="Portal & Team Settings">
+      <div className="max-w-3xl mx-auto space-y-6 font-sans">
       {/* Header */}
       <div>
         <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
@@ -319,5 +321,6 @@ export default function SettingsPage() {
       {/* Tab 4: Brand Team Access (The last tab) */}
       {activeTab === 'team' && <BrandTeamManager />}
     </div>
+    </RoleGate>
   );
 }

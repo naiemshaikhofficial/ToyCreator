@@ -28,6 +28,7 @@ import {
   Info,
 } from 'lucide-react';
 import DualAssetUploadInput from '@/components/DualAssetUploadInput';
+import { RoleGate } from '@/components/RoleGate';
 
 function FormLabel({
   label,
@@ -170,7 +171,8 @@ export default function NewProductPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 font-sans">
+    <RoleGate allowedRoles={['owner', 'admin', 'developer']} sectionName="Product Publisher">
+      <div className="max-w-4xl mx-auto space-y-6 font-sans">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -796,5 +798,6 @@ export default function NewProductPage() {
         </div>
       </form>
     </div>
+    </RoleGate>
   );
 }
