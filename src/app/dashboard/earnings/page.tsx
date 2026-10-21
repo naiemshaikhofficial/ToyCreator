@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useBrand } from '@/context/BrandContext';
-import { getBrandPurchases, getBrandPayouts } from '@/lib/supabase/actions';
+import { getBrandFullAnalyticsAction, BrandAnalyticsData } from '@/actions/analyticsActions';
 import {
   CreditCard,
   Download,
@@ -14,67 +14,99 @@ import {
   FileText,
   Search,
   ExternalLink,
+  RefreshCw,
 } from 'lucide-react';
-import {
-  INITIAL_CREATOR_PROFILE,
-  MONTHLY_ACCOUNTING_STATEMENTS,
-} from '@/lib/data/mockData';
-import { MonthlyStatementSummary } from '@/lib/types';
 
 export default function EarningsPage() {
   const { brand } = useBrand();
-  const [purchases, setPurchases] = useState<any[]>([]);
-  const [payouts, setPayouts] = useState<any[]>([]);
+  const [data, setData] = useState<BrandAnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function loadData() {
-      if (!brand?.id) return;
-      setLoading(true);
-      try {
-        const [purchList, payList] = await Promise.all([
-          getBrandPurchases(brand.id),
-          getBrandPayouts(brand.id),
-        ]);
-        setPurchases(purchList);
-        setPayouts(payList);
-      } catch (err) {
-        console.error('Failed to load earnings data:', err);
-      } finally {
-        setLoading(false);
+  const loadData = async () => {
+    if (!brand?.id) return;
+    setLoading(true);
+    try {
+      const res = await getBrandFullAnalyticsAction(brand.id);
+      if (res.success && res.data) {
+        setData(res.data);
       }
+    } catch (err) {
+      console.error('Failed to load earnings data:', err);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     loadData();
   }, [brand?.id]);
 
-  const liveGross = purchases.reduce(
-    (acc, p) => acc + (parseFloat(p.amount_paid) || 0),
-    0
-  );
-  const totalGross = purchases.length > 0 ? liveGross : INITIAL_CREATOR_PROFILE.stats.gross_revenue;
-  const platformFee = totalGross * 0.30;
-  const netEarnings = totalGross * 0.70;
+  const purchases = data?.purchases || [];
+  const payouts = data?.payouts || [];
+  const totalGross = data?.grossRevenue ?? 0;
+  const platformFee = data?.platformFee30 ?? 0;
+  const netEarnings = data?.netRoyalty70 ?? 0;
 
   const totalPaidOut = payouts
     .filter((p) => p.status === 'completed')
-    .reduce((acc, p) => acc + (parseFloat(p.net_amount || p.amount) || 0), 0) || 10810.0;
+    .reduce((acc, p) => acc + (parseFloat(p.net_amount || p.amount) || 0), 0);
 
-  // Escrow / clearance calculations (recent 14-day purchases in clearance buffer)
-  const escrowClearance = Math.round(netEarnings * 0.22);
+  // Clearance calculations: if gross exists, buffer recent transactions, otherwise 0
+  const escrowClearance = purchases.length > 0 ? parseFloat((netEarnings * 0.22).toFixed(2)) : 0;
   const availableBalance = Math.max(0, netEarnings - totalPaidOut - escrowClearance);
+
+  // Group real purchases by Month/Year to generate genuine accounting statements
+  const monthlyStatements: {
+    id: string;
+    reference_no: string;
+    period: string;
+    units_sold: number;
+    gross_revenue: number;
+    platform_fee_30: number;
+    net_royalty_70: number;
+    status: 'cleared' | 'in_review';
+    payout_date: string | null;
+  }[] = [];
+
+  if (purchases.length > 0) {
+    const monthMap = new Map<string, { units: number; gross: number }>();
+    purchases.forEach((p) => {
+      const date = p.purchased_at ? new Date(p.purchased_at) : new Date();
+      const periodKey = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      const current = monthMap.get(periodKey) || { units: 0, gross: 0 };
+      current.units += 1;
+      current.gross += parseFloat(p.amount_paid) || 0;
+      monthMap.set(periodKey, current);
+    });
+
+    Array.from(monthMap.entries()).forEach(([period, val], index) => {
+      const gross = val.gross;
+      const fee = gross * 0.30;
+      const net = gross * 0.70;
+      monthlyStatements.push({
+        id: `stmt-${index + 1}`,
+        reference_no: `PT-STMT-${period.replace(/\s+/g, '-').toUpperCase()}-${(index + 1).toString().padStart(3, '0')}`,
+        period,
+        units_sold: val.units,
+        gross_revenue: parseFloat(gross.toFixed(2)),
+        platform_fee_30: parseFloat(fee.toFixed(2)),
+        net_royalty_70: parseFloat(net.toFixed(2)),
+        status: index === 0 ? 'in_review' : 'cleared',
+        payout_date: index === 0 ? null : '1st of month',
+      });
+    });
+  }
 
   const filteredPurchases = purchases.filter((p) => {
     const q = searchQuery.toLowerCase();
-    return (
-      p.id?.toLowerCase().includes(q) ||
-      p.products?.name?.toLowerCase().includes(q)
-    );
+    const id = p.id || p.razorpay_order_id || p.razorpay_payment_id || '';
+    const prodName = p.products?.name || p.product_name || '';
+    return id.toLowerCase().includes(q) || prodName.toLowerCase().includes(q);
   });
 
-  const downloadStatement = (stmt: MonthlyStatementSummary) => {
+  const downloadStatement = (stmt: any) => {
     setDownloadingId(stmt.id);
     const content = [
       ['PRODUCERTOY DEVELOPER ROYALTY ACCOUNTING STATEMENT'],
@@ -98,195 +130,190 @@ export default function EarningsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `ProducerToy_Royalty_Statement_${stmt.reference_no}.csv`;
+    a.download = `${stmt.reference_no}.csv`;
     a.click();
-    setTimeout(() => setDownloadingId(null), 600);
+    URL.revokeObjectURL(url);
+    setTimeout(() => setDownloadingId(null), 1000);
   };
 
   return (
     <div className="space-y-6 sm:space-y-8 font-sans">
-      {/* Header */}
+      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-            Financial Earnings & Royalty Accounting
+            Financial Ledger & Payout Settlement
           </h1>
           <p className="text-xs text-zinc-400">
-            Transparent 70/30 ledger calculations, clearance escrow, and monthly tax statements for {brand?.name || 'Producer Toy'}
+            Automated 70/30 accounting ledger, escrow clearance buffers, and self-billing statements for {brand?.name || 'Producer Toy'}
           </p>
         </div>
 
-        <Link
-          href="/dashboard/payouts"
-          className="btn-primary px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 self-start sm:self-auto shadow-sm"
-        >
-          <CreditCard className="w-4 h-4" />
-          <span>Manage Payout Gateways</span>
-        </Link>
-      </div>
-
-      {/* 4-Card Accounting Summary (Strict 70/30 Standard) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {/* Gross Sales */}
-        <div className="toy-card p-5">
-          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-            Gross Sales (GMV)
-          </p>
-          <p className="text-2xl font-black text-white font-mono mt-1">
-            ${totalGross.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </p>
-          <p className="text-[11px] text-zinc-400 mt-1">Total customer checkout value</p>
-        </div>
-
-        {/* Platform Fee (30%) */}
-        <div className="toy-card p-5">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-              Platform Fee (30%)
-            </p>
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#202020] text-zinc-400 border border-[#2c2c2c]">
-              30%
-            </span>
-          </div>
-          <p className="text-2xl font-black text-zinc-400 font-mono mt-1">
-            -${platformFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </p>
-          <p className="text-[11px] text-zinc-400 mt-1">PCI gateways, CDN & licensing servers</p>
-        </div>
-
-        {/* Net Creator Earnings (70%) */}
-        <div className="toy-card p-5">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-              Net Creator Retain (70%)
-            </p>
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#242424] text-zinc-300 border border-zinc-700/60">
-              70%
-            </span>
-          </div>
-          <p className="text-2xl font-black text-zinc-100 font-mono mt-1">
-            ${netEarnings.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </p>
-          <p className="text-[11px] text-zinc-400 mt-1">Your guaranteed publisher share</p>
-        </div>
-
-        {/* Available Balance */}
-        <div className="toy-card p-5">
-          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-            Available for Payout
-          </p>
-          <p className="text-2xl font-black text-white font-mono mt-1">
-            ${availableBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </p>
-          <div className="flex items-center gap-1.5 text-[11px] text-zinc-400 mt-1">
-            <Clock className="w-3 h-3 text-zinc-400" />
-            <span>${escrowClearance.toLocaleString()} in 14d clearance</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Explanatory Banner: The 70/30 Audio Developer Standard */}
-      <div className="toy-card p-6 bg-[#181818] border border-zinc-800">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <span className="toy-badge toy-badge-charcoal">ProducerToy Creator Guarantee</span>
-              <span className="text-xs font-bold text-white">Guaranteed 70% Developer Net Revenue</span>
-            </div>
-            <p className="text-xs text-zinc-300 max-w-2xl leading-relaxed">
-              Unlike legacy distributor portals that take 50%, Toy Creator guarantees developers retain 70% of net product sales. ProducerToy's 30% platform fee covers all worldwide PCI payment gateway interchange fees, multi-gigabyte edge CDN file streaming, continuous anti-piracy licensing servers, and global sales tax / VAT compliance.
-            </p>
-          </div>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={loadData}
+            disabled={loading}
+            className="btn-secondary px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            title="Refresh Ledger"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
 
           <Link
-            href="/dashboard/documents"
-            className="btn-secondary px-4 py-2 text-xs font-medium whitespace-nowrap self-start sm:self-auto"
+            href="/dashboard/payouts"
+            className="btn-primary px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm"
           >
-            View Revenue Schedule &rarr;
+            <CreditCard className="w-3.5 h-3.5" />
+            <span>Payout Settings</span>
           </Link>
         </div>
       </div>
 
-      {/* Monthly Self-Billing Statements Section */}
+      {/* 70/30 Ledger Cards Strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Gross Sales */}
+        <div className="toy-card p-5 space-y-1">
+          <div className="flex items-center justify-between text-zinc-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Gross Sales (GMV)</span>
+            <span className="text-[10px] font-mono text-zinc-500">100%</span>
+          </div>
+          <p className="text-2xl font-black text-white font-mono">
+            ${totalGross.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
+          <p className="text-[11px] text-zinc-400">Total customer checkouts collected</p>
+        </div>
+
+        {/* Platform Fee (30%) */}
+        <div className="toy-card p-5 space-y-1">
+          <div className="flex items-center justify-between text-zinc-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">ProducerToy Fee</span>
+            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#202020] text-zinc-400 border border-zinc-700/60">
+              30%
+            </span>
+          </div>
+          <p className="text-2xl font-black text-zinc-300 font-mono">
+            ${platformFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
+          <p className="text-[11px] text-zinc-400">Bandwidth, payment processing, CDN</p>
+        </div>
+
+        {/* Net Developer Share (70%) */}
+        <div className="toy-card p-5 space-y-1">
+          <div className="flex items-center justify-between text-zinc-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Net Creator Royalty</span>
+            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#202020] text-zinc-200 border border-zinc-600">
+              70%
+            </span>
+          </div>
+          <p className="text-2xl font-black text-white font-mono">
+            ${netEarnings.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
+          <p className="text-[11px] text-zinc-400">Guaranteed creator publisher revenue</p>
+        </div>
+
+        {/* Available Payout Balance */}
+        <div className="toy-card p-5 space-y-1 bg-[#181818] border-zinc-700">
+          <div className="flex items-center justify-between text-zinc-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-white">Available for Payout</span>
+            <span className="w-2 h-2 rounded-full bg-zinc-300" />
+          </div>
+          <p className="text-2xl font-black text-white font-mono">
+            ${availableBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
+          <p className="text-[11px] text-zinc-400">
+            {escrowClearance > 0 ? `$${escrowClearance.toFixed(2)} in rolling clearance` : 'Cleared & ready for transfer'}
+          </p>
+        </div>
+      </div>
+
+      {/* Monthly Self-Billing Statements Table */}
       <div className="toy-card p-5 sm:p-6 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#262626] pb-3">
           <div>
-            <div className="flex items-center gap-2">
+            <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
               <FileSpreadsheet className="w-4 h-4 text-zinc-300" />
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-                Monthly Accounting & Tax Statements
-              </h2>
-            </div>
+              <span>Monthly Accounting Statements</span>
+            </h2>
             <p className="text-xs text-zinc-400 mt-0.5">
-              Official self-billing royalty statements generated on the 1st of every month for VAT and corporate tax filings
+              Verified publisher statements for digital goods, VAT compliance, and creator tax filings
             </p>
           </div>
-
-          <span className="text-[11px] font-mono text-zinc-400">
-            W-8BEN Foreign Status: <strong className="text-zinc-200">Verified</strong>
-          </span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="border-b border-[#2a2a2a] text-zinc-400 uppercase text-[10px] tracking-wider">
-                <th className="py-2.5 px-3">Period / Reference</th>
-                <th className="py-2.5 px-3 text-right">Units</th>
-                <th className="py-2.5 px-3 text-right">Gross GMV</th>
-                <th className="py-2.5 px-3 text-right">Fee (30%)</th>
-                <th className="py-2.5 px-3 text-right">Net Royalty (70%)</th>
-                <th className="py-2.5 px-3 text-center">Clearance Status</th>
-                <th className="py-2.5 px-3 text-right">Statement Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#222222]">
-              {MONTHLY_ACCOUNTING_STATEMENTS.map((stmt) => (
-                <tr key={stmt.id} className="hover:bg-[#1a1a1a] transition-colors">
-                  <td className="py-3.5 px-3">
-                    <p className="font-semibold text-white">{stmt.month} {stmt.year}</p>
-                    <p className="font-mono text-[10px] text-zinc-400">{stmt.reference_no}</p>
-                  </td>
-                  <td className="py-3.5 px-3 text-right font-mono text-zinc-300">
-                    {stmt.units_sold}
-                  </td>
-                  <td className="py-3.5 px-3 text-right font-mono text-zinc-200">
-                    ${stmt.gross_revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </td>
-                  <td className="py-3.5 px-3 text-right font-mono text-zinc-400">
-                    -${stmt.platform_fee_30.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </td>
-                  <td className="py-3.5 px-3 text-right font-mono font-bold text-white">
-                    +${stmt.net_royalty_70.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </td>
-                  <td className="py-3.5 px-3 text-center">
-                    {stmt.status === 'cleared' ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-200 bg-[#242424] px-2 py-0.5 rounded border border-zinc-700">
-                        <CheckCircle2 className="w-3 h-3 text-zinc-300" />
-                        <span>Disbursed</span>
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-400 bg-[#1e1e1e] px-2 py-0.5 rounded border border-[#2e2e2e]">
-                        <Clock className="w-3 h-3 text-zinc-400" />
-                        <span>In Escrow</span>
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-3.5 px-3 text-right">
-                    <button
-                      onClick={() => downloadStatement(stmt)}
-                      disabled={downloadingId === stmt.id}
-                      className="btn-secondary px-3 py-1.5 rounded-lg text-[11px] font-medium inline-flex items-center gap-1.5"
-                    >
-                      <Download className="w-3 h-3" />
-                      <span>{downloadingId === stmt.id ? 'Exporting...' : 'Statement CSV'}</span>
-                    </button>
-                  </td>
+        {monthlyStatements.length === 0 ? (
+          <div className="p-8 text-center border border-dashed border-[#262626] rounded-xl space-y-2">
+            <FileText className="w-6 h-6 text-zinc-600 mx-auto" />
+            <p className="text-xs text-zinc-300 font-medium">No monthly accounting statements generated yet</p>
+            <p className="text-[11px] text-zinc-500 max-w-sm mx-auto">
+              Monthly statements are issued automatically at the close of each billing cycle once customer purchases occur.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-[#2a2a2a] text-zinc-400 uppercase text-[10px] tracking-wider">
+                  <th className="py-2.5 px-3">Statement Ref</th>
+                  <th className="py-2.5 px-3">Billing Cycle</th>
+                  <th className="py-2.5 px-3 text-right">Units</th>
+                  <th className="py-2.5 px-3 text-right">Gross (GMV)</th>
+                  <th className="py-2.5 px-3 text-right">Platform (30%)</th>
+                  <th className="py-2.5 px-3 text-right">Net Royalty (70%)</th>
+                  <th className="py-2.5 px-3 text-center">Disbursement</th>
+                  <th className="py-2.5 px-3 text-right">Download</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-[#222222]">
+                {monthlyStatements.map((stmt) => (
+                  <tr key={stmt.id} className="hover:bg-[#1a1a1a] transition-colors">
+                    <td className="py-3.5 px-3 font-mono font-medium text-white">
+                      {stmt.reference_no}
+                    </td>
+                    <td className="py-3.5 px-3 text-zinc-300">
+                      {stmt.period}
+                    </td>
+                    <td className="py-3.5 px-3 text-right font-mono text-zinc-300">
+                      {stmt.units_sold}
+                    </td>
+                    <td className="py-3.5 px-3 text-right font-mono text-zinc-200">
+                      ${stmt.gross_revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                    <td className="py-3.5 px-3 text-right font-mono text-zinc-400">
+                      -${stmt.platform_fee_30.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                    <td className="py-3.5 px-3 text-right font-mono font-bold text-white">
+                      +${stmt.net_royalty_70.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                    <td className="py-3.5 px-3 text-center">
+                      {stmt.status === 'cleared' ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-200 bg-[#242424] px-2 py-0.5 rounded border border-zinc-700">
+                          <CheckCircle2 className="w-3 h-3 text-zinc-300" />
+                          <span>Disbursed</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-400 bg-[#1e1e1e] px-2 py-0.5 rounded border border-[#2e2e2e]">
+                          <Clock className="w-3 h-3 text-zinc-400" />
+                          <span>In Escrow</span>
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3.5 px-3 text-right">
+                      <button
+                        onClick={() => downloadStatement(stmt)}
+                        disabled={downloadingId === stmt.id}
+                        className="btn-secondary px-3 py-1.5 rounded-lg text-[11px] font-medium inline-flex items-center gap-1.5"
+                      >
+                        <Download className="w-3 h-3" />
+                        <span>{downloadingId === stmt.id ? 'Exporting...' : 'Statement CSV'}</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Order Earnings Ledger */}
@@ -333,13 +360,14 @@ export default function EarningsPage() {
                   const gross = parseFloat(p.amount_paid) || 0;
                   const fee = gross * 0.30;
                   const net = gross * 0.70;
+                  const displayId = (p.razorpay_order_id || p.razorpay_payment_id || p.id || '').slice(0, 14);
                   return (
                     <tr key={p.id} className="hover:bg-[#1a1a1a] transition-colors">
                       <td className="py-3 px-3 font-mono text-zinc-300">
-                        {p.id.slice(0, 8)}...
+                        {displayId}
                       </td>
                       <td className="py-3 px-3 text-white font-medium">
-                        {p.products?.name || 'Audio Product'}
+                        {p.products?.name || p.product_name || 'Audio Product'}
                       </td>
                       <td className="py-3 px-3 text-right font-mono text-zinc-200">
                         ${gross.toFixed(2)}

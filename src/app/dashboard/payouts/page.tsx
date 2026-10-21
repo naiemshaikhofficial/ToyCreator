@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useBrand } from '@/context/BrandContext';
-import { getBrandPayouts, getBrandPurchases } from '@/lib/supabase/actions';
+import { getBrandFullAnalyticsAction } from '@/actions/analyticsActions';
 import { getAdminClient } from '@/lib/supabase/admin';
 import {
   CreditCard,
@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
+  RefreshCw,
 } from 'lucide-react';
 
 export default function PayoutsPage() {
@@ -28,12 +29,11 @@ export default function PayoutsPage() {
     if (!brand?.id) return;
     setLoading(true);
     try {
-      const [payList, purchList] = await Promise.all([
-        getBrandPayouts(brand.id),
-        getBrandPurchases(brand.id),
-      ]);
-      setPayouts(payList);
-      setPurchases(purchList);
+      const res = await getBrandFullAnalyticsAction(brand.id);
+      if (res.success && res.data) {
+        setPayouts(res.data.payouts || []);
+        setPurchases(res.data.purchases || []);
+      }
     } catch (err) {
       console.error('Failed to load payouts:', err);
     } finally {
