@@ -241,15 +241,15 @@ export default function DualAssetUploadInput({
                       {selectedFile ? (
                         selectedFile.size > 50 * 1024 * 1024 ? (
                           <span className="text-amber-400 font-mono">
-                            {formatBytes(selectedFile.size)} detected • For 50MB+ installers, paste your 5TB Google Drive link
+                            {formatBytes(selectedFile.size)} detected • For 50MB+ installers, switch to Cloud Link tab
                           </span>
                         ) : (
                           <span className="text-zinc-400">
-                            {formatBytes(selectedFile.size)} selected • Ready to upload to Drive
+                            {formatBytes(selectedFile.size)} selected • Ready to upload
                           </span>
                         )
                       ) : (
-                        'Upload directly or link from 5TB Google Drive (No file size limits)'
+                        'Direct upload or link from cloud storage (No file size limits)'
                       )}
                     </span>
                   </div>
@@ -265,10 +265,10 @@ export default function DualAssetUploadInput({
                           setSelectedFile(null);
                         }}
                         className="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm bg-[#222222] hover:bg-[#2c2c2c] text-white border border-[#383838] transition-colors"
-                        title="Switch to paste Google Drive link"
+                        title="Switch to paste cloud link"
                       >
                         <LinkIcon className="w-3.5 h-3.5 text-amber-400" />
-                        <span>Paste 5TB Drive Link</span>
+                        <span>Paste Cloud Link</span>
                       </button>
                     ) : (
                       <button
@@ -285,7 +285,7 @@ export default function DualAssetUploadInput({
                         ) : (
                           <>
                             <UploadCloud className="w-3.5 h-3.5" />
-                            <span>Upload to Drive</span>
+                            <span>Upload</span>
                           </>
                         )}
                       </button>
@@ -334,32 +334,26 @@ export default function DualAssetUploadInput({
               {verifyingDrive && (
                 <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-zinc-400 bg-[#181818] border border-[#2a2a2a] px-2 py-0.5 rounded">
                   <Loader2 className="w-3 h-3 animate-spin text-zinc-400" />
-                  Verifying Google Drive asset via Service Account...
+                  Verifying asset via ProducerToy bridge...
                 </span>
               )}
               {isGoogleDriveLink && !verifyingDrive && (
                 driveMetadata?.fileName ? (
                   <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-900/40 px-2.5 py-1 rounded-md">
-                    <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                    <CheckCircle className="w-3.5 h-3.5 flex-shrink-0 text-emerald-400" />
                     <span>ProducerToy CDN Connected: <strong>{driveMetadata.fileName}</strong> {driveMetadata.fileSize ? `(${driveMetadata.fileSize})` : ''}</span>
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-900/40 px-2 py-0.5 rounded">
                     <CheckCircle className="w-3 h-3" />
-                    Google Drive Recognized (ProducerToy Edge CDN Ready)
+                    Cloud Asset Recognized (ProducerToy Edge CDN Ready)
                   </span>
                 )
               )}
-              {isDropboxLink && (
+              {(isDropboxLink || isS3Link) && (
                 <span className="inline-flex items-center gap-1 text-[10px] font-mono text-sky-400 bg-sky-950/40 border border-sky-900/40 px-2 py-0.5 rounded">
                   <CheckCircle className="w-3 h-3" />
-                  Dropbox Link Recognized
-                </span>
-              )}
-              {isS3Link && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-mono text-amber-400 bg-amber-950/40 border border-amber-900/40 px-2 py-0.5 rounded">
-                  <CheckCircle className="w-3 h-3" />
-                  AWS S3 Storage Recognized
+                  Direct Cloud Link Recognized
                 </span>
               )}
             </div>
@@ -369,7 +363,7 @@ export default function DualAssetUploadInput({
             <span className="text-[10px] text-zinc-500 block">{hint}</span>
           ) : (
             <span className="text-[10px] text-zinc-500 block">
-              Direct cloud link (Google Drive, Dropbox, AWS S3, or CDN). Zero file size restrictions.
+              Direct cloud storage or download link. Zero file size restrictions.
             </span>
           )}
         </div>
