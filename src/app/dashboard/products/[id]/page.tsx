@@ -356,12 +356,29 @@ export default function ProductDetailPage() {
               <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
                 Cover Image URL
               </label>
-              <input
-                type="text"
-                value={coverImage}
-                onChange={(e) => setCoverImage(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
-              />
+              <div className="flex gap-3 items-center">
+                <div className="w-11 h-11 rounded-lg bg-[#141414] border border-[#2a2a2a] overflow-hidden flex-shrink-0 flex items-center justify-center">
+                  {coverImage ? (
+                    <img
+                      src={coverImage}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                      onError={(e: any) => {
+                        e.target.src = '/icon.png';
+                      }}
+                    />
+                  ) : (
+                    <Package className="w-5 h-5 text-zinc-500" />
+                  )}
+                </div>
+                <input
+                  type="text"
+                  placeholder="https://... or /products/proverb.png"
+                  value={coverImage}
+                  onChange={(e) => setCoverImage(e.target.value)}
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                />
+              </div>
             </div>
 
             <div>
