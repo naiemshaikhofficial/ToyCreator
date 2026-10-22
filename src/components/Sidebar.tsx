@@ -37,6 +37,8 @@ import {
   CheckCircle,
   RotateCcw,
   FileSpreadsheet,
+  Percent,
+  Ticket,
 } from 'lucide-react';
 
 import { canAccessRoute, hasPermission, ROLE_BADGES, BrandRole } from '@/lib/rbac';
@@ -44,6 +46,7 @@ import { canAccessRoute, hasPermission, ROLE_BADGES, BrandRole } from '@/lib/rba
 export const NAV_ITEMS = [
   { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
   { name: 'My Products', href: '/dashboard/products', icon: Package },
+  { name: 'Coupons & Deals', href: '/dashboard/coupons', icon: Tag },
   { name: 'Orders & Sales', href: '/dashboard/orders', icon: ShoppingCart },
   { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
   { name: 'Earnings', href: '/dashboard/earnings', icon: Coins },
@@ -58,6 +61,7 @@ export const NAV_ITEMS = [
 type CreatorSectionId =
   | 'overview'
   | 'products'
+  | 'coupons'
   | 'orders'
   | 'analytics'
   | 'finance'
@@ -71,8 +75,6 @@ interface SubMenuItem {
   label: string;
   href: string;
   icon: React.ElementType;
-  badge?: string;
-  isAction?: boolean;
 }
 
 interface SectionConfig {
@@ -84,7 +86,7 @@ interface SectionConfig {
   subItems: SubMenuItem[];
 }
 
-// 100% Creator Toy domain sections - No raw Supabase tables
+// 100% Creator Toy domain sections - Clean, minimal, zero badge clutter
 const SECTIONS: SectionConfig[] = [
   {
     id: 'overview',
@@ -101,10 +103,23 @@ const SECTIONS: SectionConfig[] = [
     defaultHref: '/dashboard/products',
     headerTitle: 'Product Catalog',
     subItems: [
-      { label: 'All Products', href: '/dashboard/products', icon: Package, badge: 'Live' },
-      { label: 'Audio Plugins', href: '/dashboard/products?type=plugin', icon: Disc, badge: 'VST3/AU' },
-      { label: 'Sample Packs', href: '/dashboard/products?type=sample_pack', icon: Music, badge: 'WAV' },
-      { label: 'Add Product', href: '/dashboard/products/new', icon: PlusCircle, isAction: true },
+      { label: 'All Products', href: '/dashboard/products', icon: Package },
+      { label: 'Audio Plugins', href: '/dashboard/products?type=plugin', icon: Disc },
+      { label: 'Sample Packs', href: '/dashboard/products?type=sample_pack', icon: Music },
+      { label: 'Add Product', href: '/dashboard/products/new', icon: PlusCircle },
+    ],
+  },
+  {
+    id: 'coupons',
+    label: 'Offers & Discounts',
+    icon: Tag,
+    defaultHref: '/dashboard/coupons',
+    headerTitle: 'Offers & Discounts',
+    subItems: [
+      { label: 'All Coupons & Deals', href: '/dashboard/coupons', icon: Tag },
+      { label: 'Product Discounts', href: '/dashboard/coupons?tab=discounts', icon: Percent },
+      { label: 'Coupon Codes', href: '/dashboard/coupons?tab=codes', icon: Ticket },
+      { label: 'Create New Offer', href: '/dashboard/coupons?action=new', icon: PlusCircle },
     ],
   },
   {
@@ -114,9 +129,9 @@ const SECTIONS: SectionConfig[] = [
     defaultHref: '/dashboard/orders',
     headerTitle: 'Sales & Orders',
     subItems: [
-      { label: 'All Orders', href: '/dashboard/orders', icon: ShoppingCart, badge: 'Live' },
+      { label: 'All Orders', href: '/dashboard/orders', icon: ShoppingCart },
       { label: 'Completed Sales', href: '/dashboard/orders?status=completed', icon: CheckCircle },
-      { label: 'Refunds & Disputes', href: '/dashboard/orders?status=refunded', icon: RotateCcw, badge: 'Manage' },
+      { label: 'Refunds & Disputes', href: '/dashboard/orders?status=refunded', icon: RotateCcw },
       { label: 'Invoices & Receipts', href: '/dashboard/orders?tab=invoices', icon: FileText },
     ],
   },
@@ -139,7 +154,7 @@ const SECTIONS: SectionConfig[] = [
     defaultHref: '/dashboard/earnings',
     headerTitle: 'Finance & Payouts',
     subItems: [
-      { label: 'Earnings', href: '/dashboard/earnings', icon: Coins, badge: 'Active' },
+      { label: 'Earnings', href: '/dashboard/earnings', icon: Coins },
       { label: 'Payouts', href: '/dashboard/payouts', icon: CreditCard },
       { label: 'Tax Invoices', href: '/dashboard/orders?tab=invoices', icon: FileSpreadsheet },
       { label: 'Bank Setup', href: '/dashboard/settings?tab=payouts', icon: Building },
@@ -164,7 +179,7 @@ const SECTIONS: SectionConfig[] = [
     defaultHref: '/dashboard/developers',
     headerTitle: 'Developer Hub & API',
     subItems: [
-      { label: 'C++ JUCE SDK Guide', href: '/dashboard/developers', icon: Code, badge: 'C++' },
+      { label: 'C++ JUCE SDK Guide', href: '/dashboard/developers', icon: Code },
       { label: 'Brand API Keys', href: '/dashboard/settings?tab=developer', icon: KeyRound },
       { label: 'Webhook Endpoints', href: '/dashboard/settings?tab=developer', icon: Activity },
       { label: 'Offline DRM Guide', href: '/dashboard/developers', icon: FileText },
@@ -177,7 +192,7 @@ const SECTIONS: SectionConfig[] = [
     defaultHref: '/dashboard/documents',
     headerTitle: 'Agreements & Legal',
     subItems: [
-      { label: 'Distribution Agreement', href: '/dashboard/documents', icon: FileText, badge: 'v2.4' },
+      { label: 'Distribution Agreement', href: '/dashboard/documents', icon: FileText },
       { label: 'Royalty & Tax Terms', href: '/dashboard/documents', icon: FileText },
       { label: 'Intellectual Property', href: '/dashboard/documents', icon: Shield },
     ],
@@ -190,8 +205,8 @@ const SECTIONS: SectionConfig[] = [
     headerTitle: 'Support Helpdesk',
     subItems: [
       { label: 'My Support Tickets', href: '/dashboard/support', icon: LifeBuoy },
-      { label: 'Raise New Ticket', href: '/dashboard/support?action=new', icon: PlusCircle, isAction: true },
-      { label: 'Escalated to Team', href: '/dashboard/support?filter=escalated', icon: MessageSquare, badge: 'Direct' },
+      { label: 'Raise New Ticket', href: '/dashboard/support?action=new', icon: PlusCircle },
+      { label: 'Escalated to Team', href: '/dashboard/support?filter=escalated', icon: MessageSquare },
     ],
   },
   {
@@ -202,7 +217,7 @@ const SECTIONS: SectionConfig[] = [
     headerTitle: 'Brand Settings',
     subItems: [
       { label: 'Profile', href: '/dashboard/settings?tab=profile', icon: Building },
-      { label: 'Team', href: '/dashboard/settings?tab=team', icon: Users, badge: 'Admin' },
+      { label: 'Team', href: '/dashboard/settings?tab=team', icon: Users },
       { label: 'Payouts', href: '/dashboard/settings?tab=payouts', icon: CreditCard },
       { label: 'Developer API', href: '/dashboard/settings?tab=developer', icon: Code },
       { label: 'Security', href: '/dashboard/settings?tab=security', icon: Shield },
@@ -220,6 +235,7 @@ export function Sidebar() {
   const detectSection = (path: string): CreatorSectionId => {
     if (path === '/dashboard') return 'overview';
     if (path.startsWith('/dashboard/products')) return 'products';
+    if (path.startsWith('/dashboard/coupons')) return 'coupons';
     if (path.startsWith('/dashboard/orders')) return 'orders';
     if (path.startsWith('/dashboard/analytics')) return 'analytics';
     if (path.startsWith('/dashboard/earnings') || path.startsWith('/dashboard/payouts')) return 'finance';
@@ -487,33 +503,18 @@ export function Sidebar() {
                   key={item.label}
                   href={item.href}
                   onClick={() => handleSubItemClick(item)}
-                  className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs transition group ${
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs transition group ${
                     isActive
                       ? 'bg-[#222222] text-white font-semibold border-l-2 border-white'
                       : 'text-zinc-400 hover:text-white hover:bg-[#1a1a1a]'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <Icon
-                      className={`w-4 h-4 shrink-0 ${
-                        isActive ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'
-                      }`}
-                    />
-                    <span className="truncate text-xs font-medium">{item.label}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    {item.badge && (
-                      <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[#202020] text-zinc-300 border border-[#2e2e2e]">
-                        {item.badge}
-                      </span>
-                    )}
-                    {item.isAction ? (
-                      <span className="text-[10px] font-mono text-zinc-400 uppercase font-bold">+new</span>
-                    ) : (
-                      <Globe className="w-3.5 h-3.5 text-zinc-600 group-hover:text-zinc-400" />
-                    )}
-                  </div>
+                  <Icon
+                    className={`w-4 h-4 shrink-0 ${
+                      isActive ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'
+                    }`}
+                  />
+                  <span className="truncate text-xs font-medium">{item.label}</span>
                 </Link>
               );
             })
