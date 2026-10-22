@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useBrand } from '@/context/BrandContext';
 import { getBrandFullAnalyticsAction } from '@/actions/analyticsActions';
 import {
@@ -11,15 +12,33 @@ import {
   Check,
   CreditCard,
   RefreshCw,
+  RotateCcw,
+  FileText,
+  CheckCircle,
+  AlertCircle,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { RoleGate } from '@/components/RoleGate';
 
-export default function OrdersPage() {
+function OrdersPageInner() {
   const { brand } = useBrand();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const statusParam = searchParams.get('status') || 'all';
+  const tabParam = searchParams.get('tab') || 'orders';
+
   const [purchases, setPurchases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState(statusParam);
+  const [activeTab, setActiveTab] = useState(tabParam);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (statusParam) setStatusFilter(statusParam);
+    if (tabParam) setActiveTab(tabParam);
+  }, [statusParam, tabParam]);
 
   const loadOrders = async () => {
     if (!brand?.id) return;
@@ -41,6 +60,14 @@ export default function OrdersPage() {
   }, [brand?.id]);
 
   const filteredPurchases = purchases.filter((p: any) => {
+    // Status filter
+    if (statusFilter === 'completed' && (p.is_refunded || p.status === 'refunded')) {
+      return false;
+    }
+    if (statusFilter === 'refunded' && !(p.is_refunded || p.status === 'refunded')) {
+      return false;
+    }
+
     const q = searchQuery.toLowerCase();
     const id = p.id || p.razorpay_order_id || p.razorpay_payment_id || '';
     const name = p.customer_name || '';
@@ -168,6 +195,95 @@ export default function OrdersPage() {
         </div>
       </div>
 
+      {/* Category Tabs: All Orders, Completed Sales, Refunds & Disputes, Invoices */}
+      <div className="flex items-center gap-2 border-b border-[#242424] pb-2 overflow-x-auto text-xs font-medium">
+        <button
+          onClick={() => {
+            setStatusFilter('all');
+            setActiveTab('orders');
+            router.replace('/dashboard/orders');
+          }}
+          className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 ${
+            statusFilter === 'all' && activeTab === 'orders'
+              ? 'bg-white text-black font-semibold'
+              : 'text-zinc-400 hover:text-white hover:bg-[#1a1a1a]'
+          }`}
+        >
+          <ShoppingCart className="w-3.5 h-3.5" />
+          <span>All Orders</span>
+          <span className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-[#202020] text-zinc-300">
+            {purchases.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => {
+            setStatusFilter('completed');
+            setActiveTab('orders');
+            router.replace('/dashboard/orders?status=completed');
+          }}
+          className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 ${
+            statusFilter === 'completed' && activeTab === 'orders'
+              ? 'bg-white text-black font-semibold'
+              : 'text-zinc-400 hover:text-white hover:bg-[#1a1a1a]'
+          }`}
+        >
+          <CheckCircle className="w-3.5 h-3.5" />
+          <span>Completed Sales</span>
+          <span className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-[#202020] text-zinc-300">
+            {purchases.filter((p: any) => !p.is_refunded && p.status !== 'refunded').length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => {
+            setStatusFilter('refunded');
+            setActiveTab('orders');
+            router.replace('/dashboard/orders?status=refunded');
+          }}
+          className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 ${
+            statusFilter === 'refunded' && activeTab === 'orders'
+              ? 'bg-white text-black font-semibold'
+              : 'text-zinc-400 hover:text-white hover:bg-[#1a1a1a]'
+          }`}
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+          <span>Refunds & Disputes</span>
+          <span className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-[#202020] text-zinc-300">
+            {purchases.filter((p: any) => p.is_refunded || p.status === 'refunded').length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('invoices');
+            router.replace('/dashboard/orders?tab=invoices');
+          }}
+          className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 ${
+            activeTab === 'invoices'
+              ? 'bg-white text-black font-semibold'
+              : 'text-zinc-400 hover:text-white hover:bg-[#1a1a1a]'
+          }`}
+        >
+          <FileText className="w-3.5 h-3.5" />
+          <span>Invoices & Receipts</span>
+        </button>
+      </div>
+
+      {statusFilter === 'refunded' && (
+        <div className="p-4 rounded-xl bg-[#161616] border border-[#262626] flex items-start gap-3 text-xs">
+          <AlertCircle className="w-4 h-4 text-zinc-300 mt-0.5 shrink-0" />
+          <div className="space-y-1">
+            <h4 className="font-bold text-white uppercase text-[11px] tracking-wider">
+              Refund & License Invalidation Policy
+            </h4>
+            <p className="text-zinc-400 text-[11px] leading-relaxed">
+              When an order refund is completed on ProducerToy, the customer&apos;s machine license seat limit is automatically locked, and the DRM API immediately revokes VST/AU desktop activation.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Search Input */}
       <div className="relative">
         <Search className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3" />
@@ -277,5 +393,13 @@ export default function OrdersPage() {
       </div>
     </div>
     </RoleGate>
+  );
+}
+
+export default function OrdersPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-xs text-zinc-500">Loading orders ledger...</div>}>
+      <OrdersPageInner />
+    </Suspense>
   );
 }

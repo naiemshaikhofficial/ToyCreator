@@ -32,6 +32,11 @@ import {
   Shield,
   Activity,
   Users,
+  Disc,
+  Music,
+  CheckCircle,
+  RotateCcw,
+  FileSpreadsheet,
 } from 'lucide-react';
 
 import { canAccessRoute, hasPermission, ROLE_BADGES, BrandRole } from '@/lib/rbac';
@@ -87,12 +92,7 @@ const SECTIONS: SectionConfig[] = [
     icon: LayoutDashboard,
     defaultHref: '/dashboard',
     headerTitle: 'Command Center',
-    subItems: [
-      { label: 'Executive Dashboard', href: '/dashboard', icon: LayoutDashboard },
-      { label: 'Live Sales Overview', href: '/dashboard/orders', icon: ShoppingCart },
-      { label: 'Revenue Trends', href: '/dashboard/analytics', icon: BarChart3 },
-      { label: 'Brand Public Profile', href: '/dashboard/profile', icon: Building },
-    ],
+    subItems: [],
   },
   {
     id: 'products',
@@ -102,9 +102,9 @@ const SECTIONS: SectionConfig[] = [
     headerTitle: 'Product Catalog',
     subItems: [
       { label: 'All Products', href: '/dashboard/products', icon: Package, badge: 'Live' },
+      { label: 'Audio Plugins', href: '/dashboard/products?type=plugin', icon: Disc, badge: 'VST3/AU' },
+      { label: 'Sample Packs', href: '/dashboard/products?type=sample_pack', icon: Music, badge: 'WAV' },
       { label: 'Add Product', href: '/dashboard/products/new', icon: PlusCircle, isAction: true },
-      { label: 'Audio Assets & Stems', href: '/dashboard/products', icon: DownloadCloud },
-      { label: 'Product DRM Seats', href: '/dashboard/licensing', icon: KeyRound },
     ],
   },
   {
@@ -115,8 +115,9 @@ const SECTIONS: SectionConfig[] = [
     headerTitle: 'Sales & Orders',
     subItems: [
       { label: 'All Orders', href: '/dashboard/orders', icon: ShoppingCart, badge: 'Live' },
-      { label: 'Invoices & Receipts', href: '/dashboard/orders', icon: FileText },
-      { label: 'Transactions', href: '/dashboard/orders', icon: CreditCard },
+      { label: 'Completed Sales', href: '/dashboard/orders?status=completed', icon: CheckCircle },
+      { label: 'Refunds & Disputes', href: '/dashboard/orders?status=refunded', icon: RotateCcw, badge: 'Manage' },
+      { label: 'Invoices & Receipts', href: '/dashboard/orders?tab=invoices', icon: FileText },
     ],
   },
   {
@@ -140,7 +141,8 @@ const SECTIONS: SectionConfig[] = [
     subItems: [
       { label: 'Earnings', href: '/dashboard/earnings', icon: Coins, badge: 'Active' },
       { label: 'Payouts', href: '/dashboard/payouts', icon: CreditCard },
-      { label: 'Bank & Payout Setup', href: '/dashboard/settings?tab=payouts', icon: Building },
+      { label: 'Tax Invoices', href: '/dashboard/orders?tab=invoices', icon: FileSpreadsheet },
+      { label: 'Bank Setup', href: '/dashboard/settings?tab=payouts', icon: Building },
     ],
   },
   {
@@ -231,7 +233,7 @@ export function Sidebar() {
 
   const [activeSection, setActiveSection] = useState<CreatorSectionId>(() => detectSection(pathname));
   const [isHovered, setIsHovered] = useState(false);
-  const [isPinned, setIsPinned] = useState(true); // Open by default
+  const [isPinned, setIsPinned] = useState(() => detectSection(pathname) !== 'overview');
   const [searchQuery, setSearchQuery] = useState('');
 
   const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -240,7 +242,11 @@ export function Sidebar() {
   const roleBadge = currentRole ? ROLE_BADGES[currentRole] : null;
 
   useEffect(() => {
-    setActiveSection(detectSection(pathname));
+    const sec = detectSection(pathname);
+    setActiveSection(sec);
+    if (sec === 'overview') {
+      setIsPinned(false);
+    }
   }, [pathname]);
 
   const handleMouseEnter = () => {
@@ -268,7 +274,8 @@ export function Sidebar() {
     );
   }, [currentConfig, searchQuery]);
 
-  const isPanelVisible = isPinned || isHovered;
+  const isOverview = activeSection === 'overview';
+  const isPanelVisible = !isOverview && (isPinned || isHovered);
 
   const handleSubItemClick = (item: SubMenuItem) => {
     if (item.href.includes('action=new') && pathname === '/dashboard/support') {
@@ -281,7 +288,7 @@ export function Sidebar() {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       className={`hidden lg:flex relative shrink-0 min-h-screen sticky top-0 h-screen z-30 select-none transition-[width] duration-200 ease-out ${
-        isPinned ? 'w-[316px]' : 'w-[56px]'
+        !isOverview && isPinned ? 'w-[316px]' : 'w-[56px]'
       }`}
     >
       {/* =========================================================================
@@ -295,7 +302,7 @@ export function Sidebar() {
             title="Toy Creator"
             onClick={() => {
               setActiveSection('overview');
-              setIsPinned(true);
+              setIsPinned(false);
             }}
             className="w-9 h-9 flex items-center justify-center hover:opacity-85 transition"
           >
@@ -324,10 +331,14 @@ export function Sidebar() {
                   href={sec.defaultHref}
                   onClick={() => {
                     setActiveSection(sec.id);
-                    setIsPinned(true); // Stays open when clicked
+                    if (sec.id === 'overview') {
+                      setIsPinned(false);
+                    } else {
+                      setIsPinned(true); // Stays open when clicked
+                    }
                   }}
                   onMouseEnter={() => {
-                    if (!isPinned) {
+                    if (!isPinned && sec.id !== 'overview') {
                       setActiveSection(sec.id);
                     }
                   }}
@@ -394,36 +405,37 @@ export function Sidebar() {
       </div>
 
       {/* =========================================================================
-          TIER 2: Sub-Panel (260px) - Spacious, clear, prominent text
+          TIER 2: Sub-Panel (260px) - Hidden when on overview
          ========================================================================= */}
-      <div
-        className={`w-[260px] bg-[#141414] border-r border-[#262626] flex flex-col shrink-0 h-screen overflow-hidden transition-all duration-200 ease-out ${
-          isPinned
-            ? 'relative opacity-100 translate-x-0'
-            : isHovered
-            ? 'absolute left-[56px] top-0 bottom-0 z-30 shadow-[12px_0_35px_rgba(0,0,0,0.8)] opacity-100 translate-x-0'
-            : 'absolute left-[56px] top-0 bottom-0 z-30 opacity-0 -translate-x-3 pointer-events-none'
-        }`}
-      >
-        {/* Header Title & Active Brand */}
-        <div className="h-14 px-4 flex items-center justify-between border-b border-[#242424] bg-[#121212]">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="text-sm font-bold text-white tracking-tight truncate">
-              {currentConfig.headerTitle}
-            </span>
-            <span className="text-[11px] font-mono px-2 py-0.5 bg-[#202020] text-zinc-300 border border-[#2e2e2e] rounded-md font-semibold">
-              {currentConfig.subItems.length}
-            </span>
-          </div>
+      {!isOverview && currentConfig.subItems.length > 0 && (
+        <div
+          className={`w-[260px] bg-[#141414] border-r border-[#262626] flex flex-col shrink-0 h-screen overflow-hidden transition-all duration-200 ease-out ${
+            isPinned
+              ? 'relative opacity-100 translate-x-0'
+              : isHovered
+              ? 'absolute left-[56px] top-0 bottom-0 z-30 shadow-[12px_0_35px_rgba(0,0,0,0.8)] opacity-100 translate-x-0'
+              : 'absolute left-[56px] top-0 bottom-0 z-30 opacity-0 -translate-x-3 pointer-events-none'
+          }`}
+        >
+          {/* Header Title & Active Brand */}
+          <div className="h-14 px-4 flex items-center justify-between border-b border-[#242424] bg-[#121212]">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="text-sm font-bold text-white tracking-tight truncate">
+                {currentConfig.headerTitle}
+              </span>
+              <span className="text-[11px] font-mono px-2 py-0.5 bg-[#202020] text-zinc-300 border border-[#2e2e2e] rounded-md font-semibold">
+                {currentConfig.subItems.length}
+              </span>
+            </div>
 
-          <button
-            onClick={() => setIsPinned(false)}
-            title="Collapse Sidebar"
-            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-[#1f1f1f] transition"
-          >
-            <PanelLeftClose className="w-4 h-4" />
-          </button>
-        </div>
+            <button
+              onClick={() => setIsPinned(false)}
+              title="Collapse Sidebar"
+              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-[#1f1f1f] transition"
+            >
+              <PanelLeftClose className="w-4 h-4" />
+            </button>
+          </div>
 
         {/* Quick Scope / Role Tag */}
         <div className="px-4 py-2.5 border-b border-[#242424] bg-[#141414] flex items-center justify-between text-xs font-mono">
@@ -519,6 +531,7 @@ export function Sidebar() {
           </span>
         </div>
       </div>
-    </aside>
-  );
+    )}
+  </aside>
+);
 }

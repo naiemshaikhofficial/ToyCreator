@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useBrand } from '@/context/BrandContext';
 import { getBrandProducts, updateBrandProduct } from '@/lib/supabase/actions';
 import {
@@ -15,12 +16,21 @@ import {
 } from 'lucide-react';
 import { RoleGate } from '@/components/RoleGate';
 
-export default function ProductsListPage() {
+function ProductsListInner() {
   const { brand } = useBrand();
+  const searchParams = useSearchParams();
+  const typeParam = searchParams.get('type');
+
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedType, setSelectedType] = useState('all');
+  const [selectedType, setSelectedType] = useState(() => typeParam || 'all');
+
+  useEffect(() => {
+    if (typeParam) {
+      setSelectedType(typeParam);
+    }
+  }, [typeParam]);
 
   const loadProducts = async () => {
     if (!brand?.id) return;
@@ -280,5 +290,13 @@ export default function ProductsListPage() {
       </div>
     </div>
     </RoleGate>
+  );
+}
+
+export default function ProductsListPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-xs text-zinc-500">Loading catalog...</div>}>
+      <ProductsListInner />
+    </Suspense>
   );
 }

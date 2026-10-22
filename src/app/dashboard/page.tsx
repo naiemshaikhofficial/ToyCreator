@@ -70,6 +70,30 @@ export default function DashboardOverviewPage() {
   const dawTelemetry = data?.dawTelemetry || [];
   const chartData = data?.revenueTimeline || [];
 
+  // Compute Top Selling Products from verified purchases and catalog
+  const topSellingProducts = React.useMemo(() => {
+    const salesMap = new Map<string, { units: number; revenue: number }>();
+    purchases.forEach((p: any) => {
+      const prodId = p.product_id || p.products?.id;
+      const amount = parseFloat(p.amount_paid || 0);
+      if (prodId) {
+        const cur = salesMap.get(prodId) || { units: 0, revenue: 0 };
+        salesMap.set(prodId, { units: cur.units + 1, revenue: cur.revenue + amount });
+      }
+    });
+
+    return [...products]
+      .map((p: any) => {
+        const stats = salesMap.get(p.id) || { units: 0, revenue: 0 };
+        return {
+          ...p,
+          unitsSold: stats.units,
+          totalRevenue: stats.revenue,
+        };
+      })
+      .sort((a, b) => b.unitsSold - a.unitsSold || b.totalRevenue - a.totalRevenue);
+  }, [products, purchases]);
+
   return (
     <div className="space-y-6 sm:space-y-8 font-sans">
       {/* Brand Welcome Banner */}
@@ -276,19 +300,28 @@ export default function DashboardOverviewPage() {
           </div>
         )}
 
-        {/* Quick Catalog Snapshot */}
+        {/* Top Selling Products & Velocity */}
         <div className="toy-card p-6 flex flex-col justify-between">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider">Catalog Snapshot</h2>
+            <div>
+              <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <span>Top Selling Products</span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#222222] text-zinc-300 border border-[#333333]">
+                  Ranked
+                </span>
+              </h2>
+              <p className="text-[11px] text-zinc-400">By verified units sold & checkout GMV</p>
+            </div>
             <Link
               href="/dashboard/products"
-              className="text-xs text-zinc-300 hover:text-white font-medium"
+              className="text-xs text-zinc-300 hover:text-white font-medium flex items-center gap-1"
             >
-              View All
+              <span>View All</span>
+              <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
-          {products.length === 0 ? (
+          {topSellingProducts.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-6 border border-dashed border-[#2a2a2a] rounded-xl space-y-2">
               <Package className="w-6 h-6 text-zinc-500" />
               <p className="text-xs text-zinc-400">No products published yet</p>
@@ -300,13 +333,22 @@ export default function DashboardOverviewPage() {
               </Link>
             </div>
           ) : (
-            <div className="space-y-3 flex-1 overflow-y-auto">
-              {products.slice(0, 4).map((p) => (
+            <div className="space-y-2.5 flex-1 overflow-y-auto">
+              {topSellingProducts.slice(0, 4).map((p, idx) => (
                 <Link
                   key={p.id}
                   href={`/dashboard/products/${p.id}`}
                   className="flex items-center gap-3 p-2.5 rounded-xl bg-[#1a1a1a] hover:bg-[#222222] border border-[#262626] transition-colors group"
                 >
+                  {/* Rank indicator */}
+                  <span className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-mono font-bold shrink-0 ${
+                    idx === 0
+                      ? 'bg-white text-black'
+                      : 'bg-[#252525] text-zinc-400'
+                  }`}>
+                    #{idx + 1}
+                  </span>
+
                   <div className="w-10 h-10 rounded-lg bg-[#121212] border border-[#2a2a2a] flex items-center justify-center overflow-hidden flex-shrink-0">
                     {p.cover_image ? (
                       <img
@@ -325,20 +367,25 @@ export default function DashboardOverviewPage() {
                     <p className="text-xs font-semibold text-white truncate group-hover:text-zinc-300 transition-colors">
                       {p.name}
                     </p>
-                    <p className="text-[10px] text-zinc-400 uppercase tracking-wider">
-                      {p.product_type?.replace('_', ' ') || 'Plugin'}
-                    </p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#202020] text-zinc-400 uppercase tracking-wider">
+                        {p.product_type?.replace('_', ' ') || 'Plugin'}
+                      </span>
+                      <span className="text-[10px] font-mono text-zinc-400">
+                        {p.unitsSold > 0 ? `${p.unitsSold} sold` : '0 sold'}
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-xs font-bold text-white font-mono">
+                  <div className="text-right shrink-0">
+                    <span className="text-xs font-bold text-white font-mono block">
                       {parseFloat(p.price_usd) === 0 ? 'FREE' : `$${parseFloat(p.price_usd).toFixed(2)}`}
                     </span>
                     <span
-                      className={`block text-[9px] font-bold uppercase ${
-                        p.is_active ? 'text-zinc-200' : 'text-zinc-500'
+                      className={`text-[9px] font-mono uppercase ${
+                        p.unitsSold > 0 ? 'text-zinc-200 font-semibold' : 'text-zinc-500'
                       }`}
                     >
-                      {p.is_active ? 'Active' : 'Draft'}
+                      {p.totalRevenue > 0 ? `$${p.totalRevenue.toFixed(2)} rev` : (p.is_active ? 'Active' : 'Draft')}
                     </span>
                   </div>
                 </Link>
