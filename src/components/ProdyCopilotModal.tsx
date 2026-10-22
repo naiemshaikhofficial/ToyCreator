@@ -317,6 +317,23 @@ export default function ProdyCopilotModal({
                     </div>
                   </div>
 
+                  {generatedProduct.vst_format && (
+                    <div className="p-2 rounded-lg bg-[#111111] border border-[#222222] text-[11px] flex items-center justify-between">
+                      <span className="text-zinc-400">Formats & Engine:</span>
+                      <span className="font-mono text-zinc-300 font-semibold">{generatedProduct.vst_format}</span>
+                    </div>
+                  )}
+
+                  <details className="group text-[11px] bg-[#111111] border border-[#222222] rounded-lg p-2.5">
+                    <summary className="cursor-pointer text-zinc-400 hover:text-white flex items-center justify-between font-semibold">
+                      <span>View SEO Full Description</span>
+                      <span className="text-[10px] text-zinc-500 group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
+                    <div className="mt-2 text-zinc-300 whitespace-pre-wrap font-sans text-[11px] leading-relaxed max-h-48 overflow-y-auto pr-1">
+                      {generatedProduct.full_description}
+                    </div>
+                  </details>
+
                   {/* 1-Click Apply Button */}
                   <div className="pt-2">
                     <button
