@@ -401,3 +401,99 @@ export async function createDeveloperTicket(ticketData: {
   if (error) throw error;
   return data;
 }
+
+/**
+ * Fetch messages for a ticket
+ */
+export async function getDeveloperTicketMessages(ticketId: string) {
+  const supabase = getSupabaseBrowserClient();
+  const { data, error } = await supabase
+    .from('ticket_messages')
+    .select('*')
+    .eq('ticket_id', ticketId)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching ticket messages:', error);
+    return [];
+  }
+  return data || [];
+}
+
+/**
+ * Developer replies to a ticket
+ */
+export async function replyDeveloperTicket({
+  ticketId,
+  message,
+  senderName,
+}: {
+  ticketId: string;
+  message: string;
+  senderName: string;
+}) {
+  const admin = getAdminClient();
+  const { data, error } = await admin
+    .from('ticket_messages')
+    .insert({
+      ticket_id: ticketId,
+      sender_type: 'developer',
+      sender_name: senderName || 'Toy Creator Developer',
+      message: message.trim(),
+      created_at: new Date().toISOString(),
+    })
+    .select('*')
+    .single();
+
+  if (error) throw error;
+
+  await admin
+    .from('support_tickets')
+    .update({ updated_at: new Date().toISOString() })
+    .eq('id', ticketId);
+
+  return data;
+}
+
+/**
+ * Developer escalates a ticket to Producer Toy Team
+ */
+export async function escalateDeveloperTicketToTeam({
+  ticketId,
+  reason,
+  senderName,
+}: {
+  ticketId: string;
+  reason: string;
+  senderName: string;
+}) {
+  const admin = getAdminClient();
+
+  const { error: ticketErr } = await admin
+    .from('support_tickets')
+    .update({
+      status: 'ESCALATED_TO_TEAM',
+      priority: 'URGENT',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', ticketId);
+
+  if (ticketErr) throw ticketErr;
+
+  const escalationText = `🔥 [ESCALATED TO PRODUCERTOY TEAM BY DEVELOPER: ${senderName}]\n\nReason: ${reason.trim()}`;
+
+  const { data, error: msgErr } = await admin
+    .from('ticket_messages')
+    .insert({
+      ticket_id: ticketId,
+      sender_type: 'developer',
+      sender_name: `${senderName} (Developer Escalation)`,
+      message: escalationText,
+      created_at: new Date().toISOString(),
+    })
+    .select('*')
+    .single();
+
+  if (msgErr) throw msgErr;
+  return data;
+}
