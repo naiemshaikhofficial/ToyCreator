@@ -34,9 +34,9 @@ export interface ProdyBrainstormIdea {
 }
 
 function getApiKey(): string {
-  const key = process.env.GROQ_API_KEY;
+  const key = process.env.PRODY_API_KEY || process.env.GROQ_API_KEY;
   if (!key) {
-    throw new Error('GROQ_API_KEY is not configured in environment variables (.env.local).');
+    throw new Error('Prody AI key is not configured in environment variables.');
   }
   return key;
 }
@@ -61,7 +61,7 @@ export async function generateProductWithProdyAction(params: {
 
   const apiKey = getApiKey();
   if (!apiKey) {
-    return { success: false, error: 'Groq API key not configured on server.' };
+    return { success: false, error: 'Prody AI engine is not configured on server.' };
   }
 
   try {
@@ -115,8 +115,8 @@ Generate a complete audio product listing in valid JSON with this exact structur
   "license_delivery_type": "pool" or "direct_download"
 }`;
 
-    // 3. Call Groq
-    const modelsToTry = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant'];
+    // 3. Call Prody AI Engine
+    const modelsToTry = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b'];
     let jsonContent: any = null;
 
     for (const model of modelsToTry) {
@@ -146,6 +146,9 @@ Generate a complete audio product listing in valid JSON with this exact structur
             jsonContent = JSON.parse(rawText);
             break;
           }
+        } else {
+          const errText = await res.text();
+          console.warn(`[Prody] Model ${model} returned error status ${res.status}:`, errText);
         }
       } catch (e) {
         console.warn(`[Prody] Model ${model} failed, trying fallback...`, e);
@@ -211,7 +214,7 @@ export async function brainstormProductIdeasAction(params: {
 }> {
   const { brandName = 'Producer Toy', categoryFilter = 'all' } = params;
   const apiKey = getApiKey();
-  if (!apiKey) return { success: false, error: 'Groq API key not configured.' };
+  if (!apiKey) return { success: false, error: 'Prody AI engine is not configured.' };
 
   try {
     const prompt = `You are Prody, the creative product strategist at Producer Toy.
@@ -234,31 +237,46 @@ Return strictly valid JSON with this format:
   ]
 }`;
 
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: prompt }],
-        response_format: { type: 'json_object' },
-        temperature: 0.7,
-        max_tokens: 1000,
-      }),
-    });
+    const modelsToTry = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b'];
+    let parsed: any = null;
 
-    if (!res.ok) {
-      return { success: false, error: 'Could not generate ideas from Prody.' };
+    for (const model of modelsToTry) {
+      try {
+        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model,
+            messages: [{ role: 'user', content: prompt }],
+            response_format: { type: 'json_object' },
+            temperature: 0.7,
+            max_tokens: 1000,
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const rawText = data.choices?.[0]?.message?.content;
+          if (rawText) {
+            parsed = JSON.parse(rawText);
+            break;
+          }
+        }
+      } catch (e) {
+        console.warn(`[Prody Brainstorm] Model ${model} failed, trying fallback...`, e);
+      }
     }
 
-    const data = await res.json();
-    const parsed = JSON.parse(data.choices?.[0]?.message?.content || '{}');
+    if (!parsed || !Array.isArray(parsed.ideas)) {
+      return { success: false, error: 'Prody is momentarily busy. Please try again.' };
+    }
 
     return {
       success: true,
-      ideas: Array.isArray(parsed.ideas) ? parsed.ideas : [],
+      ideas: parsed.ideas,
     };
   } catch (err: any) {
     return { success: false, error: err.message || 'Error brainstorming ideas.' };

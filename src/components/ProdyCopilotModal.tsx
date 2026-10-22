@@ -142,7 +142,7 @@ export default function ProdyCopilotModal({
                   Prody AI Copilot
                 </h2>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
-                  Groq LLaMA 3.3
+                  Prody AI v2.0
                 </span>
               </div>
               <p className="text-[11px] text-zinc-400 mt-0.5">
