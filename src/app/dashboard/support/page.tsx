@@ -35,6 +35,24 @@ export default function SupportPage() {
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
+  useEffect(() => {
+    const handleCheckAction = () => {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('action') === 'new') {
+          setShowModal(true);
+        }
+      }
+    };
+    handleCheckAction();
+    window.addEventListener('popstate', handleCheckAction);
+    window.addEventListener('toy-new-ticket', () => setShowModal(true));
+    return () => {
+      window.removeEventListener('popstate', handleCheckAction);
+      window.removeEventListener('toy-new-ticket', () => setShowModal(true));
+    };
+  }, []);
+
   // Ticket create form
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
