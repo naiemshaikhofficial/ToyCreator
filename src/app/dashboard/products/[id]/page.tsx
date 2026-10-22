@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useBrand } from '@/context/BrandContext';
 import { getProductById, updateBrandProduct, getCatalogCategories } from '@/lib/supabase/actions';
+import { createCustomCategoryAction, createCustomSubcategoryAction } from '@/actions/categoryActions';
+import ProdyCopilotModal from '@/components/ProdyCopilotModal';
 import {
   ArrowLeft,
   Package,
@@ -33,6 +35,8 @@ import {
   Music,
   Plus,
   X,
+  Sparkles,
+  FolderPlus,
 } from 'lucide-react';
 import SerialKeyPoolManager from '@/components/SerialKeyPoolManager';
 import DualAssetUploadInput from '@/components/DualAssetUploadInput';
@@ -153,6 +157,89 @@ export default function ProductDetailPage() {
   const [isComingSoon, setIsComingSoon] = useState(false);
   const [externalUrl, setExternalUrl] = useState('');
   const [buttonText, setButtonText] = useState('');
+
+  // Prody AI Copilot State
+  const [showProdyModal, setShowProdyModal] = useState(false);
+  const [aiAppliedMsg, setAiAppliedMsg] = useState('');
+
+  // Custom Category & Subcategory Creation State
+  const [showAddCat, setShowAddCat] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
+  const [addingCat, setAddingCat] = useState(false);
+
+  const [showAddSub, setShowAddSub] = useState(false);
+  const [newSubName, setNewSubName] = useState('');
+  const [addingSub, setAddingSub] = useState(false);
+
+  const handleApplyProdyProduct = (data: any) => {
+    if (data.name) setName(data.name);
+    if (data.category_slug) {
+      const match = categoriesList.find((c) => c.slug === data.category_slug);
+      if (match) {
+        setCategoryId(match.id);
+        setProductType(data.category_slug === 'sample-pack' ? 'sample_pack' : 'plugin');
+      }
+    }
+    if (data.subcategory_id) {
+      setSubcategoryId(data.subcategory_id);
+    } else if (data.subcategory_name) {
+      const matchSub = subcategoriesList.find((s) => s.name.toLowerCase() === data.subcategory_name.toLowerCase());
+      if (matchSub) setSubcategoryId(matchSub.id);
+    }
+    if (Array.isArray(data.category_slugs) && data.category_slugs.length > 0) {
+      setSelectedGenres(data.category_slugs);
+    }
+    if (data.price_usd) setPriceUsd(data.price_usd.toString());
+    if (data.original_price_usd) setOriginalPriceUsd(data.original_price_usd.toString());
+    if (data.short_description) setShortDesc(data.short_description);
+    if (data.full_description) setFullDesc(data.full_description);
+    if (data.vst_format) setVstFormat(data.vst_format);
+    if (data.operating_system) setOperatingSystem(data.operating_system);
+    if (data.supported_daws) setSupportedDaws(data.supported_daws);
+    if (data.license_delivery_type) setLicenseDeliveryType(data.license_delivery_type);
+    if (data.license_type) setLicenseType(data.license_type);
+
+    setAiAppliedMsg('✨ Prody AI applied metadata updates!');
+    setTimeout(() => setAiAppliedMsg(''), 4000);
+  };
+
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCatName.trim()) return;
+    setAddingCat(true);
+    try {
+      const res = await createCustomCategoryAction(newCatName.trim());
+      if (res.success && res.data) {
+        setCategoriesList((prev) => [...prev, res.data]);
+        setCategoryId(res.data.id);
+        setShowAddCat(false);
+        setNewCatName('');
+      } else {
+        alert(res.error || 'Failed to create category.');
+      }
+    } finally {
+      setAddingCat(false);
+    }
+  };
+
+  const handleCreateSubcategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSubName.trim() || !categoryId) return;
+    setAddingSub(true);
+    try {
+      const res = await createCustomSubcategoryAction(categoryId, newSubName.trim());
+      if (res.success && res.data) {
+        setSubcategoriesList((prev) => [...prev, res.data]);
+        setSubcategoryId(res.data.id);
+        setShowAddSub(false);
+        setNewSubName('');
+      } else {
+        alert(res.error || 'Failed to create subcategory.');
+      }
+    } finally {
+      setAddingSub(false);
+    }
+  };
 
   useEffect(() => {
     async function loadCatalog() {
@@ -360,6 +447,14 @@ export default function ProductDetailPage() {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={() => setShowProdyModal(true)}
+            className="px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 bg-[#1c1c1c] hover:bg-[#252525] border border-white/20 text-white transition-all shadow-sm group hover:border-white/40"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-white group-hover:scale-110 transition-transform" />
+            <span>Ask Prody</span>
+          </button>
           <a
             href={`https://producertoy.com/product/${product.slug}`}
             target="_blank"
@@ -384,6 +479,22 @@ export default function ProductDetailPage() {
           </button>
         </div>
       </div>
+
+      {aiAppliedMsg && (
+        <div className="p-3.5 bg-[#181818] border border-white/30 rounded-xl text-white text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <Sparkles className="w-4 h-4 text-white flex-shrink-0" />
+            <span className="font-medium">{aiAppliedMsg}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setAiAppliedMsg('')}
+            className="text-zinc-400 hover:text-white"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {successMsg && (
         <div className="p-3.5 bg-[#202020] border border-zinc-700/60 rounded-xl text-white text-xs flex items-center gap-2">
@@ -491,12 +602,50 @@ export default function ProductDetailPage() {
             {/* Category & Subcategory Selection */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <FormLabel
-                  label="Category *"
-                  info="Choose the primary marketplace category for your product"
-                  icon={Package}
-                />
-                <div className="grid grid-cols-2 gap-2">
+                <div className="flex items-center justify-between mb-1.5">
+                  <FormLabel
+                    label="Category *"
+                    info="Choose the primary marketplace category for your product"
+                    icon={Package}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowAddCat(!showAddCat)}
+                    className="text-[11px] font-medium text-zinc-400 hover:text-white flex items-center gap-1 transition-colors"
+                  >
+                    <FolderPlus className="w-3.5 h-3.5" />
+                    <span>+ Add Category</span>
+                  </button>
+                </div>
+
+                {showAddCat && (
+                  <div className="mb-2.5 p-2.5 bg-[#171717] border border-[#2a2a2a] rounded-xl flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="e.g. Presets, MIDI, FX..."
+                      value={newCatName}
+                      onChange={(e) => setNewCatName(e.target.value)}
+                      className="flex-1 bg-[#101010] border border-[#333] rounded-lg px-2.5 py-1.5 text-xs text-white"
+                    />
+                    <button
+                      type="button"
+                      disabled={addingCat || !newCatName.trim()}
+                      onClick={handleCreateCategory}
+                      className="px-2.5 py-1.5 bg-white text-black text-xs font-semibold rounded-lg hover:bg-zinc-200 disabled:opacity-50"
+                    >
+                      {addingCat ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Save'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddCat(false)}
+                      className="p-1.5 text-zinc-400 hover:text-white"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {(categoriesList.length > 0 ? categoriesList : [
                     { id: '67acb330-6687-4a5b-bfb7-2bbf911c0967', name: 'Audio Plugin', slug: 'plugin' },
                     { id: 'a3333333-3333-3333-3333-333333333333', name: 'Sample Pack', slug: 'sample-pack' },
@@ -507,14 +656,14 @@ export default function ProductDetailPage() {
                         key={cat.id}
                         type="button"
                         onClick={() => handleCategorySelect(cat.id)}
-                        className={`p-3 rounded-xl border text-xs font-semibold transition-all text-center flex items-center justify-center gap-1.5 ${
+                        className={`p-2.5 rounded-xl border text-xs font-semibold transition-all text-center flex items-center justify-center gap-1.5 ${
                           isSelected
                             ? 'bg-[#222222] border-white text-white shadow-sm'
                             : 'bg-[#121212] border-[#2a2a2a] text-zinc-400 hover:text-white hover:bg-[#181818]'
                         }`}
                       >
                         {isSelected && <Check className="w-3.5 h-3.5 text-white flex-shrink-0" />}
-                        <span>{cat.name}</span>
+                        <span className="truncate">{cat.name}</span>
                       </button>
                     );
                   })}
@@ -522,11 +671,51 @@ export default function ProductDetailPage() {
               </div>
 
               <div>
-                <FormLabel
-                  label="Subcategory"
-                  info="Specific audio instrument, effect, or pack style"
-                  icon={Tag}
-                />
+                <div className="flex items-center justify-between mb-1.5">
+                  <FormLabel
+                    label="Subcategory"
+                    info="Specific audio instrument, effect, or pack style"
+                    icon={Tag}
+                  />
+                  {categoryId && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAddSub(!showAddSub)}
+                      className="text-[11px] font-medium text-zinc-400 hover:text-white flex items-center gap-1 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>+ Add Subcategory</span>
+                    </button>
+                  )}
+                </div>
+
+                {showAddSub && (
+                  <div className="mb-2.5 p-2.5 bg-[#171717] border border-[#2a2a2a] rounded-xl flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="e.g. Serum Presets, Vocal Chops..."
+                      value={newSubName}
+                      onChange={(e) => setNewSubName(e.target.value)}
+                      className="flex-1 bg-[#101010] border border-[#333] rounded-lg px-2.5 py-1.5 text-xs text-white"
+                    />
+                    <button
+                      type="button"
+                      disabled={addingSub || !newSubName.trim()}
+                      onClick={handleCreateSubcategory}
+                      className="px-2.5 py-1.5 bg-white text-black text-xs font-semibold rounded-lg hover:bg-zinc-200 disabled:opacity-50"
+                    >
+                      {addingSub ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Save'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddSub(false)}
+                      className="p-1.5 text-zinc-400 hover:text-white"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+
                 <select
                   value={subcategoryId}
                   onChange={(e) => setSubcategoryId(e.target.value)}
@@ -1343,6 +1532,14 @@ export default function ProductDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Prody AI Copilot Modal */}
+      <ProdyCopilotModal
+        isOpen={showProdyModal}
+        onClose={() => setShowProdyModal(false)}
+        brandName={brand?.name}
+        onApplyProduct={handleApplyProdyProduct}
+      />
     </div>
   );
 }
