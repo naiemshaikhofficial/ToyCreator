@@ -25,7 +25,6 @@ import {
   Globe,
   PanelLeftClose,
   PanelLeft,
-  Table2,
   Tag,
   Star,
   DownloadCloud,
@@ -56,13 +55,12 @@ type CreatorSectionId =
   | 'products'
   | 'orders'
   | 'analytics'
-  | 'earnings'
+  | 'finance'
   | 'licensing'
   | 'developers'
   | 'documents'
   | 'support'
-  | 'settings'
-  | 'tables';
+  | 'settings';
 
 interface SubMenuItem {
   label: string;
@@ -81,32 +79,18 @@ interface SectionConfig {
   subItems: SubMenuItem[];
 }
 
-// Raw table entities for creator catalog
-const CREATOR_TABLES = [
-  { name: 'my_products', href: '/dashboard/products', badge: 'Catalog' },
-  { name: 'product_assets_stems', href: '/dashboard/products', badge: 'Audio' },
-  { name: 'sales_orders', href: '/dashboard/orders', badge: 'Live' },
-  { name: 'device_activations', href: '/dashboard/licensing', badge: 'DRM' },
-  { name: 'support_tickets', href: '/dashboard/support', badge: 'Help' },
-  { name: 'ticket_messages', href: '/dashboard/support' },
-  { name: 'payout_distributions', href: '/dashboard/payouts', badge: '70%' },
-  { name: 'brand_members', href: '/dashboard/settings?tab=team', badge: 'RBAC' },
-  { name: 'api_webhooks', href: '/dashboard/settings?tab=developer', badge: 'Key' },
-  { name: 'creator_agreements', href: '/dashboard/documents', badge: 'PDF' },
-  { name: 'audit_security_logs', href: '/dashboard/settings?tab=audit' },
-];
-
+// 100% Creator Toy domain sections - No raw Supabase tables
 const SECTIONS: SectionConfig[] = [
   {
     id: 'overview',
     label: 'Overview',
     icon: LayoutDashboard,
     defaultHref: '/dashboard',
-    headerTitle: 'Creator Overview',
+    headerTitle: 'Command Center',
     subItems: [
       { label: 'Executive Dashboard', href: '/dashboard', icon: LayoutDashboard },
       { label: 'Live Sales Overview', href: '/dashboard/orders', icon: ShoppingCart },
-      { label: 'Revenue & Royalties', href: '/dashboard/earnings', icon: Coins, badge: '70%' },
+      { label: 'Revenue Trends', href: '/dashboard/analytics', icon: BarChart3 },
       { label: 'Brand Public Profile', href: '/dashboard/profile', icon: Building },
     ],
   },
@@ -117,9 +101,9 @@ const SECTIONS: SectionConfig[] = [
     defaultHref: '/dashboard/products',
     headerTitle: 'Product Catalog',
     subItems: [
-      { label: 'All My Products', href: '/dashboard/products', icon: Package, badge: 'Live' },
-      { label: 'Add New Product', href: '/dashboard/products/new', icon: PlusCircle, isAction: true },
-      { label: 'Asset Stems & Audio', href: '/dashboard/products', icon: DownloadCloud },
+      { label: 'All Products', href: '/dashboard/products', icon: Package, badge: 'Live' },
+      { label: 'Add Product', href: '/dashboard/products/new', icon: PlusCircle, isAction: true },
+      { label: 'Audio Assets & Stems', href: '/dashboard/products', icon: DownloadCloud },
       { label: 'Product DRM Seats', href: '/dashboard/licensing', icon: KeyRound },
     ],
   },
@@ -130,9 +114,9 @@ const SECTIONS: SectionConfig[] = [
     defaultHref: '/dashboard/orders',
     headerTitle: 'Sales & Orders',
     subItems: [
-      { label: 'Customer Transactions', href: '/dashboard/orders', icon: ShoppingCart },
-      { label: 'Net Revenue Splits', href: '/dashboard/earnings', icon: Coins, badge: '70/30' },
-      { label: 'Order Receipts & Tax', href: '/dashboard/orders', icon: FileText },
+      { label: 'All Orders', href: '/dashboard/orders', icon: ShoppingCart, badge: 'Live' },
+      { label: 'Invoices & Receipts', href: '/dashboard/orders', icon: FileText },
+      { label: 'Transactions', href: '/dashboard/orders', icon: CreditCard },
     ],
   },
   {
@@ -142,21 +126,21 @@ const SECTIONS: SectionConfig[] = [
     defaultHref: '/dashboard/analytics',
     headerTitle: 'Performance Analytics',
     subItems: [
-      { label: 'Revenue Trends', href: '/dashboard/analytics', icon: BarChart3 },
+      { label: 'Revenue Analytics', href: '/dashboard/analytics', icon: BarChart3 },
       { label: 'Product Conversions', href: '/dashboard/analytics', icon: Activity },
       { label: 'Customer Geography', href: '/dashboard/analytics', icon: Globe },
     ],
   },
   {
-    id: 'earnings',
-    label: 'Earnings',
+    id: 'finance',
+    label: 'Finance',
     icon: Coins,
     defaultHref: '/dashboard/earnings',
-    headerTitle: 'Earnings & Payouts',
+    headerTitle: 'Finance & Payouts',
     subItems: [
-      { label: 'Creator Royalty Balance', href: '/dashboard/earnings', icon: Coins, badge: 'Active' },
-      { label: 'Payout Disbursements', href: '/dashboard/payouts', icon: CreditCard },
-      { label: 'Bank & Stripe Setup', href: '/dashboard/settings?tab=payouts', icon: Building },
+      { label: 'Earnings', href: '/dashboard/earnings', icon: Coins, badge: 'Active' },
+      { label: 'Payouts', href: '/dashboard/payouts', icon: CreditCard },
+      { label: 'Bank & Payout Setup', href: '/dashboard/settings?tab=payouts', icon: Building },
     ],
   },
   {
@@ -164,9 +148,9 @@ const SECTIONS: SectionConfig[] = [
     label: 'Licensing',
     icon: KeyRound,
     defaultHref: '/dashboard/licensing',
-    headerTitle: 'Licensing & DRM',
+    headerTitle: 'Licenses & DRM',
     subItems: [
-      { label: 'Hardware Machine Seats', href: '/dashboard/licensing', icon: KeyRound },
+      { label: 'Active Licenses', href: '/dashboard/licensing', icon: KeyRound },
       { label: 'Device Activations', href: '/dashboard/licensing', icon: Shield },
       { label: 'C++ JUCE SDK Engine', href: '/dashboard/developers', icon: Code },
     ],
@@ -178,8 +162,8 @@ const SECTIONS: SectionConfig[] = [
     defaultHref: '/dashboard/developers',
     headerTitle: 'Developer Hub & API',
     subItems: [
-      { label: 'C++ Audio Plugin SDK', href: '/dashboard/developers', icon: Code, badge: 'JUCE' },
-      { label: 'Live Brand API Key', href: '/dashboard/settings?tab=developer', icon: KeyRound },
+      { label: 'C++ JUCE SDK Guide', href: '/dashboard/developers', icon: Code, badge: 'C++' },
+      { label: 'Brand API Keys', href: '/dashboard/settings?tab=developer', icon: KeyRound },
       { label: 'Webhook Endpoints', href: '/dashboard/settings?tab=developer', icon: Activity },
       { label: 'Offline DRM Guide', href: '/dashboard/developers', icon: FileText },
     ],
@@ -213,24 +197,16 @@ const SECTIONS: SectionConfig[] = [
     label: 'Settings',
     icon: Settings,
     defaultHref: '/dashboard/settings',
-    headerTitle: 'Portal Settings',
+    headerTitle: 'Brand Settings',
     subItems: [
-      { label: 'General Brand Profile', href: '/dashboard/settings?tab=general', icon: Building },
-      { label: 'Brand Team & Roles', href: '/dashboard/settings?tab=team', icon: Users, badge: 'RBAC' },
-      { label: 'Payouts & Banking', href: '/dashboard/settings?tab=payouts', icon: CreditCard },
-      { label: 'Developer API Keys', href: '/dashboard/settings?tab=developer', icon: Code },
-      { label: 'Security & Access', href: '/dashboard/settings?tab=security', icon: Shield },
-      { label: 'Agreements & Legal', href: '/dashboard/settings?tab=agreements', icon: FileText },
-      { label: 'Activity & Audit', href: '/dashboard/settings?tab=audit', icon: Activity },
+      { label: 'Profile', href: '/dashboard/settings?tab=profile', icon: Building },
+      { label: 'Team', href: '/dashboard/settings?tab=team', icon: Users, badge: 'Admin' },
+      { label: 'Payouts', href: '/dashboard/settings?tab=payouts', icon: CreditCard },
+      { label: 'Developer API', href: '/dashboard/settings?tab=developer', icon: Code },
+      { label: 'Security', href: '/dashboard/settings?tab=security', icon: Shield },
+      { label: 'Agreements', href: '/dashboard/settings?tab=agreements', icon: FileText },
+      { label: 'Audit Logs', href: '/dashboard/settings?tab=audit', icon: Activity },
     ],
-  },
-  {
-    id: 'tables',
-    label: 'Tables',
-    icon: Table2,
-    defaultHref: '/dashboard/products',
-    headerTitle: 'Catalog Explorer',
-    subItems: [],
   },
 ];
 
@@ -244,7 +220,7 @@ export function Sidebar() {
     if (path.startsWith('/dashboard/products')) return 'products';
     if (path.startsWith('/dashboard/orders')) return 'orders';
     if (path.startsWith('/dashboard/analytics')) return 'analytics';
-    if (path.startsWith('/dashboard/earnings') || path.startsWith('/dashboard/payouts')) return 'earnings';
+    if (path.startsWith('/dashboard/earnings') || path.startsWith('/dashboard/payouts')) return 'finance';
     if (path.startsWith('/dashboard/licensing')) return 'licensing';
     if (path.startsWith('/dashboard/developers')) return 'developers';
     if (path.startsWith('/dashboard/documents')) return 'documents';
@@ -255,7 +231,7 @@ export function Sidebar() {
 
   const [activeSection, setActiveSection] = useState<CreatorSectionId>(() => detectSection(pathname));
   const [isHovered, setIsHovered] = useState(false);
-  const [isPinned, setIsPinned] = useState(true); // Open by default like Supabase
+  const [isPinned, setIsPinned] = useState(true); // Open by default
   const [searchQuery, setSearchQuery] = useState('');
 
   const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -263,7 +239,6 @@ export function Sidebar() {
   const currentRole = membership?.role as BrandRole | undefined;
   const roleBadge = currentRole ? ROLE_BADGES[currentRole] : null;
 
-  // Sync active section when path changes
   useEffect(() => {
     setActiveSection(detectSection(pathname));
   }, [pathname]);
@@ -286,15 +261,6 @@ export function Sidebar() {
     return SECTIONS.find((s) => s.id === activeSection) || SECTIONS[0];
   }, [activeSection]);
 
-  const isTableEditor = activeSection === 'tables';
-
-  const filteredTables = useMemo(() => {
-    if (!searchQuery.trim()) return CREATOR_TABLES;
-    return CREATOR_TABLES.filter((t) =>
-      t.name.toLowerCase().includes(searchQuery.toLowerCase().trim())
-    );
-  }, [searchQuery]);
-
   const filteredSubItems = useMemo(() => {
     if (!searchQuery.trim()) return currentConfig.subItems;
     return currentConfig.subItems.filter((item) =>
@@ -315,15 +281,15 @@ export function Sidebar() {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       className={`hidden lg:flex relative shrink-0 min-h-screen sticky top-0 h-screen z-30 select-none transition-[width] duration-200 ease-out ${
-        isPinned ? 'w-[282px]' : 'w-[52px]'
+        isPinned ? 'w-[316px]' : 'w-[56px]'
       }`}
     >
       {/* =========================================================================
-          TIER 1: Thin Icon Rail (~52px)
+          TIER 1: Primary Icon Rail (56px) - Prominent & clean
          ========================================================================= */}
-      <div className="w-[52px] bg-[#101010] border-r border-[#202020] flex flex-col items-center justify-between py-3 shrink-0 h-full z-20">
+      <div className="w-[56px] bg-[#101010] border-r border-[#242424] flex flex-col items-center justify-between py-3.5 shrink-0 h-full z-20">
         {/* Top: Brand Emblem */}
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-3.5">
           <Link
             href="/dashboard"
             title="Toy Creator"
@@ -331,23 +297,23 @@ export function Sidebar() {
               setActiveSection('overview');
               setIsPinned(true);
             }}
-            className="w-8 h-8 flex items-center justify-center hover:opacity-80 transition"
+            className="w-9 h-9 flex items-center justify-center hover:opacity-85 transition"
           >
             <picture>
               <source srcSet="/logo.webp" type="image/webp" />
               <img
                 src="/logo.png"
                 alt="Toy Creator Emblem"
-                className="w-7 h-7 object-contain"
+                className="w-8 h-8 object-contain"
               />
             </picture>
           </Link>
 
-          {/* Thin separator */}
-          <div className="w-5 h-px bg-[#242424]" />
+          {/* Clean divider */}
+          <div className="w-6 h-px bg-[#262626]" />
 
           {/* Rail Navigation Icons */}
-          <div className="flex flex-col items-center gap-1">
+          <div className="flex flex-col items-center gap-1.5">
             {SECTIONS.map((sec) => {
               const Icon = sec.icon;
               const isActive = activeSection === sec.id;
@@ -366,20 +332,20 @@ export function Sidebar() {
                     }
                   }}
                   title={sec.label}
-                  className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors relative group ${
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors relative group ${
                     isActive
-                      ? 'bg-[#222222] text-white shadow-inner'
-                      : 'text-zinc-400 hover:text-white hover:bg-[#1a1a1a]'
+                      ? 'bg-[#222222] text-white shadow-inner border border-white/10'
+                      : 'text-zinc-400 hover:text-white hover:bg-[#181818]'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-4.5 h-4.5" />
                   {isActive && (
-                    <span className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-1 h-4 bg-white rounded-r-full" />
+                    <span className="absolute -left-1 top-1/2 -translate-y-1/2 w-1.5 h-4.5 bg-white rounded-r-full shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
                   )}
 
-                  {/* Tooltip on Hover when sub-panel is closed */}
+                  {/* Clean Tooltip on hover when collapsed */}
                   {!isPanelVisible && (
-                    <span className="absolute left-12 px-2 py-1 bg-[#181818] text-white text-[11px] font-medium rounded shadow-lg border border-[#2a2a2a] whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
+                    <span className="absolute left-14 px-2.5 py-1 bg-[#181818] text-white text-xs font-medium rounded-md shadow-xl border border-[#2a2a2a] whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
                       {sec.label}
                     </span>
                   )}
@@ -390,18 +356,18 @@ export function Sidebar() {
         </div>
 
         {/* Bottom Rail Actions */}
-        <div className="flex flex-col items-center gap-1.5">
+        <div className="flex flex-col items-center gap-2">
           {/* External Store Link */}
           <a
             href="https://producertoy.com"
             target="_blank"
             rel="noreferrer"
             title="Open ProducerToy Store"
-            className="w-9 h-9 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[#1a1a1a] transition relative group"
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[#181818] transition relative group"
           >
-            <ExternalLink className="w-3.5 h-3.5" />
+            <ExternalLink className="w-4 h-4" />
             {!isPanelVisible && (
-              <span className="absolute left-12 px-2 py-1 bg-[#181818] text-white text-[11px] rounded shadow-lg border border-[#2a2a2a] whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
+              <span className="absolute left-14 px-2.5 py-1 bg-[#181818] text-white text-xs rounded-md shadow-xl border border-[#2a2a2a] whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
                 producertoy.com
               </span>
             )}
@@ -410,130 +376,93 @@ export function Sidebar() {
           {/* Collapse/Expand Toggle Button */}
           <button
             onClick={() => setIsPinned(!isPinned)}
-            title={isPinned ? 'Collapse Panel' : 'Expand Panel'}
-            className="w-9 h-9 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[#1a1a1a] transition"
+            title={isPinned ? 'Collapse Sidebar' : 'Expand Sidebar'}
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[#181818] transition"
           >
-            {isPinned ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
+            {isPinned ? <PanelLeftClose className="w-4.5 h-4.5" /> : <PanelLeft className="w-4.5 h-4.5" />}
           </button>
 
           {/* Sign Out */}
           <button
             onClick={() => signOut()}
             title="Sign Out"
-            className="w-9 h-9 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[#1a1a1a] transition"
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[#181818] transition"
           >
-            <LogOut className="w-3.5 h-3.5" />
+            <LogOut className="w-4 h-4" />
           </button>
         </div>
       </div>
 
       {/* =========================================================================
-          TIER 2: Sub-Panel (~230px) - Opens on Hover, Closes on Leave (or Pinned)
+          TIER 2: Sub-Panel (260px) - Spacious, clear, prominent text
          ========================================================================= */}
       <div
-        className={`w-56 bg-[#141414] border-r border-[#222222] flex flex-col shrink-0 h-screen overflow-hidden transition-all duration-200 ease-out ${
+        className={`w-[260px] bg-[#141414] border-r border-[#262626] flex flex-col shrink-0 h-screen overflow-hidden transition-all duration-200 ease-out ${
           isPinned
             ? 'relative opacity-100 translate-x-0'
             : isHovered
-            ? 'absolute left-[52px] top-0 bottom-0 z-30 shadow-[10px_0_30px_rgba(0,0,0,0.7)] opacity-100 translate-x-0'
-            : 'absolute left-[52px] top-0 bottom-0 z-30 opacity-0 -translate-x-3 pointer-events-none'
+            ? 'absolute left-[56px] top-0 bottom-0 z-30 shadow-[12px_0_35px_rgba(0,0,0,0.8)] opacity-100 translate-x-0'
+            : 'absolute left-[56px] top-0 bottom-0 z-30 opacity-0 -translate-x-3 pointer-events-none'
         }`}
       >
         {/* Header Title & Active Brand */}
-        <div className="h-12 px-3 flex items-center justify-between border-b border-[#202020] bg-[#121212]">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-xs font-semibold text-white tracking-tight truncate">
+        <div className="h-14 px-4 flex items-center justify-between border-b border-[#242424] bg-[#121212]">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="text-sm font-bold text-white tracking-tight truncate">
               {currentConfig.headerTitle}
             </span>
-            <span className="text-[10px] font-mono px-1.5 py-0.2 bg-[#202020] text-zinc-400 border border-[#2a2a2a] rounded">
-              {isTableEditor ? filteredTables.length : currentConfig.subItems.length}
+            <span className="text-[11px] font-mono px-2 py-0.5 bg-[#202020] text-zinc-300 border border-[#2e2e2e] rounded-md font-semibold">
+              {currentConfig.subItems.length}
             </span>
           </div>
 
           <button
             onClick={() => setIsPinned(false)}
             title="Collapse Sidebar"
-            className="p-1 rounded text-zinc-500 hover:text-white hover:bg-[#1f1f1f] transition"
+            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-[#1f1f1f] transition"
           >
-            <PanelLeftClose className="w-3.5 h-3.5" />
+            <PanelLeftClose className="w-4 h-4" />
           </button>
         </div>
 
         {/* Quick Scope / Role Tag */}
-        <div className="px-3 py-2 border-b border-[#202020] bg-[#141414] flex items-center justify-between text-[10px] font-mono">
-          <span className="text-zinc-500 truncate max-w-[110px]">{brand?.name || 'Producer Toy'}</span>
+        <div className="px-4 py-2.5 border-b border-[#242424] bg-[#141414] flex items-center justify-between text-xs font-mono">
+          <span className="text-zinc-500 truncate max-w-[120px] font-semibold">
+            {brand?.name || 'Producer Toy'}
+          </span>
           {roleBadge && (
-            <span className={`px-1.5 py-0.2 rounded border uppercase font-medium ${roleBadge.badgeClass}`}>
+            <span className={`px-2 py-0.5 rounded border uppercase font-bold text-[10px] ${roleBadge.badgeClass}`}>
               {roleBadge.label}
             </span>
           )}
         </div>
 
         {/* Search Box */}
-        <div className="p-2.5 border-b border-[#202020]">
+        <div className="p-3 border-b border-[#242424]">
           <div className="relative flex items-center">
-            <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 pointer-events-none" />
+            <Search className="w-4 h-4 text-zinc-500 absolute left-3 pointer-events-none" />
             <input
               type="text"
-              placeholder={isTableEditor ? 'Search tables...' : 'Search items...'}
+              placeholder="Search items..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#181818] border border-[#282828] focus:border-zinc-500 rounded px-2.5 pl-8 pr-7 py-1 text-xs text-white placeholder-zinc-500 outline-none transition font-mono"
+              className="w-full bg-[#181818] border border-[#2a2a2a] focus:border-zinc-400 rounded-lg px-3 pl-9 pr-8 py-2 text-xs text-white placeholder-zinc-500 outline-none transition font-sans"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2 text-zinc-400 hover:text-white p-0.5"
+                className="absolute right-2.5 text-zinc-400 hover:text-white p-0.5"
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
         </div>
 
-        {/* Scrollable Navigation Items */}
-        <div className="flex-1 overflow-y-auto p-1.5 space-y-0.5">
-          {isTableEditor ? (
-            filteredTables.length === 0 ? (
-              <div className="py-8 px-3 text-center">
-                <p className="text-xs text-zinc-500">No tables found</p>
-              </div>
-            ) : (
-              filteredTables.map((tbl) => {
-                const isActive = pathname === tbl.href;
-                return (
-                  <Link
-                    key={tbl.name}
-                    href={tbl.href}
-                    className={`flex items-center justify-between px-2.5 py-1.5 rounded text-xs transition group ${
-                      isActive
-                        ? 'bg-[#222222] text-white font-medium border-l-2 border-white'
-                        : 'text-zinc-400 hover:text-white hover:bg-[#1a1a1a]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <Table2
-                        className={`w-3.5 h-3.5 shrink-0 ${
-                          isActive ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'
-                        }`}
-                      />
-                      <span className="truncate font-mono text-[11px]">{tbl.name}</span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {tbl.badge && (
-                        <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#202020] text-zinc-300 border border-[#2e2e2e]">
-                          {tbl.badge}
-                        </span>
-                      )}
-                      <Globe className="w-3 h-3 text-zinc-600 group-hover:text-zinc-400" />
-                    </div>
-                  </Link>
-                );
-              })
-            )
-          ) : filteredSubItems.length === 0 ? (
-            <div className="py-8 px-3 text-center">
+        {/* Scrollable Nav Items */}
+        <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          {filteredSubItems.length === 0 ? (
+            <div className="py-10 px-4 text-center">
               <p className="text-xs text-zinc-500">No items found</p>
             </div>
           ) : (
@@ -546,31 +475,31 @@ export function Sidebar() {
                   key={item.label}
                   href={item.href}
                   onClick={() => handleSubItemClick(item)}
-                  className={`flex items-center justify-between px-2.5 py-1.5 rounded text-xs transition group ${
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs transition group ${
                     isActive
-                      ? 'bg-[#222222] text-white font-medium border-l-2 border-white'
+                      ? 'bg-[#222222] text-white font-semibold border-l-2 border-white'
                       : 'text-zinc-400 hover:text-white hover:bg-[#1a1a1a]'
                   }`}
                 >
-                  <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex items-center gap-2.5 min-w-0">
                     <Icon
-                      className={`w-3.5 h-3.5 shrink-0 ${
+                      className={`w-4 h-4 shrink-0 ${
                         isActive ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'
                       }`}
                     />
-                    <span className="truncate text-xs">{item.label}</span>
+                    <span className="truncate text-xs font-medium">{item.label}</span>
                   </div>
 
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
                     {item.badge && (
-                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#202020] text-zinc-300 border border-[#2e2e2e]">
+                      <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[#202020] text-zinc-300 border border-[#2e2e2e]">
                         {item.badge}
                       </span>
                     )}
                     {item.isAction ? (
-                      <span className="text-[9px] font-mono text-zinc-500 uppercase">+new</span>
+                      <span className="text-[10px] font-mono text-zinc-400 uppercase font-bold">+new</span>
                     ) : (
-                      <Globe className="w-3 h-3 text-zinc-600 group-hover:text-zinc-400" />
+                      <Globe className="w-3.5 h-3.5 text-zinc-600 group-hover:text-zinc-400" />
                     )}
                   </div>
                 </Link>
@@ -580,12 +509,12 @@ export function Sidebar() {
         </div>
 
         {/* Bottom Footer Details */}
-        <div className="h-10 px-3 border-t border-[#202020] bg-[#111111] flex items-center justify-between text-[10px] text-zinc-500 font-mono">
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-white" />
-            <span>verified</span>
+        <div className="h-11 px-4 border-t border-[#242424] bg-[#111111] flex items-center justify-between text-xs text-zinc-500 font-mono">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-white" />
+            <span className="text-zinc-400">verified</span>
           </div>
-          <span className="text-zinc-500 truncate max-w-[90px]">
+          <span className="text-zinc-400 truncate max-w-[100px]">
             {user?.email?.split('@')[0]}
           </span>
         </div>
