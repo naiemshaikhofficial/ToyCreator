@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useBrand } from '@/context/BrandContext';
@@ -21,173 +21,298 @@ import {
   ShieldCheck,
   Building,
   Code,
+  Search,
+  X,
+  Globe,
+  Pin,
+  PinOff,
 } from 'lucide-react';
 
 import { canAccessRoute, hasPermission, ROLE_BADGES, BrandRole } from '@/lib/rbac';
 
 export const NAV_ITEMS = [
-  { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'My Products', href: '/dashboard/products', icon: Package },
-  { name: 'Orders & Sales', href: '/dashboard/orders', icon: ShoppingCart },
-  { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
-  { name: 'Earnings', href: '/dashboard/earnings', icon: Coins },
-  { name: 'Payouts', href: '/dashboard/payouts', icon: CreditCard },
-  { name: 'Licensing & Delivery', href: '/dashboard/licensing', icon: KeyRound },
-  { name: 'Developer Guide & API', href: '/dashboard/developers', icon: Code },
-  { name: 'Agreements & Documents', href: '/dashboard/documents', icon: FileText },
-  { name: 'Support', href: '/dashboard/support', icon: LifeBuoy },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { name: 'Overview', href: '/dashboard', icon: LayoutDashboard, badge: null },
+  { name: 'My Products', href: '/dashboard/products', icon: Package, badge: 'Live' },
+  { name: 'Orders & Sales', href: '/dashboard/orders', icon: ShoppingCart, badge: null },
+  { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3, badge: null },
+  { name: 'Earnings', href: '/dashboard/earnings', icon: Coins, badge: '70%' },
+  { name: 'Payouts', href: '/dashboard/payouts', icon: CreditCard, badge: null },
+  { name: 'Licensing & DRM', href: '/dashboard/licensing', icon: KeyRound, badge: null },
+  { name: 'Developer & API', href: '/dashboard/developers', icon: Code, badge: 'C++' },
+  { name: 'Agreements', href: '/dashboard/documents', icon: FileText, badge: null },
+  { name: 'Support Tickets', href: '/dashboard/support', icon: LifeBuoy, badge: '2' },
+  { name: 'Portal Settings', href: '/dashboard/settings', icon: Settings, badge: null },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const { brand, user, membership, signOut } = useBrand();
 
+  const [isHovered, setIsHovered] = useState(false);
+  const [isPinned, setIsPinned] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const currentRole = membership?.role as BrandRole | undefined;
   const filteredNavItems = NAV_ITEMS.filter((item) => canAccessRoute(currentRole, item.href));
   const canAddProduct = hasPermission(currentRole, 'canManageProducts');
   const roleBadge = currentRole ? ROLE_BADGES[currentRole] : null;
 
+  const handleMouseEnter = () => {
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+      leaveTimeoutRef.current = null;
+    }
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    leaveTimeoutRef.current = setTimeout(() => {
+      setIsHovered(false);
+    }, 150);
+  };
+
+  // Search filter for Tier 2
+  const searchedItems = useMemo(() => {
+    if (!searchQuery.trim()) return filteredNavItems;
+    return filteredNavItems.filter((i) =>
+      i.name.toLowerCase().includes(searchQuery.toLowerCase().trim())
+    );
+  }, [filteredNavItems, searchQuery]);
+
+  const isPanelVisible = isPinned || isHovered;
+
   return (
-    <aside className="hidden lg:flex w-64 flex-col fixed inset-y-0 left-0 bg-[#141414] border-r border-[#242424] z-30 select-none">
-      {/* Brand Header */}
-      <div className="h-18 px-5 flex items-center justify-between border-b border-[#242424]">
-        <Link href="/dashboard" className="flex items-center gap-3 group">
-          <picture className="flex-shrink-0">
-            <source srcSet="/logo.webp" type="image/webp" />
-            <img
-              src="/logo.png"
-              alt="Toy Creator Emblem"
-              className="w-9 h-9 object-contain filter drop-shadow-sm group-hover:scale-105 transition-transform"
-            />
-          </picture>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-sm tracking-tight text-white uppercase">
-                Toy Creator
-              </span>
-            </div>
-            <span className="text-[10px] font-semibold text-zinc-400 tracking-wider uppercase">
-              by ProducerToy
-            </span>
+    <aside
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={`hidden lg:flex relative shrink-0 min-h-screen sticky top-0 h-screen z-30 select-none transition-[width] duration-200 ease-out ${
+        isPinned ? 'w-[282px]' : 'w-[52px]'
+      }`}
+    >
+      {/* =========================================================================
+          TIER 1: Thin Icon Rail (~52px)
+         ========================================================================= */}
+      <div className="w-[52px] bg-[#101010] border-r border-[#202020] flex flex-col items-center justify-between py-3 shrink-0 h-full z-20">
+        {/* Top: Brand Emblem */}
+        <div className="flex flex-col items-center gap-4">
+          <Link
+            href="/dashboard"
+            title="Toy Creator"
+            className="w-8 h-8 flex items-center justify-center hover:opacity-80 transition"
+          >
+            <picture>
+              <source srcSet="/logo.webp" type="image/webp" />
+              <img
+                src="/logo.png"
+                alt="Toy Creator Emblem"
+                className="w-7 h-7 object-contain"
+              />
+            </picture>
+          </Link>
+
+          {/* Thin separator */}
+          <div className="w-5 h-px bg-[#242424]" />
+
+          {/* Rail Navigation Icons */}
+          <div className="flex flex-col items-center gap-1">
+            {filteredNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive =
+                item.href === '/dashboard'
+                  ? pathname === '/dashboard'
+                  : pathname.startsWith(item.href);
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  title={item.name}
+                  className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors relative group ${
+                    isActive
+                      ? 'bg-[#222222] text-white shadow-inner'
+                      : 'text-zinc-400 hover:text-white hover:bg-[#1a1a1a]'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {isActive && (
+                    <span className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-1 h-4 bg-white rounded-r-full" />
+                  )}
+
+                  {/* Tooltip on Hover when panel is closed */}
+                  {!isPanelVisible && (
+                    <span className="absolute left-12 px-2 py-1 bg-[#181818] text-white text-[11px] font-medium rounded shadow-lg border border-[#2a2a2a] whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
+                      {item.name}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
           </div>
-        </Link>
+        </div>
+
+        {/* Bottom Rail Actions */}
+        <div className="flex flex-col items-center gap-1.5">
+          {/* External Store Link */}
+          <a
+            href="https://producertoy.com"
+            target="_blank"
+            rel="noreferrer"
+            title="Open ProducerToy Store"
+            className="w-9 h-9 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[#1a1a1a] transition relative group"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            {!isPanelVisible && (
+              <span className="absolute left-12 px-2 py-1 bg-[#181818] text-white text-[11px] rounded shadow-lg border border-[#2a2a2a] whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
+                producertoy.com
+              </span>
+            )}
+          </a>
+
+          {/* Pin/Unpin Toggle */}
+          <button
+            onClick={() => setIsPinned(!isPinned)}
+            title={isPinned ? 'Unpin Panel (Hover to Open)' : 'Pin Panel Open'}
+            className={`w-9 h-9 rounded-lg flex items-center justify-center transition ${
+              isPinned
+                ? 'bg-white text-black font-semibold shadow-sm'
+                : 'text-zinc-400 hover:text-white hover:bg-[#1a1a1a]'
+            }`}
+          >
+            {isPinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
+          </button>
+
+          {/* Sign Out */}
+          <button
+            onClick={() => signOut()}
+            title="Sign Out"
+            className="w-9 h-9 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[#1a1a1a] transition"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
-      {/* Active Brand Card Badge */}
-      <div className="px-4 py-3 border-b border-[#202020] bg-[#161616]/70">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/60 flex items-center justify-center text-zinc-300 flex-shrink-0">
-              <Building className="w-3.5 h-3.5" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-semibold text-white truncate leading-tight">
-                {brand?.name || 'Producer Toy'}
-              </p>
-              <div className="flex items-center gap-1 text-[10px] text-zinc-400 font-medium">
-                <ShieldCheck className="w-2.5 h-2.5 text-zinc-300" />
-                <span>Verified Brand</span>
-              </div>
-            </div>
+      {/* =========================================================================
+          TIER 2: Sub-Panel (~230px) - Opens on Hover, Closes on Leave (or Pinned)
+         ========================================================================= */}
+      <div
+        className={`w-56 bg-[#141414] border-r border-[#222222] flex flex-col shrink-0 h-screen overflow-hidden transition-all duration-200 ease-out ${
+          isPinned
+            ? 'relative opacity-100 translate-x-0'
+            : isHovered
+            ? 'absolute left-[52px] top-0 bottom-0 z-30 shadow-[10px_0_30px_rgba(0,0,0,0.7)] opacity-100 translate-x-0'
+            : 'absolute left-[52px] top-0 bottom-0 z-30 opacity-0 -translate-x-3 pointer-events-none'
+        }`}
+      >
+        {/* Header Title & Active Brand */}
+        <div className="h-12 px-3 flex items-center justify-between border-b border-[#202020] bg-[#121212]">
+          <div className="flex items-center gap-2 min-w-0">
+            <Building className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+            <span className="text-xs font-semibold text-white truncate">
+              {brand?.name || 'Producer Toy'}
+            </span>
           </div>
           {canAddProduct && (
             <Link
               href="/dashboard/products/new"
-              title="Create New Product"
-              className="w-6 h-6 rounded-md bg-[#262626] hover:bg-[#34363d] text-zinc-300 hover:text-white flex items-center justify-center transition-colors border border-white/5"
+              title="Create Product"
+              className="w-6 h-6 rounded bg-[#222222] hover:bg-[#2c2c2c] text-zinc-300 hover:text-white flex items-center justify-center transition border border-white/5 shrink-0"
             >
               <Plus className="w-3.5 h-3.5" />
             </Link>
           )}
         </div>
 
-        {/* Current Role Badge */}
-        {roleBadge && (
-          <div className="mt-2.5 pt-2 border-t border-zinc-800/60 flex items-center justify-between">
-            <span className="text-[10px] text-zinc-500 font-medium">Role:</span>
-            <span
-              className={`text-[9px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${roleBadge.badgeClass}`}
-            >
+        {/* Quick Scope / Role Tag */}
+        <div className="px-3 py-2 border-b border-[#202020] bg-[#141414] flex items-center justify-between text-[10px] font-mono">
+          <span className="text-zinc-500">scope brand</span>
+          {roleBadge && (
+            <span className={`px-1.5 py-0.2 rounded border uppercase font-medium ${roleBadge.badgeClass}`}>
               {roleBadge.label}
             </span>
+          )}
+        </div>
+
+        {/* Search Box */}
+        <div className="p-2.5 border-b border-[#202020]">
+          <div className="relative flex items-center">
+            <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search modules..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-[#181818] border border-[#282828] focus:border-zinc-500 rounded px-2.5 pl-8 pr-7 py-1 text-xs text-white placeholder-zinc-500 outline-none transition font-mono"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 text-zinc-400 hover:text-white p-0.5"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* Nav Menu (Role Filtered) */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {filteredNavItems.map((item) => {
-          const Icon = item.icon;
-          const isActive =
-            item.href === '/dashboard'
-              ? pathname === '/dashboard'
-              : pathname.startsWith(item.href);
+        {/* Scrollable Nav Items */}
+        <div className="flex-1 overflow-y-auto p-1.5 space-y-0.5">
+          {searchedItems.length === 0 ? (
+            <div className="py-8 px-3 text-center">
+              <p className="text-xs text-zinc-500">No modules found</p>
+            </div>
+          ) : (
+            searchedItems.map((item) => {
+              const Icon = item.icon;
+              const isActive =
+                item.href === '/dashboard'
+                  ? pathname === '/dashboard'
+                  : pathname.startsWith(item.href);
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all group ${
-                isActive
-                  ? 'bg-[#222222] text-white font-semibold border border-white/10 shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#1a1a1a]'
-              }`}
-            >
-              <Icon
-                className={`w-4 h-4 transition-colors ${
-                  isActive ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'
-                }`}
-              />
-              <span className="flex-1">{item.name}</span>
-              {isActive && (
-                <div className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]" />
-              )}
-            </Link>
-          );
-        })}
-      </nav>
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center justify-between px-2.5 py-1.5 rounded text-xs transition group ${
+                    isActive
+                      ? 'bg-[#222222] text-white font-medium border-l-2 border-white'
+                      : 'text-zinc-400 hover:text-white hover:bg-[#1a1a1a]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Icon
+                      className={`w-3.5 h-3.5 shrink-0 ${
+                        isActive ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'
+                      }`}
+                    />
+                    <span className="truncate text-xs">{item.name}</span>
+                  </div>
 
-      {/* Bottom Profile & Actions */}
-      <div className="p-3 border-t border-[#242424] space-y-2 bg-[#121212]">
-        <Link
-          href="https://producertoy.com"
-          target="_blank"
-          rel="noreferrer"
-          className="flex items-center justify-between px-3 py-2 rounded-lg text-xs text-zinc-400 hover:text-white hover:bg-[#1a1a1a] transition-colors"
-        >
-          <span className="flex items-center gap-2">
-            <ExternalLink className="w-3.5 h-3.5 text-zinc-500" />
-            Marketplace Store
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {item.badge && (
+                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#202020] text-zinc-300 border border-[#2e2e2e]">
+                        {item.badge}
+                      </span>
+                    )}
+                    <Globe className="w-3 h-3 text-zinc-600 group-hover:text-zinc-400" />
+                  </div>
+                </Link>
+              );
+            })
+          )}
+        </div>
+
+        {/* Bottom Footer Info */}
+        <div className="h-10 px-3 border-t border-[#202020] bg-[#111111] flex items-center justify-between text-[10px] text-zinc-500 font-mono">
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-white" />
+            <span>verified</span>
+          </div>
+          <span className="text-zinc-500 truncate max-w-[90px]">
+            {user?.email?.split('@')[0]}
           </span>
-          <span className="text-[10px] text-zinc-400 font-mono">producertoy.com</span>
-        </Link>
-
-        <div className="flex items-center justify-between pt-2 border-t border-[#202020] px-1">
-          <Link
-            href="/dashboard/profile"
-            className="flex items-center gap-2 min-w-0 group"
-          >
-            <div className="w-7 h-7 rounded-full bg-[#2a2a2a] border border-white/10 flex items-center justify-center text-xs font-bold text-white uppercase flex-shrink-0">
-              {brand?.name ? brand.name[0] : user?.email ? user.email[0] : 'C'}
-            </div>
-            <div className="min-w-0 text-left">
-              <p className="text-xs font-medium text-white truncate group-hover:text-zinc-300 transition-colors">
-                {user?.email?.split('@')[0] || 'Creator'}
-              </p>
-              <p className="text-[10px] text-zinc-400 truncate capitalize">
-                {membership?.role || 'Brand Owner'}
-              </p>
-            </div>
-          </Link>
-
-          <button
-            onClick={() => signOut()}
-            title="Sign Out"
-            className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
         </div>
       </div>
     </aside>
