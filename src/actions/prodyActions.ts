@@ -394,3 +394,228 @@ Return strictly valid JSON with this format:
     return { success: false, error: err.message || 'Error brainstorming ideas.' };
   }
 }
+
+export interface ProdyChatMessage {
+  sender: 'user' | 'assistant';
+  content: string;
+}
+
+/**
+ * Server Action: Interactive Studio Chatbot with Prody
+ * Listens to creator, asks targeted questions, and generates full SEO listings on demand.
+ */
+export async function prodyChatAction(params: {
+  messages: ProdyChatMessage[];
+  brandName?: string;
+}): Promise<{
+  success: boolean;
+  content: string;
+  product?: ProdyGeneratedProduct | null;
+  error?: string;
+}> {
+  const { messages, brandName = 'Producer Toy' } = params;
+  const apiKey = getApiKey();
+  if (!apiKey) return { success: false, content: '', error: 'Prody AI engine is not configured.' };
+
+  if (!messages || messages.length === 0) {
+    return { success: false, content: 'Please provide a message for Prody.' };
+  }
+
+  try {
+    const { categories, subcategories } = await getCatalogCategories();
+
+    const categoryNames = categories.map((c) => `${c.name} (slug: ${c.slug})`).join(', ');
+    const subcategoryNames = subcategories.map((s) => `${s.name}`).join(', ');
+
+    const systemPrompt = `You are Prody, the official AI Audio Product Architect & Google SEO Master at Producer Toy (producertoy.com).
+Your mascot is the iconic Producer Toy studio bear wearing headphones with a mic.
+You converse with music producers and audio brand creators in friendly, razor-sharp, studio-smart English/Hinglish.
+
+MISSION:
+Help the creator refine their concept into a best-selling, #1 Google-ranking audio release.
+
+BEHAVIOR:
+1. Listen carefully first. If they give a brief or rough idea, acknowledge its creative potential, and ask 1 or 2 targeted questions (e.g. key DSP features, sound inspiration, or target genre).
+2. If the user provides a detailed concept, or asks to "generate", "build", "create", or "make listing":
+   - Provide an energetic, high-value studio assessment explaining why this product will convert and rank high on search engines.
+   - At the bottom of your reply, ALWAYS include a strictly valid JSON block enclosed in \`\`\`json ... \`\`\` containing the complete, ready-to-publish SEO product listing.
+
+TAXONOMY:
+- Categories: ${categoryNames}
+- Subcategories: ${subcategoryNames}
+- Curated Genres (Use Title Case): Hip Hop, Trap, Drill, Bollywood, Lo-Fi, EDM, Pop, Cinematic, R&B, Rock, Acoustic, Ambient
+
+SCHEMA FOR JSON BLOCK (inside \`\`\`json ... \`\`\`):
+{
+  "name": "string (Catchy, commercial, high-intent title)",
+  "slug": "string (clean-url-slug)",
+  "category_slug": "plugin" | "sample-pack",
+  "subcategory_name": "string",
+  "category_slugs": ["Genre1", "Genre2", "Genre3", "Genre4"],
+  "price_usd": number,
+  "original_price_usd": number,
+  "short_description": "string (140-160 char high-CTR Google meta description packed with keywords)",
+  "full_description": "string (Rich, structured Markdown with H3 hook, Why Producers Need This, Key Features & DSP Highlights, Technical Specifications)",
+  "version": "1.0.0",
+  "release_year": "2025",
+  "license_type": "Royalty-Free Commercial",
+  "vst_format": "VST3, AU, AAX (64-bit)",
+  "operating_system": "macOS (Apple Silicon & Intel), Windows 10/11",
+  "supported_daws": "Ableton Live, FL Studio, Logic Pro, Pro Tools, Studio One, Reaper, Cubase",
+  "license_delivery_type": "pool" | "direct_download"
+}`;
+
+    const conversationPayload = [
+      { role: 'system', content: systemPrompt },
+      ...messages.slice(-10).map((m) => ({
+        role: m.sender === 'user' ? 'user' : 'assistant',
+        content: m.content,
+      })),
+    ];
+
+    const modelsToTry = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b'];
+    let rawReply = '';
+
+    for (const model of modelsToTry) {
+      try {
+        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model,
+            messages: conversationPayload,
+            temperature: 0.45,
+            max_tokens: 1800,
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          rawReply = data.choices?.[0]?.message?.content || '';
+          if (rawReply) break;
+        }
+      } catch (e) {
+        console.warn(`[Prody Chat] Model ${model} failed, trying fallback...`, e);
+      }
+    }
+
+    if (!rawReply) {
+      return {
+        success: false,
+        content: 'Prody is currently busy at the mixing desk. Please send your message again!',
+      };
+    }
+
+    // Check if reply contains a JSON block
+    let product: ProdyGeneratedProduct | null = null;
+    let cleanText = rawReply;
+
+    const jsonMatch = rawReply.match(/```json\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      try {
+        const jsonContent = JSON.parse(jsonMatch[1]);
+        cleanText = rawReply.replace(/```json[\s\S]*?```/, '').trim();
+
+        // Detect category override
+        const allText = `${messages.map((m) => m.content).join(' ')} ${rawReply}`.toLowerCase();
+        const hasPluginKeywords =
+          allText.includes('plugin') ||
+          allText.includes('vst') ||
+          allText.includes('reverb') ||
+          allText.includes('synth') ||
+          allText.includes('delay') ||
+          allText.includes('compressor') ||
+          allText.includes('dsp') ||
+          allText.includes('audio effect');
+
+        const isPlugin = jsonContent.category_slug === 'plugin' || hasPluginKeywords;
+        const finalCategorySlug = isPlugin ? 'plugin' : 'sample-pack';
+        const matchedCat = categories.find((c) => c.slug === finalCategorySlug) || categories[0];
+
+        // Subcategory match
+        const returnedSub = (jsonContent.subcategory_name || '').toLowerCase();
+        let matchedSub = subcategories.find(
+          (s) =>
+            s.category_id === matchedCat?.id &&
+            (s.name.toLowerCase() === returnedSub || s.slug === returnedSub.replace(/[^a-z0-9]+/g, '-'))
+        );
+
+        if (!matchedSub && matchedCat) {
+          matchedSub = subcategories.find(
+            (s) => s.category_id === matchedCat.id && allText.includes(s.name.toLowerCase())
+          );
+        }
+
+        // Validate curated genres
+        const VALID_GENRES = [
+          'Hip Hop',
+          'Trap',
+          'Drill',
+          'Bollywood',
+          'Lo-Fi',
+          'EDM',
+          'Pop',
+          'Cinematic',
+          'R&B',
+          'Rock',
+          'Acoustic',
+          'Ambient',
+        ];
+
+        const rawGenres = Array.isArray(jsonContent.category_slugs) ? jsonContent.category_slugs : [];
+        const sanitizedGenres: string[] = [];
+        for (const g of rawGenres) {
+          const normalized = String(g).toLowerCase().replace(/[-_]+/g, ' ').trim();
+          const match = VALID_GENRES.find((vg) => vg.toLowerCase() === normalized);
+          if (match && !sanitizedGenres.includes(match)) {
+            sanitizedGenres.push(match);
+          }
+        }
+        if (sanitizedGenres.length === 0) {
+          sanitizedGenres.push('Hip Hop', 'Trap', 'Pop', 'EDM');
+        }
+
+        product = {
+          name: jsonContent.name || 'Untitled Audio Product',
+          slug: (jsonContent.slug || jsonContent.name || 'audio-product')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)+/g, ''),
+          category_id: matchedCat?.id || null,
+          category_slug: finalCategorySlug,
+          subcategory_id: matchedSub?.id || null,
+          subcategory_name: matchedSub?.name || jsonContent.subcategory_name || null,
+          category_slugs: sanitizedGenres,
+          price_usd: Number(jsonContent.price_usd) || (isPlugin ? 49.0 : 29.0),
+          original_price_usd: jsonContent.original_price_usd ? Number(jsonContent.original_price_usd) : (isPlugin ? 89.0 : 49.0),
+          short_description: jsonContent.short_description || '',
+          full_description: jsonContent.full_description || '',
+          version: jsonContent.version || '1.0.0',
+          release_year: jsonContent.release_year || new Date().getFullYear().toString(),
+          license_type: jsonContent.license_type || 'Royalty-Free Commercial',
+          vst_format: isPlugin ? (jsonContent.vst_format || 'VST3, AU, AAX (64-bit)') : null,
+          operating_system: isPlugin ? (jsonContent.operating_system || 'macOS (Apple Silicon & Intel), Windows 10/11') : 'Any OS (macOS, Windows, Linux, iOS, Android)',
+          supported_daws: jsonContent.supported_daws || 'Ableton Live, FL Studio, Logic Pro, Pro Tools, Studio One, Reaper, Cubase',
+          license_delivery_type: isPlugin ? 'pool' : 'direct_download',
+        };
+      } catch (parseErr) {
+        console.warn('[Prody Chat] Could not parse embedded JSON:', parseErr);
+      }
+    }
+
+    return {
+      success: true,
+      content: cleanText,
+      product,
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      content: '',
+      error: err.message || 'Error processing chat message with Prody.',
+    };
+  }
+}
