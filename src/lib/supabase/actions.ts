@@ -497,3 +497,28 @@ export async function escalateDeveloperTicketToTeam({
   if (msgErr) throw msgErr;
   return data;
 }
+
+/**
+ * Fetch marketplace categories and subcategories for product cataloging
+ */
+export async function getCatalogCategories(): Promise<{
+  categories: Array<{ id: string; name: string; slug: string }>;
+  subcategories: Array<{ id: string; category_id: string; name: string; slug: string }>;
+}> {
+  try {
+    const supabase = getSupabaseBrowserClient();
+    const [{ data: cats }, { data: subs }] = await Promise.all([
+      supabase.from('categories').select('id, name, slug').order('name'),
+      supabase.from('subcategories').select('id, category_id, name, slug, sort_order').order('sort_order', { ascending: true }),
+    ]);
+
+    return {
+      categories: cats || [],
+      subcategories: subs || [],
+    };
+  } catch (err) {
+    console.error('Error loading catalog categories:', err);
+    return { categories: [], subcategories: [] };
+  }
+}
+

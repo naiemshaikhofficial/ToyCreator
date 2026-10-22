@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useBrand } from '@/context/BrandContext';
-import { createBrandProduct } from '@/lib/supabase/actions';
+import { createBrandProduct, getCatalogCategories } from '@/lib/supabase/actions';
 import {
   ArrowLeft,
   Package,
@@ -26,9 +26,29 @@ import {
   ChevronLeft,
   CheckCircle2,
   Info,
+  Tag,
+  Music,
+  Sparkles,
+  Check,
+  X,
 } from 'lucide-react';
 import DualAssetUploadInput from '@/components/DualAssetUploadInput';
 import { RoleGate } from '@/components/RoleGate';
+
+const PRESET_GENRES = [
+  'Hip Hop',
+  'Trap',
+  'Drill',
+  'Bollywood',
+  'Lo-Fi',
+  'EDM',
+  'Pop',
+  'Cinematic',
+  'R&B',
+  'Rock',
+  'Acoustic',
+  'Ambient',
+];
 
 function FormLabel({
   label,
@@ -73,31 +93,111 @@ export default function NewProductPage() {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [productType, setProductType] = useState('plugin');
+
+  // Dynamic Catalog Categories, Subcategories & Genres
+  const [categoriesList, setCategoriesList] = useState<any[]>([]);
+  const [subcategoriesList, setSubcategoriesList] = useState<any[]>([]);
+  const [categoryId, setCategoryId] = useState('');
+  const [subcategoryId, setSubcategoryId] = useState('');
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [customGenre, setCustomGenre] = useState('');
+
+  // Pricing & Descriptions
   const [priceUsd, setPriceUsd] = useState('29.00');
   const [originalPriceUsd, setOriginalPriceUsd] = useState('49.00');
   const [shortDesc, setShortDesc] = useState('');
   const [fullDesc, setFullDesc] = useState('');
+
+  // Media
   const [coverImage, setCoverImage] = useState('');
   const [demoAudioUrl, setDemoAudioUrl] = useState('');
+  const [youtubeUrl, setYoutubeUrl] = useState('');
+
+  // Files & Downloads
   const [downloadUrl, setDownloadUrl] = useState('');
   const [downloadUrlWin, setDownloadUrlWin] = useState('');
   const [downloadUrlMac, setDownloadUrlMac] = useState('');
-  const [youtubeUrl, setYoutubeUrl] = useState('');
   const [fileSize, setFileSize] = useState('');
+
+  // Release Info & Specs
   const [version, setVersion] = useState('1.0.0');
+  const [releaseYear, setReleaseYear] = useState(new Date().getFullYear().toString());
+  const [releaseDate, setReleaseDate] = useState(new Date().toISOString().split('T')[0]);
+  const [publisher, setPublisher] = useState(brand?.name || 'Producer Toy');
+  const [licenseType, setLicenseType] = useState('Royalty-Free Commercial');
   const [changelog, setChangelog] = useState('');
   const [vstFormat, setVstFormat] = useState('VST3, AU, AAX (64-bit)');
   const [operatingSystem, setOperatingSystem] = useState('macOS (Apple Silicon & Intel), Windows 10/11');
   const [supportedDaws, setSupportedDaws] = useState('Ableton Live, FL Studio, Logic Pro, Pro Tools, Studio One, Reaper, Cubase');
   const [pluginIdentifier, setPluginIdentifier] = useState('');
+
+  // Licensing & Machine Seats
   const [maxSeats, setMaxSeats] = useState(3);
   const [offlineGraceDays, setOfflineGraceDays] = useState(14);
+  const [licenseDeliveryType, setLicenseDeliveryType] = useState<'pool' | 'direct_download'>('pool');
+
+  // Visibility & Referral
   const [isActive, setIsActive] = useState(true);
+  const [isFeatured, setIsFeatured] = useState(false);
+  const [isComingSoon, setIsComingSoon] = useState(false);
   const [externalUrl, setExternalUrl] = useState('');
   const [buttonText, setButtonText] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Load catalog categories & subcategories from Supabase
+  useEffect(() => {
+    async function loadCatalog() {
+      const { categories, subcategories } = await getCatalogCategories();
+      setCategoriesList(categories);
+      setSubcategoriesList(subcategories);
+
+      const defaultCat = categories.find((c) => c.slug === 'plugin') || categories[0];
+      if (defaultCat) {
+        setCategoryId(defaultCat.id);
+      }
+    }
+    loadCatalog();
+  }, []);
+
+  useEffect(() => {
+    if (brand?.name && (!publisher || publisher === 'Producer Toy')) {
+      setPublisher(brand.name);
+    }
+  }, [brand?.name]);
+
+  const handleCategorySelect = (catId: string) => {
+    setCategoryId(catId);
+    setSubcategoryId('');
+    const cat = categoriesList.find((c) => c.id === catId);
+    if (cat?.slug === 'sample-pack') {
+      setProductType('sample_pack');
+      setLicenseDeliveryType('direct_download');
+    } else if (cat?.slug === 'plugin') {
+      setProductType('plugin');
+      setLicenseDeliveryType('pool');
+    }
+  };
+
+  const toggleGenre = (genre: string) => {
+    setSelectedGenres((prev) =>
+      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre]
+    );
+  };
+
+  const handleAddCustomGenre = () => {
+    const trimmed = customGenre.trim();
+    if (!trimmed) return;
+    if (!selectedGenres.includes(trimmed)) {
+      setSelectedGenres((prev) => [...prev, trimmed]);
+    }
+    setCustomGenre('');
+  };
+
+  const handleRemoveGenre = (genre: string) => {
+    setSelectedGenres((prev) => prev.filter((g) => g !== genre));
+  };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -134,6 +234,9 @@ export default function NewProductPage() {
         slug: slug.trim(),
         brand_id: brand.id,
         product_type: productType,
+        category_id: categoryId || null,
+        subcategory_id: subcategoryId || null,
+        category_slugs: selectedGenres.length > 0 ? selectedGenres : null,
         price_usd: parseFloat(priceUsd) || 0,
         original_price_usd: originalPriceUsd ? parseFloat(originalPriceUsd) : null,
         external_url: externalUrl.trim() || null,
@@ -148,6 +251,11 @@ export default function NewProductPage() {
         youtube_url: youtubeUrl.trim() || null,
         file_size: fileSize.trim() || null,
         version: version.trim() || '1.0.0',
+        release_year: releaseYear.trim() || null,
+        release_date: releaseDate.trim() || null,
+        publisher: publisher.trim() || brand.name || null,
+        license_type: licenseType.trim() || null,
+        license_delivery_type: licenseDeliveryType,
         changelog: changelog.trim() || null,
         vst_format: productType === 'plugin' ? vstFormat.trim() : null,
         operating_system: operatingSystem.trim() || null,
@@ -155,9 +263,10 @@ export default function NewProductPage() {
         plugin_identifier: productType === 'plugin' && pluginIdentifier ? pluginIdentifier.trim() : null,
         max_activation_seats: productType === 'plugin' ? Number(maxSeats) : 1,
         offline_grace_days: productType === 'plugin' ? Number(offlineGraceDays) : 14,
-        delivery_method: productType === 'sample_pack' || productType === 'preset' ? 'direct_download' : 'serial_key',
+        delivery_method: licenseDeliveryType === 'direct_download' ? 'direct_download' : 'serial_key',
         is_active: isActive,
-        is_featured: false,
+        is_featured: isFeatured,
+        is_coming_soon: isComingSoon,
       };
 
       const created = await createBrandProduct(payload);
@@ -311,32 +420,147 @@ export default function NewProductPage() {
               </div>
             </div>
 
-            <div>
-              <FormLabel
-                label="Product Category"
-                info="Determines marketplace layout and licensing features"
-              />
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  { id: 'plugin', label: 'Audio Plugin (VST)' },
-                  { id: 'sample_pack', label: 'Sample Library' },
-                  { id: 'preset', label: 'Synth Presets' },
-                  { id: 'template', label: 'DAW Template' },
-                ].map((type) => (
-                  <button
-                    key={type.id}
-                    type="button"
-                    onClick={() => setProductType(type.id)}
-                    className={`p-3 rounded-xl border text-xs font-semibold transition-all text-center ${
-                      productType === type.id
-                        ? 'bg-[#222222] border-white text-white'
-                        : 'bg-[#121212] border-[#2a2a2a] text-zinc-400 hover:text-white'
-                    }`}
-                  >
-                    {type.label}
-                  </button>
-                ))}
+            {/* Category & Subcategory Selection */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <FormLabel
+                  label="Category *"
+                  info="Choose the primary marketplace category for your product"
+                  icon={Package}
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  {(categoriesList.length > 0 ? categoriesList : [
+                    { id: '67acb330-6687-4a5b-bfb7-2bbf911c0967', name: 'Audio Plugin', slug: 'plugin' },
+                    { id: 'a3333333-3333-3333-3333-333333333333', name: 'Sample Pack', slug: 'sample-pack' },
+                  ]).map((cat) => {
+                    const isSelected = categoryId === cat.id || (productType === 'sample_pack' ? cat.slug === 'sample-pack' : cat.slug === 'plugin');
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => handleCategorySelect(cat.id)}
+                        className={`p-3 rounded-xl border text-xs font-semibold transition-all text-center flex items-center justify-center gap-1.5 ${
+                          isSelected
+                            ? 'bg-[#222222] border-white text-white shadow-sm'
+                            : 'bg-[#121212] border-[#2a2a2a] text-zinc-400 hover:text-white hover:bg-[#181818]'
+                        }`}
+                      >
+                        {isSelected && <Check className="w-3.5 h-3.5 text-white flex-shrink-0" />}
+                        <span>{cat.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
+
+              <div>
+                <FormLabel
+                  label="Subcategory"
+                  info="Specific audio instrument, effect, or pack style"
+                  icon={Tag}
+                />
+                <select
+                  value={subcategoryId}
+                  onChange={(e) => setSubcategoryId(e.target.value)}
+                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                >
+                  <option value="">Select a subcategory (optional)</option>
+                  {subcategoriesList
+                    .filter((s) => !categoryId || s.category_id === categoryId)
+                    .map((sub) => (
+                      <option key={sub.id} value={sub.id}>
+                        {sub.name}
+                      </option>
+                    ))}
+                </select>
+                <p className="text-[10px] text-zinc-500 mt-1">
+                  Helps music producers filter and find your product quickly
+                </p>
+              </div>
+            </div>
+
+            {/* Genres & Musical Style Tags */}
+            <div className="space-y-2 p-3.5 rounded-xl bg-[#141414] border border-[#242424]">
+              <div className="flex items-center justify-between">
+                <FormLabel
+                  label="Genre & Musical Style"
+                  info="Select all applicable genres or add custom styles (saved in product tags)"
+                  icon={Music}
+                />
+                <span className="text-[10px] font-mono text-zinc-400">
+                  {selectedGenres.length} selected
+                </span>
+              </div>
+
+              {/* Genre Pills */}
+              <div className="flex flex-wrap gap-1.5">
+                {PRESET_GENRES.map((genre) => {
+                  const isSelected = selectedGenres.includes(genre);
+                  return (
+                    <button
+                      key={genre}
+                      type="button"
+                      onClick={() => toggleGenre(genre)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all flex items-center gap-1 ${
+                        isSelected
+                          ? 'bg-white text-black font-semibold shadow-sm'
+                          : 'bg-[#181818] border border-[#2a2a2a] text-zinc-400 hover:text-white hover:bg-[#202020]'
+                      }`}
+                    >
+                      {isSelected ? <Check className="w-3 h-3" /> : <Plus className="w-3 h-3 text-zinc-500" />}
+                      <span>{genre}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Custom Genre Input */}
+              <div className="flex gap-2 pt-1.5">
+                <input
+                  type="text"
+                  placeholder="Type a custom genre (e.g. Afrobeats, Synthwave, Techno)..."
+                  value={customGenre}
+                  onChange={(e) => setCustomGenre(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddCustomGenre();
+                    }
+                  }}
+                  className="flex-1 bg-[#121212] border border-[#2e2e2e] rounded-xl px-3 py-1.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddCustomGenre}
+                  disabled={!customGenre.trim()}
+                  className="btn-secondary px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 disabled:opacity-40"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Tag</span>
+                </button>
+              </div>
+
+              {/* Active Selected Tags Display */}
+              {selectedGenres.length > 0 && (
+                <div className="flex flex-wrap gap-1 pt-1">
+                  {selectedGenres.map((g) => (
+                    <span
+                      key={g}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#222222] border border-[#333333] text-[10px] text-zinc-200 font-mono"
+                    >
+                      <span>{g}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveGenre(g)}
+                        className="text-zinc-500 hover:text-white"
+                        title="Remove tag"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -642,6 +866,54 @@ export default function NewProductPage() {
                   />
                 </div>
               </div>
+
+              {/* Release Metadata */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-[#262626]">
+                <div>
+                  <FormLabel
+                    label="Release Year"
+                    info="Year published in the catalog"
+                  />
+                  <input
+                    type="text"
+                    placeholder="2025"
+                    value={releaseYear}
+                    onChange={(e) => setReleaseYear(e.target.value)}
+                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <FormLabel
+                    label="Publisher / Label"
+                    info="Publisher or brand name shown on the storefront"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Brand name"
+                    value={publisher}
+                    onChange={(e) => setPublisher(e.target.value)}
+                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <FormLabel
+                    label="License Terms"
+                    info="License terms granted to buyer"
+                  />
+                  <select
+                    value={licenseType}
+                    onChange={(e) => setLicenseType(e.target.value)}
+                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                  >
+                    <option value="Royalty-Free Commercial">Royalty-Free Commercial</option>
+                    <option value="Single User Perpetual">Single User Perpetual</option>
+                    <option value="Multi-Seat Studio License">Multi-Seat Studio License</option>
+                    <option value="Educational / Non-Commercial">Educational / Non-Commercial</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -653,10 +925,50 @@ export default function NewProductPage() {
               <div className="flex items-center gap-2">
                 <Key className="w-4 h-4 text-zinc-300" />
                 <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-                  Licensing & Machine Seats
+                  Licensing & Delivery Method
                 </h2>
               </div>
               <span className="font-mono text-[10px] text-zinc-400">Step 4 of 5</span>
+            </div>
+
+            {/* Delivery Method Choice */}
+            <div className="space-y-2 p-3.5 rounded-xl bg-[#141414] border border-[#242424]">
+              <FormLabel
+                label="Delivery & Key Method"
+                info="Choose how buyers receive their purchase"
+                icon={Key}
+              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setLicenseDeliveryType('pool')}
+                  className={`p-3 rounded-xl border text-xs text-left transition-all ${
+                    licenseDeliveryType === 'pool'
+                      ? 'bg-[#222222] border-white text-white'
+                      : 'bg-[#121212] border-[#2a2a2a] text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  <p className="font-semibold text-white">Serial Key License</p>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                    Issues a unique cryptographic key from your serial pool upon purchase
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setLicenseDeliveryType('direct_download')}
+                  className={`p-3 rounded-xl border text-xs text-left transition-all ${
+                    licenseDeliveryType === 'direct_download'
+                      ? 'bg-[#222222] border-white text-white'
+                      : 'bg-[#121212] border-[#2a2a2a] text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  <p className="font-semibold text-white">Direct Download Only</p>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                    Instant file download links without requiring machine key authorization
+                  </p>
+                </button>
+              </div>
             </div>
 
             {productType === 'plugin' ? (
@@ -746,24 +1058,61 @@ export default function NewProductPage() {
               <span className="font-mono text-[10px] text-zinc-400">Step 5 of 5</span>
             </div>
 
-            {/* Visibility Toggle */}
-            <div className="bg-[#121212] border border-[#2a2a2a] p-4 rounded-xl flex items-center justify-between">
-              <div>
-                <span className="text-xs font-bold text-white block">
-                  Catalog Status: {isActive ? 'Live Immediately' : 'Save as Draft'}
-                </span>
-                <p className="text-[11px] text-zinc-400 mt-0.5">
-                  Publish to the ProducerToy marketplace catalog upon creation
-                </p>
+            {/* Visibility Toggles */}
+            <div className="space-y-3">
+              <div className="bg-[#121212] border border-[#2a2a2a] p-4 rounded-xl flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold text-white block">
+                    Catalog Status: {isActive ? 'Live on Storefront' : 'Draft (Hidden)'}
+                  </span>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                    Make this product public and available for purchase immediately
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  id="isActiveCreate"
+                  checked={isActive}
+                  onChange={(e) => setIsActive(e.target.checked)}
+                  className="w-5 h-5 rounded bg-[#181818] border-[#34363d] text-white focus:ring-zinc-600 cursor-pointer"
+                />
               </div>
 
-              <input
-                type="checkbox"
-                id="isActiveCreate"
-                checked={isActive}
-                onChange={(e) => setIsActive(e.target.checked)}
-                className="w-5 h-5 rounded bg-[#181818] border-[#34363d] text-[#34363d] focus:ring-zinc-600 cursor-pointer"
-              />
+              <div className="bg-[#121212] border border-[#2a2a2a] p-4 rounded-xl flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold text-white block">
+                    Featured Product
+                  </span>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                    Highlight in featured storefront carousels and top recommendations
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  id="isFeaturedCreate"
+                  checked={isFeatured}
+                  onChange={(e) => setIsFeatured(e.target.checked)}
+                  className="w-5 h-5 rounded bg-[#181818] border-[#34363d] text-white focus:ring-zinc-600 cursor-pointer"
+                />
+              </div>
+
+              <div className="bg-[#121212] border border-[#2a2a2a] p-4 rounded-xl flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold text-white block">
+                    Coming Soon Badge
+                  </span>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                    Display pre-launch teaser badge for upcoming sound packs or plugins
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  id="isComingSoonCreate"
+                  checked={isComingSoon}
+                  onChange={(e) => setIsComingSoon(e.target.checked)}
+                  className="w-5 h-5 rounded bg-[#181818] border-[#34363d] text-white focus:ring-zinc-600 cursor-pointer"
+                />
+              </div>
             </div>
 
             {/* Summary Box */}
