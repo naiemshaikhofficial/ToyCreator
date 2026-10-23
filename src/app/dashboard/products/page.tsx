@@ -246,7 +246,7 @@ function ProductsListInner() {
                           {p.is_active ? 'Active' : 'Draft'}
                         </button>
                         {!p.download_url && !p.download_url_win && !p.download_url_mac && !p.external_url && (
-                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 whitespace-nowrap">
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#ff4053] text-black whitespace-nowrap uppercase tracking-wider">
                             No Files Attached
                           </span>
                         )}

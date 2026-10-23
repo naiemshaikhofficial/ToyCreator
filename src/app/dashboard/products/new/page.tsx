@@ -466,8 +466,8 @@ export default function NewProductPage() {
       )}
 
       {errorMsg && (
-        <div className="p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+        <div className="bg-[#ff4053] text-black font-extrabold p-3 rounded-xl text-xs flex items-center gap-2 shadow-lg animate-in fade-in">
+          <AlertCircle className="w-4 h-4 text-black flex-shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}

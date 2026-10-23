@@ -460,9 +460,9 @@ export default function ProductDetailPage() {
               {isActive ? 'Live' : 'Draft'}
             </span>
             {!downloadUrl && !downloadUrlWin && !downloadUrlMac && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1">
-                <AlertCircle className="w-3 h-3" />
-                <span>Out of Stock (No Files)</span>
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-md bg-[#ff4053] text-black shadow-sm flex items-center gap-1.5 uppercase tracking-wider">
+                <AlertCircle className="w-3 h-3 text-black stroke-[2.5]" />
+                <span>Out of Stock</span>
               </span>
             )}
           </div>
@@ -526,8 +526,8 @@ export default function ProductDetailPage() {
       )}
 
       {errorMsg && (
-        <div className="p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+        <div className="bg-[#ff4053] text-black font-extrabold p-3 rounded-xl text-xs flex items-center gap-2 shadow-lg animate-in fade-in">
+          <AlertCircle className="w-4 h-4 text-black flex-shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
@@ -1023,12 +1023,12 @@ export default function ProductDetailPage() {
             </div>
 
             {!downloadUrl && !downloadUrlWin && !downloadUrlMac && (
-              <div className="p-3.5 bg-amber-500/10 border border-amber-500/25 rounded-xl flex items-start gap-3 text-xs text-amber-300">
-                <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+              <div className="p-3.5 bg-[#1a1213] border border-[#ff4053]/30 rounded-xl flex items-start gap-3 text-xs text-white">
+                <AlertCircle className="w-4 h-4 text-[#ff4053] flex-shrink-0 mt-0.5" />
                 <div className="space-y-0.5">
-                  <span className="font-bold text-amber-200">No Downloadable Deliverables Attached:</span>
-                  <p className="text-zinc-300 text-[11px] leading-relaxed">
-                    This product is currently marked as <strong>Out of Stock</strong> on ProducerToy. Checkout is locked so customers cannot accidentally purchase an empty product without files. Upload an installer or paste a drive link below.
+                  <span className="font-bold text-[#ff4053]">No Downloadable Deliverables Attached</span>
+                  <p className="text-zinc-400 text-[11px] leading-relaxed">
+                    This product is marked as <strong className="text-zinc-200">Out of Stock</strong> on ProducerToy so checkout stays protected until you link Windows or Mac installers below.
                   </p>
                 </div>
               </div>
@@ -1463,7 +1463,7 @@ export default function ProductDetailPage() {
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 <div className="p-3 bg-[#121212] border border-[#222222] rounded-lg flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${coverImage ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                  <span className={`w-2 h-2 rounded-full ${coverImage ? 'bg-white' : 'bg-[#ff4053]'}`} />
                   <span className="text-zinc-300">Cover Artwork:</span>
                   <span className="font-mono text-[11px] text-zinc-400 ml-auto">
                     {coverImage ? 'Configured' : 'Missing'}
@@ -1471,7 +1471,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 <div className="p-3 bg-[#121212] border border-[#222222] rounded-lg flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${demoAudioUrl ? 'bg-emerald-500' : 'bg-zinc-600'}`} />
+                  <span className={`w-2 h-2 rounded-full ${demoAudioUrl ? 'bg-white' : 'bg-zinc-600'}`} />
                   <span className="text-zinc-300">Demo Audio:</span>
                   <span className="font-mono text-[11px] text-zinc-400 ml-auto">
                     {demoAudioUrl ? 'Active' : 'None'}
@@ -1479,7 +1479,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 <div className="p-3 bg-[#121212] border border-[#222222] rounded-lg flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${downloadUrlWin ? 'bg-emerald-500' : 'bg-zinc-600'}`} />
+                  <span className={`w-2 h-2 rounded-full ${downloadUrlWin ? 'bg-white' : 'bg-zinc-600'}`} />
                   <span className="text-zinc-300">Windows Installer:</span>
                   <span className="font-mono text-[11px] text-zinc-400 ml-auto">
                     {downloadUrlWin ? 'Linked' : 'Optional'}
@@ -1487,7 +1487,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 <div className="p-3 bg-[#121212] border border-[#222222] rounded-lg flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${downloadUrlMac ? 'bg-emerald-500' : 'bg-zinc-600'}`} />
+                  <span className={`w-2 h-2 rounded-full ${downloadUrlMac ? 'bg-white' : 'bg-zinc-600'}`} />
                   <span className="text-zinc-300">macOS Installer:</span>
                   <span className="font-mono text-[11px] text-zinc-400 ml-auto">
                     {downloadUrlMac ? 'Linked' : 'Optional'}
@@ -1495,7 +1495,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 <div className="p-3 bg-[#121212] border border-[#222222] rounded-lg flex items-center gap-2 sm:col-span-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="w-2 h-2 rounded-full bg-white" />
                   <span className="text-zinc-300">Release Version:</span>
                   <span className="font-mono text-[11px] text-zinc-300 ml-auto">
                     v{version || '1.0.0'} {changelog ? '• Release notes provided' : ''}
