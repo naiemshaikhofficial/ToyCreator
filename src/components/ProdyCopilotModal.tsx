@@ -70,145 +70,242 @@ interface ChatItem {
 }
 
 /**
+ * Render an interactive selectable option card with checkbox, hover effect, and "Other" support
+ */
+function renderOptionItem(
+  key: string | number,
+  optionContent: string,
+  onOptionClick?: (optionText: string) => void,
+  activeOtherKey?: string | number | null,
+  otherCustomText?: string,
+  onOtherChange?: (val: string) => void,
+  onOtherSubmit?: () => void
+) {
+  const isOther =
+    optionContent.toLowerCase().includes('other') ||
+    optionContent.toLowerCase().includes('specify') ||
+    optionContent.toLowerCase().includes('custom');
+  const isOtherActive = isOther && activeOtherKey === key;
+
+  return (
+    <div key={key} className="space-y-2">
+      <div
+        onClick={() => onOptionClick && onOptionClick(isOther ? `__OTHER__:${key}` : optionContent)}
+        className={`group flex items-start gap-2.5 p-2.5 rounded-xl transition-all cursor-pointer text-left select-none ${
+          isOtherActive
+            ? 'bg-[#1e1e24] border border-white/40 shadow-sm'
+            : 'bg-[#18181c]/80 hover:bg-[#222228] border border-white/10 hover:border-white/30'
+        }`}
+      >
+        <div
+          className={`w-4 h-4 rounded border flex items-center justify-center mt-0.5 shrink-0 transition-colors ${
+            isOtherActive ? 'border-white bg-white text-black' : 'border-white/30 group-hover:border-white bg-[#101014]'
+          }`}
+        >
+          <div
+            className={`w-1.5 h-1.5 rounded-xs transition-colors ${
+              isOtherActive ? 'bg-black' : 'bg-transparent group-hover:bg-white'
+            }`}
+          />
+        </div>
+        <div className="flex-1 text-zinc-300 group-hover:text-white text-xs sm:text-[13px] font-medium leading-relaxed">
+          {parseInlineFormatting(optionContent)}
+        </div>
+        <span className="text-[10px] font-mono text-zinc-400 group-hover:text-white uppercase tracking-wider shrink-0 mt-0.5 px-2 py-0.5 rounded bg-white/5 border border-white/10 group-hover:border-white/30">
+          {isOther ? 'Custom' : 'Select'}
+        </span>
+      </div>
+
+      {/* Inline Custom Text Box when Other is selected */}
+      {isOtherActive && (
+        <div className="pl-6 pt-1 animate-fadeIn">
+          <div className="flex items-center gap-2 p-1.5 bg-[#121216] border border-white/20 rounded-xl focus-within:border-white/50 transition-all">
+            <input
+              type="text"
+              autoFocus
+              value={otherCustomText || ''}
+              onChange={(e) => onOtherChange && onOtherChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  onOtherSubmit && onOtherSubmit();
+                }
+              }}
+              placeholder="Type your custom title, sound idea, or specification..."
+              className="flex-1 bg-transparent px-2.5 py-1 text-xs text-white placeholder:text-zinc-500 outline-none"
+            />
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOtherSubmit && onOtherSubmit();
+              }}
+              disabled={!otherCustomText?.trim()}
+              className="px-3 py-1 rounded-lg bg-white text-black text-[11px] font-bold hover:bg-zinc-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shrink-0"
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
  * Clean Minimalist Markdown Renderer with Interactive Options, Checkbox & Custom "Other" Text Box Support
  */
 function renderFormattedMessage(
   text: string,
   onOptionClick?: (optionText: string) => void,
-  activeOtherIndex?: number | null,
+  activeOtherIndex?: number | string | null,
   otherCustomText?: string,
   onOtherChange?: (val: string) => void,
   onOtherSubmit?: () => void
 ) {
   if (!text) return null;
 
-  const lines = text.split('\n');
+  const rawLines = text.split('\n');
+  const renderedElements: React.ReactNode[] = [];
+  let currentOptionBlock: { id: string | number; content: string }[] = [];
+
+  const flushOptionBlock = () => {
+    if (currentOptionBlock.length === 0) return;
+
+    const hasOther = currentOptionBlock.some((opt) => {
+      const lower = opt.content.toLowerCase();
+      return lower.includes('other') || lower.includes('custom') || lower.includes('specify');
+    });
+
+    currentOptionBlock.forEach((opt) => {
+      renderedElements.push(
+        renderOptionItem(
+          opt.id,
+          opt.content,
+          onOptionClick,
+          activeOtherIndex,
+          otherCustomText,
+          onOtherChange,
+          onOtherSubmit
+        )
+      );
+    });
+
+    // If no "Other" was included, automatically append an "Other (custom input)" card!
+    if (!hasOther) {
+      const autoOtherId = `auto-other-${currentOptionBlock[0].id}`;
+      renderedElements.push(
+        renderOptionItem(
+          autoOtherId,
+          'Other (custom input / tweak)',
+          onOptionClick,
+          activeOtherIndex,
+          otherCustomText,
+          onOtherChange,
+          onOtherSubmit
+        )
+      );
+    }
+
+    currentOptionBlock = [];
+  };
+
+  for (let idx = 0; idx < rawLines.length; idx++) {
+    const line = rawLines[idx];
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      flushOptionBlock();
+      renderedElements.push(<div key={`blank-${idx}`} className="h-1.5" />);
+      continue;
+    }
+
+    // Horizontal rule: --- or ***
+    if (trimmed === '---' || trimmed === '***') {
+      flushOptionBlock();
+      renderedElements.push(<hr key={`hr-${idx}`} className="border-white/10 my-2" />);
+      continue;
+    }
+
+    // Heading 3 or 4: ### Heading
+    if (trimmed.startsWith('### ') || trimmed.startsWith('#### ')) {
+      flushOptionBlock();
+      const headingText = trimmed.replace(/^#{3,4}\s+/, '');
+      renderedElements.push(
+        <h4 key={`h-${idx}`} className="text-sm sm:text-[15px] font-extrabold text-white tracking-tight pt-1">
+          {parseInlineFormatting(headingText)}
+        </h4>
+      );
+      continue;
+    }
+
+    // Step indicators (e.g. "✅ Step 1 - Title", "🛠️ Step 1: Title", "Step 1:")
+    const stepMatch = trimmed.match(/^([✅🛠️🎛️⚡💡\s]*)?(Step\s+\d+[:\s–-]+.*)$/i);
+    if (stepMatch) {
+      flushOptionBlock();
+      renderedElements.push(
+        <div key={`step-${idx}`} className="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg bg-white/10 border border-white/15 text-white font-bold text-xs tracking-wide my-1">
+          <span>{stepMatch[2]}</span>
+        </div>
+      );
+      continue;
+    }
+
+    // 1. Explicit Checkbox: - [ ] item, * [ ] item, • [ ] item, or ☐ item
+    const checkboxMatch = trimmed.match(/^([-*•]\s*)?(\[[ xX]\]|☐|☑)\s+(.*)$/);
+    if (checkboxMatch) {
+      currentOptionBlock.push({ id: idx, content: checkboxMatch[3].trim() });
+      continue;
+    }
+
+    // 2. Detect Bullet or Numbered item as selectable option
+    // When previous lines introduce alternatives/options or line contains title format
+    const bulletMatch = trimmed.match(/^([-*•]|\d+\.)\s+(.*)$/);
+    const prevText = idx > 0 ? rawLines.slice(Math.max(0, idx - 3), idx).join(' ').toLowerCase() : '';
+    const isUnderOptionContext =
+      prevText.includes('alternative') ||
+      prevText.includes('option') ||
+      prevText.includes('choice') ||
+      prevText.includes('pick') ||
+      prevText.includes('select') ||
+      prevText.includes('title') ||
+      prevText.includes('suggest') ||
+      prevText.includes('step 1') ||
+      prevText.includes('step 2') ||
+      prevText.includes('step 3') ||
+      prevText.includes('here are');
+
+    if (bulletMatch && (isUnderOptionContext || currentOptionBlock.length > 0)) {
+      currentOptionBlock.push({ id: idx, content: bulletMatch[2].trim() });
+      continue;
+    }
+
+    // If it was not an option line, flush any open option block
+    flushOptionBlock();
+
+    // Standard bullet point
+    if (bulletMatch) {
+      renderedElements.push(
+        <div key={`bullet-${idx}`} className="flex items-start gap-2 pl-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 mt-2 shrink-0" />
+          <div className="flex-1 text-zinc-300">{parseInlineFormatting(bulletMatch[2].trim())}</div>
+        </div>
+      );
+      continue;
+    }
+
+    // Regular paragraph
+    renderedElements.push(
+      <p key={`p-${idx}`} className="text-zinc-300">
+        {parseInlineFormatting(line)}
+      </p>
+    );
+  }
+
+  flushOptionBlock();
   return (
     <div className="space-y-2 text-[13px] sm:text-[14px] leading-relaxed text-zinc-300 font-sans">
-      {lines.map((line, idx) => {
-        const trimmed = line.trim();
-        if (!trimmed) {
-          return <div key={idx} className="h-1.5" />;
-        }
-
-        // Horizontal rule: --- or ***
-        if (trimmed === '---' || trimmed === '***') {
-          return <hr key={idx} className="border-white/10 my-2" />;
-        }
-
-        // Heading 3 or 4: ### Heading
-        if (trimmed.startsWith('### ') || trimmed.startsWith('#### ')) {
-          const headingText = trimmed.replace(/^#{3,4}\s+/, '');
-          return (
-            <h4 key={idx} className="text-sm sm:text-[15px] font-extrabold text-white tracking-tight pt-1">
-              {parseInlineFormatting(headingText)}
-            </h4>
-          );
-        }
-
-        // Checkbox or Selectable Option: - [ ] item, * [ ] item, • [ ] item, or • ☐ item
-        const checkboxMatch = trimmed.match(/^([-*•]\s*)?(\[[ xX]\]|☐|☑)\s+(.*)$/);
-        if (checkboxMatch) {
-          const optionContent = checkboxMatch[3].trim();
-          const isOther = optionContent.toLowerCase().includes('other') || optionContent.toLowerCase().includes('specify') || optionContent.toLowerCase().includes('custom');
-          const isOtherActive = isOther && activeOtherIndex === idx;
-
-          return (
-            <div key={idx} className="space-y-2">
-              <div
-                onClick={() => onOptionClick && onOptionClick(isOther ? `__OTHER__:${idx}` : optionContent)}
-                className={`group flex items-start gap-2.5 p-2 rounded-xl transition-all cursor-pointer text-left select-none ${
-                  isOtherActive
-                    ? 'bg-[#1e1e24] border border-white/40 shadow-sm'
-                    : 'bg-[#18181c]/70 hover:bg-[#222228] border border-white/10 hover:border-white/30'
-                }`}
-              >
-                <div className={`w-4 h-4 rounded border flex items-center justify-center mt-0.5 shrink-0 transition-colors ${
-                  isOtherActive ? 'border-white bg-white text-black' : 'border-white/30 group-hover:border-white bg-[#101014]'
-                }`}>
-                  <div className={`w-1.5 h-1.5 rounded-xs transition-colors ${
-                    isOtherActive ? 'bg-black' : 'bg-transparent group-hover:bg-white'
-                  }`} />
-                </div>
-                <div className="flex-1 text-zinc-300 group-hover:text-white text-xs sm:text-[13px]">
-                  {parseInlineFormatting(optionContent)}
-                </div>
-                <span className="text-[10px] font-mono text-zinc-500 group-hover:text-zinc-300 uppercase tracking-wider shrink-0 mt-0.5">
-                  {isOther ? 'Custom' : 'Select'}
-                </span>
-              </div>
-
-              {/* Inline Custom Text Box when Other is selected */}
-              {isOtherActive && (
-                <div className="pl-6 pt-1 animate-fadeIn">
-                  <div className="flex items-center gap-2 p-1.5 bg-[#121216] border border-white/20 rounded-xl focus-within:border-white/50 transition-all">
-                    <input
-                      type="text"
-                      autoFocus
-                      value={otherCustomText || ''}
-                      onChange={(e) => onOtherChange && onOtherChange(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          onOtherSubmit && onOtherSubmit();
-                        }
-                      }}
-                      placeholder="Type custom instruments or details..."
-                      className="flex-1 bg-transparent px-2.5 py-1 text-xs text-white placeholder:text-zinc-500 outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onOtherSubmit && onOtherSubmit();
-                      }}
-                      disabled={!otherCustomText?.trim()}
-                      className="px-3 py-1 rounded-lg bg-white text-black text-[11px] font-bold hover:bg-zinc-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shrink-0"
-                    >
-                      Send
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        }
-
-        // Bullet point: - item or * item
-        if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-          const itemText = trimmed.slice(2);
-          return (
-            <div key={idx} className="flex items-start gap-2 pl-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 mt-2 shrink-0" />
-              <div className="flex-1 text-zinc-300">
-                {parseInlineFormatting(itemText)}
-              </div>
-            </div>
-          );
-        }
-
-        // Numbered item: 1. item
-        const numberedMatch = trimmed.match(/^(\d+)\.\s+(.*)$/);
-        if (numberedMatch) {
-          return (
-            <div key={idx} className="flex items-start gap-2 pl-1.5">
-              <span className="font-mono text-xs font-bold text-white shrink-0 mt-0.5">
-                {numberedMatch[1]}.
-              </span>
-              <div className="flex-1 text-zinc-300">
-                {parseInlineFormatting(numberedMatch[2])}
-              </div>
-            </div>
-          );
-        }
-
-        // Regular paragraph
-        return (
-          <p key={idx} className="text-zinc-300">
-            {parseInlineFormatting(line)}
-          </p>
-        );
-      })}
+      {renderedElements}
     </div>
   );
 }
@@ -257,6 +354,74 @@ function parseInlineFormatting(str: string): React.ReactNode[] {
   return parts;
 }
 
+/**
+ * Determine high-value contextual suggestion chips based on assistant response and form state
+ */
+function getContextualSuggestions(
+  content: string,
+  currentFormValues?: CurrentFormValues
+): string[] {
+  const lower = (content || '').toLowerCase();
+  const currentTitle = currentFormValues?.name?.trim();
+
+  // If discussing Step 1 / Titles:
+  if (
+    lower.includes('step 1') ||
+    lower.includes('title') ||
+    lower.includes('alternative') ||
+    lower.includes('name') ||
+    (lower.includes('proverb') && !lower.includes('step 2'))
+  ) {
+    const list: string[] = [];
+    if (currentTitle) {
+      list.push(`Keep "${currentTitle}" & Proceed to Step 2`);
+    }
+    list.push('Suggest 3 Optimized Titles', 'Customize My Title', '⚡ Build Full Listing');
+    return list;
+  }
+
+  // If discussing Step 2 / DSP / Features:
+  if (
+    lower.includes('step 2') ||
+    lower.includes('dsp') ||
+    lower.includes('architecture') ||
+    lower.includes('latency') ||
+    lower.includes('algorithm') ||
+    lower.includes('reverb engine')
+  ) {
+    return [
+      'Confirm DSP Specs & Proceed to Step 3',
+      'Zero-Latency & Low CPU Footprint',
+      'Add Shimmer & Modulation Tail',
+      '⚡ Build Full Listing',
+    ];
+  }
+
+  // If discussing Step 3 / Pricing:
+  if (
+    lower.includes('step 3') ||
+    lower.includes('pricing') ||
+    lower.includes('price') ||
+    lower.includes('tier') ||
+    lower.includes('$')
+  ) {
+    return [
+      'Confirm Recommended Price & Proceed',
+      'Suggest $29 Launch Special',
+      'Suggest $49 Standard Pro Tier',
+      '⚡ Build Full Listing',
+    ];
+  }
+
+  // Default / General
+  return [
+    '⚡ Build Full Google SEO Listing',
+    'Suggest 3 High-CTR Title Angles',
+    'Analyze Audio Features & DSP',
+    'Suggest Best Pricing Strategy',
+  ];
+}
+
 export default function ProdyCopilotModal({
   isOpen,
   onClose,
@@ -270,7 +435,7 @@ export default function ProdyCopilotModal({
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [appliedModes, setAppliedModes] = useState<Record<string, string>>({});
   const [expandedDescId, setExpandedDescId] = useState<string | null>(null);
-  const [activeOtherMap, setActiveOtherMap] = useState<Record<string, number | null>>({});
+  const [activeOtherMap, setActiveOtherMap] = useState<Record<string, number | string | null>>({});
   const [otherTextMap, setOtherTextMap] = useState<Record<string, string>>({});
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -565,10 +730,10 @@ export default function ProdyCopilotModal({
                           msg.content,
                           (opt) => {
                             if (opt.startsWith('__OTHER__:')) {
-                              const otherIdx = parseInt(opt.replace('__OTHER__:', ''), 10);
+                              const otherKey = opt.replace('__OTHER__:', '');
                               setActiveOtherMap((prev) => ({
                                 ...prev,
-                                [msg.id]: prev[msg.id] === otherIdx ? null : otherIdx,
+                                [msg.id]: prev[msg.id] === otherKey ? null : otherKey,
                               }));
                             } else {
                               handleSendMessage(opt);
@@ -589,19 +754,21 @@ export default function ProdyCopilotModal({
                       </div>
                     )}
 
-                    {/* Quick Starter Chips on Initial Greeting */}
-                    {msg.id === 'greeting' && (
-                      <div className="pt-1 space-y-2">
-                        <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 block">
-                          {hasExistingTitle ? 'Form-Aware Quick Actions:' : 'Quick Idea Starters (Click to Send):'}
+                    {/* Dynamic Contextual Suggestions Directly Under Assistant Answer */}
+                    {!msg.product && (
+                      <div className="pt-1.5 space-y-1.5">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 block flex items-center gap-1.5">
+                          <Sparkles className="w-3 h-3 text-white" />
+                          Suggestions (Quick Actions):
                         </span>
                         <div className="flex flex-wrap gap-1.5">
-                          {starterChips.map((chip) => (
+                          {getContextualSuggestions(msg.content, currentFormValues).map((chip) => (
                             <button
                               key={chip}
                               type="button"
+                              disabled={isTyping}
                               onClick={() => handleSendMessage(chip)}
-                              className="px-3 py-1.5 rounded-xl bg-[#18181c] hover:bg-[#232328] border border-white/10 hover:border-white/20 text-xs text-zinc-300 hover:text-white transition-all text-left cursor-pointer"
+                              className="px-3 py-1.5 rounded-xl bg-[#18181c] hover:bg-[#232328] border border-white/10 hover:border-white/20 text-xs text-zinc-300 hover:text-white transition-all text-left cursor-pointer disabled:opacity-50"
                             >
                               {chip}
                             </button>
@@ -874,46 +1041,7 @@ export default function ProdyCopilotModal({
         </div>
 
         {/* Bottom Fixed Chat Input Bar — Matching Producer Toy /support */}
-        <div className="p-3 sm:p-4 bg-[#101014] border-t border-white/[0.08] flex-shrink-0 space-y-2">
-          {/* Quick Action Suggestion Bar */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 shrink-0">
-              Suggestions:
-            </span>
-            <button
-              type="button"
-              onClick={() => handleSendMessage('Suggest 3 high-ranking commercial titles for this product')}
-              disabled={isTyping}
-              className="px-2.5 py-1 rounded-lg bg-[#18181c] hover:bg-[#25252b] border border-white/10 text-[11px] text-zinc-300 hover:text-white shrink-0 cursor-pointer disabled:opacity-50"
-            >
-              💡 Suggest 3 Titles
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSendMessage('What is the best pricing strategy for this product?')}
-              disabled={isTyping}
-              className="px-2.5 py-1 rounded-lg bg-[#18181c] hover:bg-[#25252b] border border-white/10 text-[11px] text-zinc-300 hover:text-white shrink-0 cursor-pointer disabled:opacity-50"
-            >
-              💲 Pricing Strategy
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSendMessage('Give me a high-CTR Google meta description for this')}
-              disabled={isTyping}
-              className="px-2.5 py-1 rounded-lg bg-[#18181c] hover:bg-[#25252b] border border-white/10 text-[11px] text-zinc-300 hover:text-white shrink-0 cursor-pointer disabled:opacity-50"
-            >
-              🔍 High-CTR SEO Hook
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSendMessage('Build the complete Google SEO product listing now!')}
-              disabled={isTyping}
-              className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-[11px] text-white shrink-0 cursor-pointer disabled:opacity-50 font-semibold"
-            >
-              ⚡ Build Full Listing
-            </button>
-          </div>
-
+        <div className="p-3 sm:p-4 bg-[#101014] border-t border-white/[0.08] flex-shrink-0">
           {/* Form Input */}
           <form
             onSubmit={(e) => {
