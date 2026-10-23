@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useBrand } from '@/context/BrandContext';
 import { getProductById, updateBrandProduct, getCatalogCategories } from '@/lib/supabase/actions';
 import { createCustomCategoryAction, createCustomSubcategoryAction } from '@/actions/categoryActions';
-import ProdyCopilotModal from '@/components/ProdyCopilotModal';
+import ProdyCopilotModal, { ProdyApplyMode } from '@/components/ProdyCopilotModal';
 import {
   ArrowLeft,
   Package,
@@ -171,35 +171,57 @@ export default function ProductDetailPage() {
   const [newSubName, setNewSubName] = useState('');
   const [addingSub, setAddingSub] = useState(false);
 
-  const handleApplyProdyProduct = (data: any) => {
-    if (data.name) setName(data.name);
-    if (data.category_slug) {
-      const match = categoriesList.find((c) => c.slug === data.category_slug);
-      if (match) {
-        setCategoryId(match.id);
-        setProductType(data.category_slug === 'sample-pack' ? 'sample_pack' : 'plugin');
+  const handleApplyProdyProduct = (data: any, mode: ProdyApplyMode = 'all') => {
+    if (mode === 'all' || mode === 'title') {
+      if (data.name) setName(data.name);
+    }
+    if (mode === 'all' || mode === 'category') {
+      if (data.category_slug) {
+        const match = categoriesList.find((c) => c.slug === data.category_slug);
+        if (match) {
+          setCategoryId(match.id);
+          setProductType(data.category_slug === 'sample-pack' ? 'sample_pack' : 'plugin');
+        }
+      }
+      if (data.subcategory_id) {
+        setSubcategoryId(data.subcategory_id);
+      } else if (data.subcategory_name) {
+        const matchSub = subcategoriesList.find((s) => s.name.toLowerCase() === data.subcategory_name.toLowerCase());
+        if (matchSub) setSubcategoryId(matchSub.id);
       }
     }
-    if (data.subcategory_id) {
-      setSubcategoryId(data.subcategory_id);
-    } else if (data.subcategory_name) {
-      const matchSub = subcategoriesList.find((s) => s.name.toLowerCase() === data.subcategory_name.toLowerCase());
-      if (matchSub) setSubcategoryId(matchSub.id);
+    if (mode === 'all' || mode === 'genres') {
+      if (Array.isArray(data.category_slugs) && data.category_slugs.length > 0) {
+        setSelectedGenres(data.category_slugs);
+      }
     }
-    if (Array.isArray(data.category_slugs) && data.category_slugs.length > 0) {
-      setSelectedGenres(data.category_slugs);
+    if (mode === 'all' || mode === 'pricing') {
+      if (data.price_usd) setPriceUsd(data.price_usd.toString());
+      if (data.original_price_usd) setOriginalPriceUsd(data.original_price_usd.toString());
     }
-    if (data.price_usd) setPriceUsd(data.price_usd.toString());
-    if (data.original_price_usd) setOriginalPriceUsd(data.original_price_usd.toString());
-    if (data.short_description) setShortDesc(data.short_description);
-    if (data.full_description) setFullDesc(data.full_description);
-    if (data.vst_format) setVstFormat(data.vst_format);
-    if (data.operating_system) setOperatingSystem(data.operating_system);
-    if (data.supported_daws) setSupportedDaws(data.supported_daws);
-    if (data.license_delivery_type) setLicenseDeliveryType(data.license_delivery_type);
-    if (data.license_type) setLicenseType(data.license_type);
+    if (mode === 'all' || mode === 'description') {
+      if (data.short_description) setShortDesc(data.short_description);
+      if (data.full_description) setFullDesc(data.full_description);
+    }
+    if (mode === 'all' || mode === 'specs') {
+      if (data.vst_format) setVstFormat(data.vst_format);
+      if (data.operating_system) setOperatingSystem(data.operating_system);
+      if (data.supported_daws) setSupportedDaws(data.supported_daws);
+      if (data.license_delivery_type) setLicenseDeliveryType(data.license_delivery_type);
+      if (data.license_type) setLicenseType(data.license_type);
+    }
 
-    setAiAppliedMsg('✨ Prody AI applied metadata updates!');
+    const modeLabels: Record<string, string> = {
+      all: '✨ Applied complete product details to form!',
+      title: '🏷️ Applied Title!',
+      description: '📝 Applied Google SEO descriptions!',
+      category: '📂 Applied Category & Subcategory!',
+      genres: '🎵 Applied Target Genres!',
+      pricing: '💲 Applied Product Pricing!',
+      specs: '🎛️ Applied VST Specs & DAWs!',
+    };
+
+    setAiAppliedMsg(modeLabels[mode] || '✨ Prody applied product data!');
     setTimeout(() => setAiAppliedMsg(''), 4000);
   };
 
