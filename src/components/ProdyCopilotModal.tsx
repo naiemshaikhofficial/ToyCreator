@@ -20,6 +20,8 @@ import {
   Cpu,
   Layers,
   Zap,
+  Search,
+  Globe,
 } from 'lucide-react';
 import {
   prodyChatAction,
@@ -542,9 +544,17 @@ export default function ProdyCopilotModal({
                 </div>
 
                 {msg.isThinking ? (
-                  <div className="inline-flex items-center gap-3 bg-[#151518] border border-white/[0.08] text-zinc-300 rounded-2xl rounded-tl-xs px-4 py-3 shadow-md">
-                    <div className="w-3.5 h-3.5 rounded-full border-2 border-white/20 border-t-white animate-spin flex-shrink-0" />
-                    <span className="text-xs text-zinc-300 font-medium">Prody is analyzing your vision...</span>
+                  <div className="inline-flex items-center gap-3 bg-[#151518] border border-white/[0.12] text-zinc-300 rounded-2xl rounded-tl-xs px-4 py-3 shadow-md">
+                    <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin flex-shrink-0" />
+                    <div className="flex flex-col text-left">
+                      <span className="text-xs text-white font-medium flex items-center gap-1.5">
+                        <Search className="w-3 h-3 text-zinc-400" />
+                        Analyzing Google search trends & competitor research...
+                      </span>
+                      <span className="text-[10px] text-zinc-500 font-mono">
+                        Synthesizing top-ranking queries & audio SEO benchmarks
+                      </span>
+                    </div>
                   </div>
                 ) : (
                   <div className="w-full space-y-3">
@@ -637,29 +647,48 @@ export default function ProdyCopilotModal({
                           </div>
                         </div>
 
-                        {/* Google SEO Meta Short Description */}
-                        <div className="p-3 bg-[#18181c] border border-white/[0.06] rounded-xl space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 flex items-center gap-1 font-semibold">
-                              <Sparkles className="w-3 h-3 text-white" />
-                              <span>Google Meta Description (Short Hook)</span>
+                        {/* Google Search SERP Live Preview & Meta Description */}
+                        <div className="p-3.5 bg-[#141416] border border-white/10 rounded-xl space-y-2.5">
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-300 flex items-center gap-1.5 font-bold">
+                              <Globe className="w-3.5 h-3.5 text-white" />
+                              <span>Google Search SERP Preview (#1 Ranking Target)</span>
                             </span>
-                            <button
-                              type="button"
-                              onClick={() => handleCopy(msg.product!.short_description, `short-${msg.id}`)}
-                              className="text-[11px] text-zinc-400 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
-                            >
-                              {copiedKey === `short-${msg.id}` ? (
-                                <CheckCheck className="w-3 h-3 text-white" />
-                              ) : (
-                                <Copy className="w-3 h-3" />
-                              )}
-                              <span>{copiedKey === `short-${msg.id}` ? 'Copied' : 'Copy'}</span>
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#202020] text-zinc-300 border border-white/10">
+                                {msg.product.short_description.length} / 160 chars
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleCopy(msg.product!.short_description, `short-${msg.id}`)}
+                                className="text-[11px] text-zinc-400 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
+                              >
+                                {copiedKey === `short-${msg.id}` ? (
+                                  <CheckCheck className="w-3 h-3 text-white" />
+                                ) : (
+                                  <Copy className="w-3 h-3" />
+                                )}
+                                <span>{copiedKey === `short-${msg.id}` ? 'Copied' : 'Copy'}</span>
+                              </button>
+                            </div>
                           </div>
-                          <p className="text-xs text-zinc-200 leading-relaxed italic">
-                            &ldquo;{msg.product.short_description}&rdquo;
-                          </p>
+
+                          {/* Live Google Search Result Box */}
+                          <div className="p-3 bg-[#0d0d10] border border-white/[0.08] rounded-lg space-y-1 text-left font-sans">
+                            <div className="flex items-center gap-1.5 text-[11px] text-zinc-400 font-mono">
+                              <span className="text-zinc-500">https://producertoy.com</span>
+                              <span className="text-zinc-600">›</span>
+                              <span className="text-zinc-300">catalog</span>
+                              <span className="text-zinc-600">›</span>
+                              <span className="text-white font-semibold">{msg.product.slug}</span>
+                            </div>
+                            <h4 className="text-sm font-semibold text-white hover:underline cursor-pointer leading-snug">
+                              {msg.product.name}
+                            </h4>
+                            <p className="text-xs text-zinc-300 leading-relaxed line-clamp-2">
+                              {msg.product.short_description}
+                            </p>
+                          </div>
                         </div>
 
                         {/* Curated Genres & Technical Specs */}

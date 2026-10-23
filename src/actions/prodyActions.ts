@@ -1,6 +1,7 @@
 'use server';
 
 import { getCatalogCategories } from '@/lib/supabase/actions';
+import { performAudioSeoResearch } from '@/lib/prodySearchEngine';
 
 export interface ProdyGeneratedProduct {
   name: string;
@@ -43,6 +44,7 @@ function getApiKey(): string {
 
 /**
  * Server Action: Generate complete product metadata from a user idea or rough prompt
+ * Grounded in real-time Google search trends & audio competitor research
  */
 export async function generateProductWithProdyAction(params: {
   prompt: string;
@@ -71,18 +73,24 @@ export async function generateProductWithProdyAction(params: {
     const categoryNames = categories.map((c) => `${c.name} (slug: ${c.slug})`).join(', ');
     const subcategoryNames = subcategories.map((s) => `${s.name} (id: ${s.id})`).join(', ');
 
-    // 2. Build Deep Intent & Google SEO system prompt
+    // 2. Perform live Google search and competitor research for this exact sound/product concept
+    const seoDossier = await performAudioSeoResearch(prompt, categorySlug);
+
+    // 3. Build Deep Intent & Google SEO system prompt backed by real research
     const systemPrompt = `You are Prody, the official AI Audio Product Architect and Google SEO Master for Producer Toy (producertoy.com) and Toy Creator.
-Your mission is to understand the creator's exact vision, concept, and technical nuances, then craft an elite, highly commercial, #1 Google-ranking product listing.
+Your mission is to analyze live Google search trends, competitor benchmarks, and creator concept, then craft an elite, highly commercial, #1 Google-ranking product listing.
+NEVER invent random facts, generic filler, or fake product counts. All copy must strictly reflect real audio engineering standards.
 
 TAXONOMY & PLATFORM KNOWLEDGE:
 - Categories: ${categoryNames}
 - Subcategories: ${subcategoryNames}
 - Curated Genres (MUST use exact Title Case strings): "Hip Hop", "Trap", "Drill", "Bollywood", "Lo-Fi", "EDM", "Pop", "Cinematic", "R&B", "Rock", "Acoustic", "Ambient"
 
+${seoDossier.groundedDossierText}
+
 CRITICAL INTENT & CATEGORY RULES:
 1. CATEGORY CLASSIFICATION:
-   - If the user concept mentions "plugin", "reverb", "vst", "au", "aax", "synthesizer", "synth", "compressor", "eq", "dsp", "algorithm", "analyzer", "distortion", "saturation", "delay", "effect", or audio software:
+   - If the user concept or research mentions "plugin", "reverb", "vst", "au", "aax", "synthesizer", "synth", "compressor", "eq", "dsp", "algorithm", "analyzer", "distortion", "saturation", "delay", "effect", or audio software:
      -> IT IS 100% A PLUGIN (category_slug: "plugin"). NEVER classify it as a sample pack or presets!
      -> vst_format MUST be "VST3, AU, AAX (64-bit)"
      -> license_delivery_type MUST be "pool"
@@ -93,15 +101,15 @@ CRITICAL INTENT & CATEGORY RULES:
      -> license_delivery_type MUST be "direct_download"
      -> vst_format MUST be null
 
-2. HIGH-INTENT GOOGLE SEO COPYWRITING:
-   - Product Name: Catchy, commercial, modern, and high-search-intent (e.g. "AuraReverb AI – Smart Waveform Reverb Plugin").
-   - Short Description: 140–160 character high-CTR Google meta description packed with organic search keywords (e.g. "Smart AI reverb VST plugin with real-time waveform analysis and adaptive room acoustics for FL Studio, Ableton & Logic Pro.").
-   - Full Description: Rich, structured Markdown designed to rank #1 on Google:
-     * Catchy H3 title & value hook
-     * "Why Producers Need This" section with compelling bullet points addressing common mixing problems
-     * "Key Features & DSP Highlights" detailing intelligent waveform analysis, customizable parameters, low CPU usage, and zero latency
+2. HIGH-INTENT GOOGLE SEO COPYWRITING RULES (STRICT):
+   - Product Name: Catchy, commercial, and high-search-intent combining brand name + target keyword + format (e.g. "AuraReverb AI – Smart Waveform Reverb VST3").
+   - Short Description: Strictly 145–160 character high-CTR Google SERP meta description containing primary keyword, DAW compatibility, and action. NO truncation.
+   - Full Description: Rich, structured Markdown engineered for #1 Google ranking:
+     * Semantic H3 title with primary search intent
+     * "Why Producers Need This" section with compelling bullet points addressing real mixing problems identified in research
+     * "Key Features & DSP Highlights" detailing intelligent processing, low CPU usage, and zero latency
+     * "Google FAQ / Rich Snippets" with 3 concise questions (DAW compatibility, royalty-free commercial terms, Apple Silicon native)
      * "Technical Specifications" (formats, bit-depth, OS, sample rate support up to 192kHz)
-     * Naturally placed high-intent search terms (e.g. "AI reverb plugin", "waveform analyzer VST", "low CPU reverb")
 
 3. GENRES:
    - Must be an array of 4 to 6 genres chosen ONLY from the Curated Genres list in proper Title Case (never lowercase or hyphenated).
@@ -118,8 +126,8 @@ Return strictly valid JSON with this exact schema:
   "category_slugs": ["Genre1", "Genre2", "Genre3", "Genre4"],
   "price_usd": number,
   "original_price_usd": number,
-  "short_description": "string",
-  "full_description": "string",
+  "short_description": "string (strictly 145-160 characters)",
+  "full_description": "string (structured markdown)",
   "version": "1.0.0",
   "release_year": "2025",
   "license_type": "Royalty-Free Commercial",
@@ -134,9 +142,9 @@ Requested Category Preference: ${categorySlug}
 Creator's Product Vision & Sound Concept:
 "${prompt.trim()}"
 
-Analyze this concept deeply and construct the complete, top-ranking SEO product listing.`;
+Analyze the attached Google SERP research dossier deeply and construct the complete, top-ranking SEO product listing.`;
 
-    // 3. Call Prody AI Engine with fallback models
+    // 4. Call Prody AI Engine with fallback models
     const modelsToTry = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b'];
     let jsonContent: any = null;
 
@@ -313,6 +321,7 @@ Analyze this concept deeply and construct the complete, top-ranking SEO product 
 
 /**
  * Server Action: Brainstorm 3 trending audio product concepts when brand has zero ideas
+ * Backed by live Google search and competitor trends
  */
 export async function brainstormProductIdeasAction(params: {
   brandName?: string;
@@ -327,11 +336,19 @@ export async function brainstormProductIdeasAction(params: {
   if (!apiKey) return { success: false, error: 'Prody AI engine is not configured.' };
 
   try {
+    const seoDossier = await performAudioSeoResearch(
+      categoryFilter !== 'all' ? categoryFilter : 'trending music producer plugins and sample packs 2026',
+      categoryFilter
+    );
+
     const prompt = `You are Prody, the official AI Product Strategist & Trend Hunter at Producer Toy.
 Brainstorm 3 unique, high-potential commercial audio product ideas for the brand "${brandName}".
 Category filter: ${categoryFilter}
 
+${seoDossier.groundedDossierText}
+
 Each concept must be Google SEO-friendly and highly appealing to modern music producers (Hip Hop, Trap, Bollywood, EDM, Drill, Cinematic, Lo-Fi, R&B).
+Never invent random ideas—base all concepts on the Google search trends and real producer pain points above.
 Genre tags must only be chosen from: "Hip Hop", "Trap", "Drill", "Bollywood", "Lo-Fi", "EDM", "Pop", "Cinematic", "R&B", "Rock", "Acoustic", "Ambient".
 
 Return strictly valid JSON with this format:
@@ -341,7 +358,7 @@ Return strictly valid JSON with this format:
       "title": "Creative, commercially viable product name",
       "category": "plugin" or "sample-pack",
       "subcategory": "Reverb" or "Synthesizer" or "Delay & Echo" or "Drum Kits & One-Shots" or "Vocal Hooks & Chops" or "Bass & 808s",
-      "tagline": "High-CTR search-optimized meta tagline (15-20 words)",
+      "tagline": "High-CTR search-optimized meta tagline (strictly 145-160 chars)",
       "genres": ["Genre1", "Genre2", "Genre3"],
       "suggested_price": 29.00,
       "prompt": "Detailed generation prompt to create the full SEO listing for this idea"
@@ -420,8 +437,8 @@ export interface ProdyChatParams {
 
 /**
  * Server Action: Interactive Studio Chatbot with Prody
- * Listens to creator, analyzes current form data, asks targeted audio engineering questions,
- * and generates high-ranking SEO product listings on demand.
+ * Listens to creator, analyzes current form data, performs live Google search research,
+ * asks targeted audio engineering questions, and generates high-ranking SEO product listings on demand.
  */
 export async function prodyChatAction(params: ProdyChatParams): Promise<{
   success: boolean;
@@ -443,6 +460,21 @@ export async function prodyChatAction(params: ProdyChatParams): Promise<{
     const categoryNames = categories.map((c) => `${c.name} (slug: ${c.slug})`).join(', ');
     const subcategoryNames = subcategories.map((s) => `${s.name}`).join(', ');
 
+    // Determine the product concept to research on Google
+    const userMessages = messages.filter((m) => m.sender === 'user').map((m) => m.content);
+    const latestUserMsg = userMessages[userMessages.length - 1] || '';
+    const searchConcept =
+      currentFormValues?.name ||
+      currentFormValues?.subcategoryName ||
+      latestUserMsg ||
+      'audio plugin';
+
+    // Perform live Google search and competitor research
+    const seoDossier = await performAudioSeoResearch(
+      searchConcept,
+      currentFormValues?.categorySlug
+    );
+
     const formSummary = currentFormValues
       ? `
 CURRENT FORM CONTEXT (What the creator has already typed into the form):
@@ -463,6 +495,14 @@ You converse with music producers and audio brand creators in friendly, razor-sh
 Keep your language clean, easy, and direct so creators immediately understand.
 
 ${formSummary}
+
+${seoDossier.groundedDossierText}
+
+MANDATORY GOOGLE SEARCH & COMPETITOR RESEARCH GROUNDING:
+- You have live Google search research, competitor benchmarks, and high-volume keywords in your dossier above.
+- NEVER invent random facts, fake sample counts, or vague generic fluff.
+- All product names, descriptions, bullet points, and DSP/sound features must strictly derive from this Google SEO search analysis.
+- When advising the creator or building the listing, explicitly reference the search insights (e.g. "Analyzing top Google search trends for this, the most requested feature is...") to give creators confidence in their product's organic ranking capability.
 
 STUDIO & AUDIO PRODUCT RULES:
 1. RESPECT & RECOGNIZE EXISTING FORM VALUES FIRST:
@@ -491,6 +531,15 @@ STUDIO & AUDIO PRODUCT RULES:
    - When presenting multiple-choice questions or options for the user to choose, format each selectable option on its own bullet line starting with "- [ ] Option Text". Always include an "Other (custom input)" option at the end.
    - If the user provides a complete idea or says "build", "generate", "create", or "make listing", immediately construct the complete product listing and provide the JSON block at the bottom.
 
+5. GOOGLE #1 RANKING CONTENT FORMAT:
+   - short_description: Strictly 145–160 characters (prevents SERP truncation).
+   - full_description: Rich structured Markdown:
+     * ### Primary Search Hook Title
+     * #### Why Music Producers Need This (Problem / Solution bullets)
+     * #### Key Features & DSP Highlights (Bold benefits & specs)
+     * #### Google FAQ / Rich Snippets (3 concise questions & answers)
+     * #### Technical Specifications (DAWs, OS, formats, sample rates, latency)
+
 TAXONOMY:
 - Categories: ${categoryNames}
 - Subcategories: ${subcategoryNames}
@@ -505,8 +554,8 @@ SCHEMA FOR JSON BLOCK (Enclose in \`\`\`json ... \`\`\` at the bottom of your me
   "category_slugs": ["Genre1", "Genre2", "Genre3", "Genre4"],
   "price_usd": number,
   "original_price_usd": number,
-  "short_description": "string (140-160 char high-CTR Google meta description packed with keywords)",
-  "full_description": "string (Rich, structured Markdown with H3 hook, Why Producers Need This, Key Features & DSP Highlights, Technical Specifications)",
+  "short_description": "string (strictly 145-160 char high-CTR Google meta description packed with keywords)",
+  "full_description": "string (Rich, structured Markdown with H3 hook, Why Producers Need This, Key Features & DSP Highlights, Google FAQ, Technical Specifications)",
   "version": "1.0.0",
   "release_year": "2025",
   "license_type": "Royalty-Free Commercial",
