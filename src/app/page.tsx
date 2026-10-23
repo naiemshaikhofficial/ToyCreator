@@ -301,14 +301,14 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href="/signup"
-              className="w-full sm:w-auto btn-white py-3.5 px-8 text-xs font-bold uppercase tracking-wider rounded-full flex items-center justify-center gap-2 shadow-xl"
+              className="w-full sm:w-auto btn-white py-3.5 px-8 text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-xl"
             >
               <span>Apply for Creator Access</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               href="/login"
-              className="w-full sm:w-auto py-3.5 px-8 text-xs font-semibold uppercase tracking-wider rounded-full bg-[#202020] hover:bg-[#282828] border border-[#2e2e2e] text-white flex items-center justify-center gap-2 transition-colors"
+              className="w-full sm:w-auto py-3.5 px-8 text-xs font-semibold uppercase tracking-wider rounded-lg bg-[#202020] hover:bg-[#282828] border border-[#2e2e2e] text-white flex items-center justify-center gap-2 transition-colors"
             >
               <span>Sign In to Dashboard</span>
             </Link>
@@ -319,7 +319,13 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t border-[#202020] py-8 px-6 sm:px-12 text-center text-xs text-zinc-400 flex flex-col sm:flex-row items-center justify-between gap-4 max-w-7xl w-full mx-auto">
         <p>&copy; {new Date().getFullYear()} Producer Toy Inc. All rights reserved. Toy Creator Portal.</p>
-        <div className="flex items-center gap-6">
+        <div className="flex flex-wrap items-center justify-center gap-6">
+          <a
+            href="mailto:creators@producertoy.com"
+            className="hover:text-white transition-colors"
+          >
+            creators@producertoy.com
+          </a>
           <Link
             href="/faq"
             className="hover:text-white transition-colors"
@@ -332,7 +338,7 @@ export default function HomePage() {
             rel="noreferrer"
             className="hover:text-white transition-colors"
           >
-            ProducerToy Marketplace &rarr;
+            ProducerToy Storefront &rarr;
           </a>
           <a
             href="https://producertoy.com/privacy"

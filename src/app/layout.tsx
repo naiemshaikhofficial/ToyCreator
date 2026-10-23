@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   applicationName: "Toy Creator",
   title: {
-    default: "Toy Creator — Sell VST Plugins, Sample Packs & Audio Tools",
+    default: "Toy Creator | Sell VST Plugins, Sample Packs & Audio Tools",
     template: "%s | Toy Creator",
   },
   description:
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: baseUrl,
     siteName: "Toy Creator",
-    title: "Toy Creator — Sell VST Plugins, Sample Packs & Audio Tools",
+    title: "Toy Creator | Sell VST Plugins, Sample Packs & Audio Tools",
     description:
       "The dedicated developer portal for music plugin creators, sound libraries, and presets. Sell digital audio software worldwide with machine licensing and automated payouts.",
     images: [
