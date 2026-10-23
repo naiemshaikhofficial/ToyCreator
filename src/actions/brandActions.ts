@@ -1,6 +1,7 @@
 'use server';
 
 import { getAdminClient } from '@/lib/supabase/admin';
+import { requireBrandMembership } from '@/lib/auth/serverAuth';
 import { revalidatePath } from 'next/cache';
 
 export async function updateBrandProfileAction(
@@ -18,6 +19,7 @@ export async function updateBrandProfileAction(
   }
 ) {
   try {
+    await requireBrandMembership(brandId, ['owner', 'admin']);
     const admin = getAdminClient();
 
     // 1. Update brand info in brands table
@@ -74,11 +76,11 @@ export async function completeBrandOnboardingAction(params: {
   signatoryTitle?: string;
 }) {
   try {
-    const admin = getAdminClient();
-
     if (!params.brandId) {
       return { success: false, error: 'Brand ID is required.' };
     }
+    await requireBrandMembership(params.brandId, ['owner', 'admin']);
+    const admin = getAdminClient();
     if (!params.brandName?.trim()) {
       return { success: false, error: 'Brand name is required.' };
     }

@@ -1,5 +1,7 @@
 'use server';
 
+import { requireAuthenticatedUser } from '@/lib/auth/serverAuth';
+
 export interface DriveUploadResult {
   success: boolean;
   fileId?: string;
@@ -9,15 +11,41 @@ export interface DriveUploadResult {
   error?: string;
 }
 
+const ALLOWED_EXTENSIONS = new Set([
+  'png', 'jpg', 'jpeg', 'webp', 'gif',
+  'wav', 'mp3', 'flac', 'aif', 'aiff', 'ogg',
+  'zip', 'rar', '7z', 'tar', 'gz', 'pkg', 'dmg', 'vst3', 'component',
+  'pdf', 'txt', 'fxp', 'fxb', 'preset',
+]);
+
+const DANGEROUS_EXTENSIONS = new Set([
+  'exe', 'bat', 'cmd', 'sh', 'php', 'phtml', 'cgi', 'pl', 'py', 'js', 'html', 'htm', 'vbs', 'msi',
+]);
+
 /**
  * Server Action: Upload file directly to dedicated cloud storage via automated webhook pipeline
  */
 export async function uploadAssetToDriveAction(formData: FormData): Promise<DriveUploadResult> {
+  try {
+    await requireAuthenticatedUser();
+  } catch {
+    return { success: false, error: 'Unauthorized: You must be logged in as a creator to upload assets.' };
+  }
+
   const file = formData.get('file') as File;
   const assetCategory = (formData.get('assetCategory') as string) || 'asset';
 
   if (!file) {
     return { success: false, error: 'No file was provided for upload.' };
+  }
+
+  // File extension and type validation
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  if (DANGEROUS_EXTENSIONS.has(ext)) {
+    return { success: false, error: `Executable or script files (.${ext}) are forbidden for security reasons.` };
+  }
+  if (!ALLOWED_EXTENSIONS.has(ext)) {
+    return { success: false, error: `File type .${ext} is not supported. Please upload an archive (.zip/.7z/.dmg), audio (.wav/.mp3), or image (.png/.jpg).` };
   }
 
   // Calculate human-readable file size with GB support
@@ -124,6 +152,33 @@ export async function uploadAssetToDriveAction(formData: FormData): Promise<Driv
  * Matches ProducerToy download engine format
  */
 export async function verifyDriveLinkAction(url: string) {
+  if (!url || typeof url !== 'string') {
+    return { success: false, error: 'Invalid URL provided' };
+  }
+  const cleanUrl = url.trim();
+  try {
+    const parsed = new URL(cleanUrl);
+    if (parsed.protocol !== 'https:') {
+      return { success: false, error: 'Only secure HTTPS links are permitted.' };
+    }
+    const hostname = parsed.hostname.toLowerCase();
+    if (
+      hostname === 'localhost' ||
+      hostname.startsWith('127.') ||
+      hostname === '0.0.0.0' ||
+      hostname.startsWith('10.') ||
+      hostname.startsWith('192.168.') ||
+      hostname.startsWith('172.16.') ||
+      hostname.endsWith('.internal') ||
+      hostname.endsWith('.local') ||
+      hostname === '169.254.169.254'
+    ) {
+      return { success: false, error: 'Internal network hostnames are forbidden.' };
+    }
+  } catch {
+    return { success: false, error: 'Invalid URL format.' };
+  }
+
   const { verifyGoogleDriveAsset } = await import('@/lib/googleDrive');
-  return await verifyGoogleDriveAsset(url);
+  return await verifyGoogleDriveAsset(cleanUrl);
 }

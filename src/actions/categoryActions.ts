@@ -1,6 +1,7 @@
 'use server';
 
 import { getAdminClient } from '@/lib/supabase/admin';
+import { requireAuthenticatedUser } from '@/lib/auth/serverAuth';
 import { revalidatePath } from 'next/cache';
 
 /**
@@ -14,6 +15,12 @@ export async function createCustomCategoryAction(
   data?: { id: string; name: string; slug: string };
   error?: string;
 }> {
+  try {
+    await requireAuthenticatedUser();
+  } catch {
+    return { success: false, error: 'Unauthorized: You must be signed in to create custom categories.' };
+  }
+
   if (!name || !name.trim()) {
     return { success: false, error: 'Category name is required.' };
   }
@@ -74,6 +81,12 @@ export async function createCustomSubcategoryAction(
   data?: { id: string; category_id: string; name: string; slug: string };
   error?: string;
 }> {
+  try {
+    await requireAuthenticatedUser();
+  } catch {
+    return { success: false, error: 'Unauthorized: You must be signed in to create custom subcategories.' };
+  }
+
   if (!name || !name.trim()) {
     return { success: false, error: 'Subcategory name is required.' };
   }

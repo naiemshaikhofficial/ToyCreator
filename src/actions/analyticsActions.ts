@@ -1,6 +1,7 @@
 'use server';
 
 import { getAdminClient } from '@/lib/supabase/admin';
+import { requireBrandMembership } from '@/lib/auth/serverAuth';
 import { calculateItemizedSettlement } from '@/lib/accounting';
 import { maskCustomerPii } from '@/lib/privacy/dataSharing';
 
@@ -37,6 +38,7 @@ export async function getBrandFullAnalyticsAction(brandId: string): Promise<{
   }
 
   try {
+    await requireBrandMembership(brandId);
     const admin = getAdminClient();
 
     // 1. Fetch real products for this brand

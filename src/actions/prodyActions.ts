@@ -2,6 +2,7 @@
 
 import { getCatalogCategories } from '@/lib/supabase/actions';
 import { performAudioSeoResearch } from '@/lib/prodySearchEngine';
+import { requireAuthenticatedUser } from '@/lib/auth/serverAuth';
 
 export interface ProdyGeneratedProduct {
   name: string;
@@ -55,6 +56,12 @@ export async function generateProductWithProdyAction(params: {
   data?: ProdyGeneratedProduct;
   error?: string;
 }> {
+  try {
+    await requireAuthenticatedUser();
+  } catch {
+    return { success: false, error: 'Unauthorized: You must be logged in as a creator to use Prody AI.' };
+  }
+
   const { prompt, categorySlug = 'auto', brandName = 'Producer Toy' } = params;
 
   if (!prompt || !prompt.trim()) {
@@ -331,6 +338,12 @@ export async function brainstormProductIdeasAction(params: {
   ideas?: ProdyBrainstormIdea[];
   error?: string;
 }> {
+  try {
+    await requireAuthenticatedUser();
+  } catch {
+    return { success: false, error: 'Unauthorized: You must be logged in as a creator to brainstorm ideas.' };
+  }
+
   const { brandName = 'Producer Toy', categoryFilter = 'all' } = params;
   const apiKey = getApiKey();
   if (!apiKey) return { success: false, error: 'Prody AI engine is not configured.' };
@@ -447,6 +460,12 @@ export async function prodyChatAction(params: ProdyChatParams): Promise<{
   product?: ProdyGeneratedProduct | null;
   error?: string;
 }> {
+  try {
+    await requireAuthenticatedUser();
+  } catch {
+    return { success: false, content: '', error: 'Unauthorized: You must be logged in as a creator to chat with Prody.' };
+  }
+
   const { messages, brandName = 'Producer Toy', currentFormValues } = params;
   const apiKey = getApiKey();
   if (!apiKey) return { success: false, content: '', error: 'Prody AI engine is not configured.' };
