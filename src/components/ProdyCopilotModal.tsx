@@ -68,9 +68,16 @@ interface ChatItem {
 }
 
 /**
- * Clean Minimalist Markdown Renderer (Eliminates raw **, ###, etc.)
+ * Clean Minimalist Markdown Renderer with Interactive Options, Checkbox & Custom "Other" Text Box Support
  */
-function renderFormattedMessage(text: string) {
+function renderFormattedMessage(
+  text: string,
+  onOptionClick?: (optionText: string) => void,
+  activeOtherIndex?: number | null,
+  otherCustomText?: string,
+  onOtherChange?: (val: string) => void,
+  onOtherSubmit?: () => void
+) {
   if (!text) return null;
 
   const lines = text.split('\n');
@@ -82,6 +89,11 @@ function renderFormattedMessage(text: string) {
           return <div key={idx} className="h-1.5" />;
         }
 
+        // Horizontal rule: --- or ***
+        if (trimmed === '---' || trimmed === '***') {
+          return <hr key={idx} className="border-white/10 my-2" />;
+        }
+
         // Heading 3 or 4: ### Heading
         if (trimmed.startsWith('### ') || trimmed.startsWith('#### ')) {
           const headingText = trimmed.replace(/^#{3,4}\s+/, '');
@@ -89,6 +101,74 @@ function renderFormattedMessage(text: string) {
             <h4 key={idx} className="text-sm sm:text-[15px] font-extrabold text-white tracking-tight pt-1">
               {parseInlineFormatting(headingText)}
             </h4>
+          );
+        }
+
+        // Checkbox or Selectable Option: - [ ] item, * [ ] item, • [ ] item, or • ☐ item
+        const checkboxMatch = trimmed.match(/^([-*•]\s*)?(\[[ xX]\]|☐|☑)\s+(.*)$/);
+        if (checkboxMatch) {
+          const optionContent = checkboxMatch[3].trim();
+          const isOther = optionContent.toLowerCase().includes('other') || optionContent.toLowerCase().includes('specify') || optionContent.toLowerCase().includes('custom');
+          const isOtherActive = isOther && activeOtherIndex === idx;
+
+          return (
+            <div key={idx} className="space-y-2">
+              <div
+                onClick={() => onOptionClick && onOptionClick(isOther ? `__OTHER__:${idx}` : optionContent)}
+                className={`group flex items-start gap-2.5 p-2 rounded-xl transition-all cursor-pointer text-left select-none ${
+                  isOtherActive
+                    ? 'bg-[#1e1e24] border border-white/40 shadow-sm'
+                    : 'bg-[#18181c]/70 hover:bg-[#222228] border border-white/10 hover:border-white/30'
+                }`}
+              >
+                <div className={`w-4 h-4 rounded border flex items-center justify-center mt-0.5 shrink-0 transition-colors ${
+                  isOtherActive ? 'border-white bg-white text-black' : 'border-white/30 group-hover:border-white bg-[#101014]'
+                }`}>
+                  <div className={`w-1.5 h-1.5 rounded-xs transition-colors ${
+                    isOtherActive ? 'bg-black' : 'bg-transparent group-hover:bg-white'
+                  }`} />
+                </div>
+                <div className="flex-1 text-zinc-300 group-hover:text-white text-xs sm:text-[13px]">
+                  {parseInlineFormatting(optionContent)}
+                </div>
+                <span className="text-[10px] font-mono text-zinc-500 group-hover:text-zinc-300 uppercase tracking-wider shrink-0 mt-0.5">
+                  {isOther ? 'Custom' : 'Select'}
+                </span>
+              </div>
+
+              {/* Inline Custom Text Box when Other is selected */}
+              {isOtherActive && (
+                <div className="pl-6 pt-1 animate-fadeIn">
+                  <div className="flex items-center gap-2 p-1.5 bg-[#121216] border border-white/20 rounded-xl focus-within:border-white/50 transition-all">
+                    <input
+                      type="text"
+                      autoFocus
+                      value={otherCustomText || ''}
+                      onChange={(e) => onOtherChange && onOtherChange(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          onOtherSubmit && onOtherSubmit();
+                        }
+                      }}
+                      placeholder="Type custom instruments or details..."
+                      className="flex-1 bg-transparent px-2.5 py-1 text-xs text-white placeholder:text-zinc-500 outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOtherSubmit && onOtherSubmit();
+                      }}
+                      disabled={!otherCustomText?.trim()}
+                      className="px-3 py-1 rounded-lg bg-white text-black text-[11px] font-bold hover:bg-zinc-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shrink-0"
+                    >
+                      Send
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           );
         }
 
@@ -188,6 +268,8 @@ export default function ProdyCopilotModal({
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [appliedModes, setAppliedModes] = useState<Record<string, string>>({});
   const [expandedDescId, setExpandedDescId] = useState<string | null>(null);
+  const [activeOtherMap, setActiveOtherMap] = useState<Record<string, number | null>>({});
+  const [otherTextMap, setOtherTextMap] = useState<Record<string, string>>({});
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -466,10 +548,34 @@ export default function ProdyCopilotModal({
                   </div>
                 ) : (
                   <div className="w-full space-y-3">
-                    {/* Clean Formatted Conversational Text */}
+                    {/* Clean Formatted Conversational Text with Interactive Checkbox, Options & Custom Other Box */}
                     {msg.content && (
                       <div className="bg-[#151518] border border-white/[0.08] text-zinc-200 rounded-2xl rounded-tl-xs p-4 sm:p-5 shadow-md">
-                        {renderFormattedMessage(msg.content)}
+                        {renderFormattedMessage(
+                          msg.content,
+                          (opt) => {
+                            if (opt.startsWith('__OTHER__:')) {
+                              const otherIdx = parseInt(opt.replace('__OTHER__:', ''), 10);
+                              setActiveOtherMap((prev) => ({
+                                ...prev,
+                                [msg.id]: prev[msg.id] === otherIdx ? null : otherIdx,
+                              }));
+                            } else {
+                              handleSendMessage(opt);
+                            }
+                          },
+                          activeOtherMap[msg.id],
+                          otherTextMap[msg.id] || '',
+                          (text) => setOtherTextMap((prev) => ({ ...prev, [msg.id]: text })),
+                          () => {
+                            const customVal = (otherTextMap[msg.id] || '').trim();
+                            if (customVal) {
+                              handleSendMessage(`Other: ${customVal}`);
+                              setOtherTextMap((prev) => ({ ...prev, [msg.id]: '' }));
+                              setActiveOtherMap((prev) => ({ ...prev, [msg.id]: null }));
+                            }
+                          }
+                        )}
                       </div>
                     )}
 
