@@ -2,6 +2,7 @@
 
 import { getAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
+import { verifyProductOwnership, requireBrandMembership } from '@/lib/auth/serverAuth';
 
 /**
  * Server Action: Update an existing brand product in Supabase using the service role client
@@ -12,6 +13,9 @@ export async function updateBrandProductAction(productId: string, updates: any) 
   }
 
   try {
+    // Multi-tenant security check: Ensure caller has permissions for this product's brand
+    await verifyProductOwnership(productId, ['owner', 'admin', 'developer']);
+
     const admin = getAdminClient();
 
     // Clean updates: strip undefined and format types
@@ -55,10 +59,18 @@ export async function updateBrandProductAction(productId: string, updates: any) 
  */
 export async function createBrandProductAction(productData: any) {
   try {
+    if (!productData?.brand_id) {
+      return { success: false, error: 'Brand ID is required to create a product.' };
+    }
+
+    // Verify caller has permissions to create products for this brand
+    const session = await requireBrandMembership(productData.brand_id, ['owner', 'admin', 'developer']);
+
     const admin = getAdminClient();
 
     // Clean product data: strip undefined
     const cleanedData: Record<string, any> = {
+      brand_id: session.brandId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };

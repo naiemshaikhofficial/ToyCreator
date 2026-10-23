@@ -4,6 +4,7 @@ import { getAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 import { SerialKeyPoolStats, ProductLicenseApiConfig } from '@/lib/types';
 import { maskCustomerPii } from '@/lib/privacy/dataSharing';
+import { verifyProductOwnership } from '@/lib/auth/serverAuth';
 
 /**
  * Server Action: Get serial key pool statistics and latest keys for a product
@@ -18,6 +19,7 @@ export async function getProductSerialStatsAction(productId: string): Promise<{
   }
 
   try {
+    await verifyProductOwnership(productId, ['owner', 'admin', 'developer']);
     const admin = getAdminClient();
 
     // 1. Fetch all serial keys for this product
@@ -151,6 +153,7 @@ export async function batchUploadSerialsAction(
   }
 
   try {
+    await verifyProductOwnership(productId, ['owner', 'admin', 'developer']);
     const admin = getAdminClient();
 
     // Split by newlines or commas, trim whitespace and quotes, filter empty
@@ -242,6 +245,7 @@ export async function deleteSerialKeyAction(
   }
 
   try {
+    await verifyProductOwnership(productId, ['owner', 'admin']);
     const admin = getAdminClient();
 
     // Only allow deleting unused keys
@@ -277,6 +281,7 @@ export async function updateProductLicenseConfigAction(
   }
 
   try {
+    await verifyProductOwnership(productId, ['owner', 'admin', 'developer']);
     const admin = getAdminClient();
     const updatePayload: Record<string, any> = {};
 

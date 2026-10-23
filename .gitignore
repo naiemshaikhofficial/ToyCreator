@@ -5,8 +5,17 @@ out/
 # Dependencies
 node_modules/
 
-# Environment variables
+# Environment variables & secrets (CRITICAL SECURITY)
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
 .env*.local
+!.env.example
 
 # Typescript
 *.tsbuildinfo

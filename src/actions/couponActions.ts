@@ -2,6 +2,7 @@
 
 import { getAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
+import { requireBrandMembership, verifyCouponOwnership } from '@/lib/auth/serverAuth';
 
 export interface CouponItem {
   id: string;
@@ -38,6 +39,7 @@ export async function getBrandCouponsAction(brandId: string): Promise<{
   }
 
   try {
+    await requireBrandMembership(brandId);
     const admin = getAdminClient();
     const { data, error } = await admin
       .from('coupons')
@@ -68,6 +70,7 @@ export async function getBrandProductsForCouponsAction(brandId: string): Promise
   if (!brandId) return [];
 
   try {
+    await requireBrandMembership(brandId);
     const admin = getAdminClient();
     const { data } = await admin
       .from('products')
@@ -122,6 +125,7 @@ export async function createCouponAction(params: CreateCouponParams): Promise<{
   }
 
   try {
+    const session = await requireBrandMembership(params.brandId, ['owner', 'admin', 'developer']);
     const admin = getAdminClient();
 
     // Check if code already exists
@@ -137,7 +141,7 @@ export async function createCouponAction(params: CreateCouponParams): Promise<{
 
     const payload: any = {
       code: cleanCode,
-      brand_id: params.brandId,
+      brand_id: session.brandId,
       product_id: params.productId || null,
       discount_type: params.discountType,
       discount_percent: isPercent ? percentVal : Math.min(100, Math.round((fixedVal / 50) * 100)), // fallback percent for legacy checks
@@ -179,6 +183,7 @@ export async function toggleCouponStatusAction(
   if (!couponId) return { success: false, error: 'Coupon ID is required.' };
 
   try {
+    await verifyCouponOwnership(couponId, ['owner', 'admin', 'developer']);
     const admin = getAdminClient();
     const newStatus = !currentStatus;
 
@@ -205,6 +210,7 @@ export async function deleteCouponAction(couponId: string): Promise<{ success: b
   if (!couponId) return { success: false, error: 'Coupon ID is required.' };
 
   try {
+    await verifyCouponOwnership(couponId, ['owner', 'admin']);
     const admin = getAdminClient();
     const { error } = await admin
       .from('coupons')

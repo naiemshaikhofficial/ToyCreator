@@ -3,6 +3,7 @@
 import { getAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 import crypto from 'crypto';
+import { requireBrandMembership } from '@/lib/auth/serverAuth';
 
 export interface BrandTeamMember {
   id: string;
@@ -28,6 +29,7 @@ export interface BrandInvite {
  */
 export async function getBrandTeamAction(brandId: string) {
   try {
+    await requireBrandMembership(brandId);
     const admin = getAdminClient();
 
     // 1. Fetch active members
@@ -101,6 +103,7 @@ export async function inviteBrandMemberAction(params: {
   invitedByUserId?: string;
 }) {
   try {
+    const session = await requireBrandMembership(params.brandId, ['owner', 'admin']);
     const admin = getAdminClient();
     const cleanEmail = params.email.trim().toLowerCase();
 
@@ -509,6 +512,7 @@ export async function claimInviteWithTokenAction(
  */
 export async function revokeBrandInviteAction(inviteId: string, brandId: string) {
   try {
+    await requireBrandMembership(brandId, ['owner', 'admin']);
     const admin = getAdminClient();
 
     const { error } = await admin
@@ -532,6 +536,7 @@ export async function revokeBrandInviteAction(inviteId: string, brandId: string)
  */
 export async function removeBrandMemberAction(memberId: string, brandId: string) {
   try {
+    await requireBrandMembership(brandId, ['owner', 'admin']);
     const admin = getAdminClient();
 
     // Verify target is not the only owner
@@ -580,6 +585,7 @@ export async function updateBrandMemberRoleAction(
   newRole: 'owner' | 'admin' | 'developer' | 'support' | 'finance'
 ) {
   try {
+    await requireBrandMembership(brandId, ['owner', 'admin']);
     const admin = getAdminClient();
 
     const { error } = await admin
