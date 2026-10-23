@@ -199,8 +199,9 @@ export async function fetchGoogleAdsKeywordIdeas(
       pageSize: options?.pageSize || 20,
     };
 
+    const apiVersion = 'v24';
     const res = await fetch(
-      `https://googleads.googleapis.com/v18/customers/${credentials.customerId}:generateKeywordIdeas`,
+      `https://googleads.googleapis.com/${apiVersion}/customers/${credentials.customerId}:generateKeywordIdeas`,
       {
         method: 'POST',
         headers,
@@ -224,6 +225,18 @@ export async function fetchGoogleAdsKeywordIdeas(
     if (!res.ok) {
       const errText = await res.text();
       console.warn(`[Google Ads API] API request failed (HTTP ${res.status}):`, errText);
+
+      if (errText.includes('DEVELOPER_TOKEN_NOT_APPROVED')) {
+        return {
+          status: 'auth_failed',
+          isConfigured: true,
+          metrics: [],
+          rawCount: 0,
+          message:
+            'Google Ads Developer Token is currently in Test Access / Pending Review mode. Prody is using curated ProducerToy audio SEO domain taxonomy.',
+        };
+      }
+
       return {
         status: 'error',
         isConfigured: true,
