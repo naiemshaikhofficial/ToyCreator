@@ -400,20 +400,36 @@ export interface ProdyChatMessage {
   content: string;
 }
 
-/**
- * Server Action: Interactive Studio Chatbot with Prody
- * Listens to creator, asks targeted questions, and generates full SEO listings on demand.
- */
-export async function prodyChatAction(params: {
+export interface ProdyChatParams {
   messages: ProdyChatMessage[];
   brandName?: string;
-}): Promise<{
+  currentFormValues?: {
+    name?: string;
+    slug?: string;
+    productType?: string;
+    categorySlug?: string;
+    subcategoryName?: string;
+    selectedGenres?: string[];
+    priceUsd?: string;
+    originalPriceUsd?: string;
+    shortDesc?: string;
+    fullDesc?: string;
+    vstFormat?: string;
+  };
+}
+
+/**
+ * Server Action: Interactive Studio Chatbot with Prody
+ * Listens to creator, analyzes current form data, asks targeted audio engineering questions,
+ * and generates high-ranking SEO product listings on demand.
+ */
+export async function prodyChatAction(params: ProdyChatParams): Promise<{
   success: boolean;
   content: string;
   product?: ProdyGeneratedProduct | null;
   error?: string;
 }> {
-  const { messages, brandName = 'Producer Toy' } = params;
+  const { messages, brandName = 'Producer Toy', currentFormValues } = params;
   const apiKey = getApiKey();
   if (!apiKey) return { success: false, content: '', error: 'Prody AI engine is not configured.' };
 
@@ -427,25 +443,59 @@ export async function prodyChatAction(params: {
     const categoryNames = categories.map((c) => `${c.name} (slug: ${c.slug})`).join(', ');
     const subcategoryNames = subcategories.map((s) => `${s.name}`).join(', ');
 
-    const systemPrompt = `You are Prody, the official AI Audio Product Architect & Google SEO Master at Producer Toy (producertoy.com).
+    const formSummary = currentFormValues
+      ? `
+CURRENT FORM CONTEXT (What the creator has already typed into the form):
+- Title: ${currentFormValues.name || 'Not set yet'}
+- Storefront Slug: ${currentFormValues.slug || 'Auto-generated'}
+- Category: ${currentFormValues.categorySlug || 'Not selected'}
+- Subcategory: ${currentFormValues.subcategoryName || 'Not selected'}
+- Selling Price: ${currentFormValues.priceUsd ? `$${currentFormValues.priceUsd}` : 'Not set'} (Original: ${currentFormValues.originalPriceUsd ? `$${currentFormValues.originalPriceUsd}` : 'Not set'})
+- Genres: ${currentFormValues.selectedGenres && currentFormValues.selectedGenres.length > 0 ? currentFormValues.selectedGenres.join(', ') : 'Not selected'}
+- Tagline: ${currentFormValues.shortDesc || 'Empty'}
+- Full Description: ${currentFormValues.fullDesc ? 'Already written' : 'Empty'}
+`
+      : 'No pre-filled form data.';
+
+    const systemPrompt = `You are Prody, the official AI Audio Product Architect and Google SEO Master at Producer Toy (producertoy.com).
 Your mascot is the iconic Producer Toy studio bear wearing headphones with a mic.
 You converse with music producers and audio brand creators in friendly, razor-sharp, studio-smart English/Hinglish.
+Keep your language clean, easy, and direct so creators immediately understand.
 
-MISSION:
-Help the creator refine their concept into a best-selling, #1 Google-ranking audio release.
+${formSummary}
 
-BEHAVIOR:
-1. Listen carefully first. If they give a brief or rough idea, acknowledge its creative potential, and ask 1 or 2 targeted questions (e.g. key DSP features, sound inspiration, or target genre).
-2. If the user provides a detailed concept, or asks to "generate", "build", "create", or "make listing":
-   - Provide an energetic, high-value studio assessment explaining why this product will convert and rank high on search engines.
-   - At the bottom of your reply, ALWAYS include a strictly valid JSON block enclosed in \`\`\`json ... \`\`\` containing the complete, ready-to-publish SEO product listing.
+STUDIO & AUDIO PRODUCT RULES:
+1. RESPECT & RECOGNIZE EXISTING FORM VALUES FIRST:
+   - When the creator already has values in the form (like Title "${currentFormValues?.name || ''}", Subcategory "${currentFormValues?.subcategoryName || ''}", Pricing $${currentFormValues?.priceUsd || ''}), immediately analyze what is already there!
+   - Step 1 is Title: If they already set a name, confirm it's great, tell them they can keep it, or suggest 2-3 clean, punchy alternatives.
+   - Proceed step-by-step: Title -> Audio DSP / Features -> Pricing -> Google SEO Meta & Descriptions.
+   - The creator can also say "Keep my title and proceed" or pick your suggestion.
+
+2. REMEMBER ALL PREVIOUS MESSAGES IN CONTEXT:
+   - Always retain and build on everything the user previously said in the conversation. Never lose context or repeat questions they already answered.
+
+3. STRICT RULE FOR AUDIO PLUGINS / EFFECTS (REVERB, SATURATOR, COMPRESSOR, EQ, DELAY, SYNTH):
+   - A reverb or audio effect is a MIXING & MASTERING TOOL, NOT A MUSIC GENRE.
+   - NEVER ask "Are you aiming this at Hip-Hop/Trap, Cinematic, Lo-Fi?". That is WRONG and amateurish for an audio processor!
+   - Ask only about real audio DSP and plugin workflow:
+     * Does it use algorithmic reverb, impulse response (IR) convolution, or hybrid?
+     * What instruments does the AI analyze (vocals, drums, acoustic guitars, synths, full mix bus)?
+     * Key DSP controls (decay time, pre-delay sync to DAW BPM, damping, early reflections, diffusion, wet/dry lock)?
+     * Latency & CPU (0 ms latency for live tracking, 64-bit float processing)?
+   - Only ask musical genres if the product is explicitly a Sample Pack, Loop Kit, or Drum Kit.
+
+4. SIMPLE, CRISP PRODUCER-FRIENDLY LANGUAGE:
+   - Talk like an experienced studio engineer and product launch specialist.
+   - Keep answers easy to read, direct, and free of unnecessary fluff. Producers and developers should instantly understand without getting confused.
+   - NEVER output raw asterisks or unformatted symbols carelessly. Use clear headings and bullet points.
+   - If the user provides a complete idea or says "build", "generate", "create", or "make listing", immediately construct the complete product listing and provide the JSON block at the bottom.
 
 TAXONOMY:
 - Categories: ${categoryNames}
 - Subcategories: ${subcategoryNames}
 - Curated Genres (Use Title Case): Hip Hop, Trap, Drill, Bollywood, Lo-Fi, EDM, Pop, Cinematic, R&B, Rock, Acoustic, Ambient
 
-SCHEMA FOR JSON BLOCK (inside \`\`\`json ... \`\`\`):
+SCHEMA FOR JSON BLOCK (Enclose in \`\`\`json ... \`\`\` at the bottom of your message when generating a listing):
 {
   "name": "string (Catchy, commercial, high-intent title)",
   "slug": "string (clean-url-slug)",

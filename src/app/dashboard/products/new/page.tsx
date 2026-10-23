@@ -1414,6 +1414,19 @@ export default function NewProductPage() {
         isOpen={showProdyModal}
         onClose={() => setShowProdyModal(false)}
         brandName={brand?.name}
+        currentFormValues={{
+          name,
+          slug,
+          productType,
+          categorySlug: categoriesList.find((c) => c.id === categoryId)?.slug || (productType === 'sample_pack' ? 'sample-pack' : 'plugin'),
+          subcategoryName: subcategoriesList.find((s) => s.id === subcategoryId)?.name,
+          selectedGenres,
+          priceUsd,
+          originalPriceUsd,
+          shortDesc,
+          fullDesc,
+          vstFormat,
+        }}
         onApplyProduct={handleApplyProdyProduct}
       />
     </div>

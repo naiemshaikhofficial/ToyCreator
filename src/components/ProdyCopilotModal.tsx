@@ -7,7 +7,6 @@ import {
   X,
   Loader2,
   Check,
-  Send,
   ArrowRight,
   Copy,
   CheckCheck,
@@ -37,10 +36,25 @@ export type ProdyApplyMode =
   | 'pricing'
   | 'specs';
 
+export interface CurrentFormValues {
+  name?: string;
+  slug?: string;
+  productType?: string;
+  categorySlug?: string;
+  subcategoryName?: string;
+  selectedGenres?: string[];
+  priceUsd?: string;
+  originalPriceUsd?: string;
+  shortDesc?: string;
+  fullDesc?: string;
+  vstFormat?: string;
+}
+
 interface ProdyCopilotModalProps {
   isOpen: boolean;
   onClose: () => void;
   brandName?: string;
+  currentFormValues?: CurrentFormValues;
   onApplyProduct: (product: ProdyGeneratedProduct, mode?: ProdyApplyMode) => void;
 }
 
@@ -53,19 +67,119 @@ interface ChatItem {
   isThinking?: boolean;
 }
 
-const QUICK_STARTER_CHIPS = [
-  '🎛️ AI Reverb VST3 / AU Plugin',
-  '🔊 Dark Drill 808 & Bass Synth',
-  '🥁 Organic Tabla & Trap Pack',
-  '🎹 Analog Synth Preset Bank',
-  '🎤 Silky Vocal Hooks & Chops',
-  '⚡ Tape Saturator & Warmth FX',
-];
+/**
+ * Clean Minimalist Markdown Renderer (Eliminates raw **, ###, etc.)
+ */
+function renderFormattedMessage(text: string) {
+  if (!text) return null;
+
+  const lines = text.split('\n');
+  return (
+    <div className="space-y-2 text-[13px] sm:text-[14px] leading-relaxed text-zinc-300 font-sans">
+      {lines.map((line, idx) => {
+        const trimmed = line.trim();
+        if (!trimmed) {
+          return <div key={idx} className="h-1.5" />;
+        }
+
+        // Heading 3 or 4: ### Heading
+        if (trimmed.startsWith('### ') || trimmed.startsWith('#### ')) {
+          const headingText = trimmed.replace(/^#{3,4}\s+/, '');
+          return (
+            <h4 key={idx} className="text-sm sm:text-[15px] font-extrabold text-white tracking-tight pt-1">
+              {parseInlineFormatting(headingText)}
+            </h4>
+          );
+        }
+
+        // Bullet point: - item or * item
+        if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+          const itemText = trimmed.slice(2);
+          return (
+            <div key={idx} className="flex items-start gap-2 pl-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 mt-2 shrink-0" />
+              <div className="flex-1 text-zinc-300">
+                {parseInlineFormatting(itemText)}
+              </div>
+            </div>
+          );
+        }
+
+        // Numbered item: 1. item
+        const numberedMatch = trimmed.match(/^(\d+)\.\s+(.*)$/);
+        if (numberedMatch) {
+          return (
+            <div key={idx} className="flex items-start gap-2 pl-1.5">
+              <span className="font-mono text-xs font-bold text-white shrink-0 mt-0.5">
+                {numberedMatch[1]}.
+              </span>
+              <div className="flex-1 text-zinc-300">
+                {parseInlineFormatting(numberedMatch[2])}
+              </div>
+            </div>
+          );
+        }
+
+        // Regular paragraph
+        return (
+          <p key={idx} className="text-zinc-300">
+            {parseInlineFormatting(line)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * Parses bold (**text**), italics (*text*), and code (`code`)
+ */
+function parseInlineFormatting(str: string): React.ReactNode[] {
+  // Regex splitting by bold, code, italic
+  const parts: React.ReactNode[] = [];
+  const regex = /(\*\*[^*]+\*\*|`[^`]+`|\*[^*]+\*)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(str)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(str.substring(lastIndex, match.index));
+    }
+    const token = match[0];
+    if (token.startsWith('**') && token.endsWith('**')) {
+      parts.push(
+        <strong key={match.index} className="font-bold text-white">
+          {token.slice(2, -2)}
+        </strong>
+      );
+    } else if (token.startsWith('`') && token.endsWith('`')) {
+      parts.push(
+        <code key={match.index} className="font-mono text-xs px-1.5 py-0.5 rounded bg-white/10 text-zinc-200">
+          {token.slice(1, -1)}
+        </code>
+      );
+    } else if (token.startsWith('*') && token.endsWith('*')) {
+      parts.push(
+        <em key={match.index} className="italic text-zinc-200">
+          {token.slice(1, -1)}
+        </em>
+      );
+    }
+    lastIndex = regex.lastIndex;
+  }
+
+  if (lastIndex < str.length) {
+    parts.push(str.substring(lastIndex));
+  }
+
+  return parts;
+}
 
 export default function ProdyCopilotModal({
   isOpen,
   onClose,
   brandName = 'Producer Toy',
+  currentFormValues,
   onApplyProduct,
 }: ProdyCopilotModalProps) {
   const [messages, setMessages] = useState<ChatItem[]>([]);
@@ -82,19 +196,24 @@ export default function ProdyCopilotModal({
     return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Initialize greeting on open
+  // Build context-aware initial greeting
   useEffect(() => {
     if (isOpen && messages.length === 0) {
+      const hasTitle = Boolean(currentFormValues?.name?.trim());
+      const initialGreeting = hasTitle
+        ? `Hey there! 🎧 I'm **Prody**, your AI Audio Architect & Google SEO Specialist for **${brandName}**.\n\nI noticed you're already configuring **${currentFormValues!.name}** (${currentFormValues?.subcategoryName || currentFormValues?.categorySlug || 'Audio Product'}).\n\nYour title is in place! Would you like to keep this title, or should I suggest 3 high-ranking commercial variations?`
+        : `Hey there! 🎧 I'm **Prody**, your AI Audio Architect & Google SEO Specialist for **${brandName}**.\n\nTell me about your next sound release—what kind of plugin, sample pack, or preset bank are you envisioning? Let's turn your sound vision into a #1 Google-ranking release.`;
+
       setMessages([
         {
           id: 'greeting',
           sender: 'assistant',
           timestamp: formatCurrentTime(),
-          content: `Hey there! 🎧 I'm **Prody**, your AI Audio Architect & Google SEO Specialist for **${brandName}**.\n\nTell me about your next sound release—what kind of plugin, sample pack, or preset bank are you envisioning? I'll analyze your concept and craft a #1 Google-ranking product listing!`,
+          content: initialGreeting,
         },
       ]);
     }
-  }, [isOpen, brandName, messages.length]);
+  }, [isOpen, brandName, currentFormValues, messages.length]);
 
   // Scroll to bottom on message updates
   useEffect(() => {
@@ -154,7 +273,6 @@ export default function ProdyCopilotModal({
     setIsTyping(true);
 
     try {
-      // Build conversation history for Server Action
       const payload: ProdyChatMessage[] = [...messages, userMsg]
         .filter((m) => !m.isThinking && m.content)
         .map((m) => ({
@@ -165,6 +283,7 @@ export default function ProdyCopilotModal({
       const res = await prodyChatAction({
         messages: payload,
         brandName,
+        currentFormValues,
       });
 
       if (res.success) {
@@ -217,22 +336,46 @@ export default function ProdyCopilotModal({
   };
 
   const handleReset = () => {
+    const hasTitle = Boolean(currentFormValues?.name?.trim());
+    const initialGreeting = hasTitle
+      ? `Hey there! 🎧 I'm **Prody**, your AI Audio Architect & Google SEO Specialist for **${brandName}**.\n\nI noticed you're already configuring **${currentFormValues!.name}** (${currentFormValues?.subcategoryName || currentFormValues?.categorySlug || 'Audio Product'}).\n\nYour title is in place! Would you like to keep this title, or should I suggest 3 high-ranking commercial variations?`
+      : `Hey there! 🎧 I'm **Prody**, your AI Audio Architect & Google SEO Specialist for **${brandName}**.\n\nTell me about your next sound release—what kind of plugin, sample pack, or preset bank are you envisioning? Let's turn your sound vision into a #1 Google-ranking release.`;
+
     setMessages([
       {
         id: 'greeting',
         sender: 'assistant',
         timestamp: formatCurrentTime(),
-        content: `Hey there! 🎧 I'm **Prody**, your AI Audio Architect & Google SEO Specialist for **${brandName}**.\n\nTell me about your next sound release—what kind of plugin, sample pack, or preset bank are you envisioning? I'll analyze your concept and craft a #1 Google-ranking product listing!`,
+        content: initialGreeting,
       },
     ]);
   };
 
+  // Dynamic starter chips based on form state
+  const hasExistingTitle = Boolean(currentFormValues?.name?.trim());
+  const starterChips = hasExistingTitle
+    ? [
+        `Keep "${currentFormValues!.name}"`,
+        'Suggest 3 Optimized Titles',
+        'Analyze Audio Features & DSP',
+        'Suggest Best Pricing Strategy',
+        'Build Full Google SEO Listing',
+      ]
+    : [
+        '🎛️ AI Reverb VST3 / AU Plugin',
+        '🔊 Dark Drill 808 & Bass Synth',
+        '🥁 Organic Tabla & Trap Pack',
+        '🎹 Analog Synth Preset Bank',
+        '🎤 Silky Vocal Hooks & Chops',
+        '⚡ Tape Saturator & Warmth FX',
+      ];
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
-      {/* Modal Container — Producer Toy Obsidian / Dark Palette */}
+      {/* Modal Container — Strict Producer Toy Monochrome Theme */}
       <div className="relative w-full max-w-4xl h-[92vh] sm:h-[88vh] bg-[#0c0c0e] border border-white/10 rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden text-white font-sans">
         
-        {/* Top Header — Mascot Bear Logo with Glow */}
+        {/* Top Header — Mascot Bear Logo with Ambient Glow (No green, red, or blue) */}
         <div className="px-4 sm:px-6 py-3.5 bg-[#121216] border-b border-white/[0.08] flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]">
@@ -250,9 +393,9 @@ export default function ProdyCopilotModal({
                 <h2 className="text-sm sm:text-base font-extrabold text-white tracking-tight">
                   Prody • Audio Copilot
                 </h2>
-                <span className="flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  Online
+                <span className="flex items-center gap-1.5 text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/10 text-white border border-white/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                  Ready
                 </span>
               </div>
               <p className="text-[11px] text-zinc-400">
@@ -323,10 +466,10 @@ export default function ProdyCopilotModal({
                   </div>
                 ) : (
                   <div className="w-full space-y-3">
-                    {/* Conversational Text */}
+                    {/* Clean Formatted Conversational Text */}
                     {msg.content && (
-                      <div className="bg-[#151518] border border-white/[0.08] text-zinc-200 rounded-2xl rounded-tl-xs p-4 sm:p-5 text-[13px] sm:text-[14px] leading-relaxed shadow-md whitespace-pre-wrap">
-                        {msg.content}
+                      <div className="bg-[#151518] border border-white/[0.08] text-zinc-200 rounded-2xl rounded-tl-xs p-4 sm:p-5 shadow-md">
+                        {renderFormattedMessage(msg.content)}
                       </div>
                     )}
 
@@ -334,10 +477,10 @@ export default function ProdyCopilotModal({
                     {msg.id === 'greeting' && (
                       <div className="pt-1 space-y-2">
                         <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 block">
-                          Quick Idea Starters (Click to Send):
+                          {hasExistingTitle ? 'Form-Aware Quick Actions:' : 'Quick Idea Starters (Click to Send):'}
                         </span>
                         <div className="flex flex-wrap gap-1.5">
-                          {QUICK_STARTER_CHIPS.map((chip) => (
+                          {starterChips.map((chip) => (
                             <button
                               key={chip}
                               type="button"
@@ -366,13 +509,13 @@ export default function ProdyCopilotModal({
                                 {msg.product.category_slug === 'plugin' ? 'Audio Plugin' : 'Sample Pack'}
                               </span>
                               {msg.product.subcategory_name && (
-                                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
+                                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#202020] text-zinc-300 border border-white/10">
                                   {msg.product.subcategory_name}
                                 </span>
                               )}
                             </div>
                             <span className="text-[11px] font-mono text-zinc-400 block mt-0.5">
-                              URL Slug: <span className="text-zinc-200">/{msg.product.slug}</span>
+                              Storefront Slug: <span className="text-zinc-200">/{msg.product.slug}</span>
                             </span>
                           </div>
 
@@ -401,7 +544,7 @@ export default function ProdyCopilotModal({
                               className="text-[11px] text-zinc-400 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
                             >
                               {copiedKey === `short-${msg.id}` ? (
-                                <CheckCheck className="w-3 h-3 text-emerald-400" />
+                                <CheckCheck className="w-3 h-3 text-white" />
                               ) : (
                                 <Copy className="w-3 h-3" />
                               )}
@@ -452,7 +595,7 @@ export default function ProdyCopilotModal({
                           >
                             <span className="flex items-center gap-1.5">
                               <FileText className="w-3.5 h-3.5 text-zinc-400" />
-                              <span>View Full Google SEO Description (Markdown)</span>
+                              <span>View Full Google SEO Description</span>
                             </span>
                             <div className="flex items-center gap-2">
                               <span className="text-[10px] text-zinc-500 font-mono">
@@ -475,32 +618,32 @@ export default function ProdyCopilotModal({
                                   className="text-[11px] text-zinc-400 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
                                 >
                                   {copiedKey === `full-${msg.id}` ? (
-                                    <CheckCheck className="w-3 h-3 text-emerald-400" />
+                                    <CheckCheck className="w-3 h-3 text-white" />
                                   ) : (
                                     <Copy className="w-3 h-3" />
                                   )}
                                   <span>{copiedKey === `full-${msg.id}` ? 'Copied' : 'Copy Text'}</span>
                                 </button>
                               </div>
-                              <div className="text-zinc-300 font-sans text-xs leading-relaxed max-h-56 overflow-y-auto pr-1 whitespace-pre-wrap">
-                                {msg.product.full_description}
+                              <div className="p-3 bg-[#111114] border border-white/5 rounded-lg max-h-56 overflow-y-auto pr-1">
+                                {renderFormattedMessage(msg.product.full_description)}
                               </div>
                             </div>
                           )}
                         </div>
 
-                        {/* GRANULAR "TAKE WHAT YOU WANT" ACTION SECTION */}
+                        {/* GRANULAR "TAKE WHAT YOU WANT" ACTION SECTION (Strict Monochrome) */}
                         <div className="pt-2 space-y-2">
                           {/* 1-Click Master Apply */}
                           <button
                             type="button"
                             onClick={() => handleApply(msg.product!, 'all', msg.id)}
-                            className="w-full btn-primary py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg transition-transform active:scale-[0.99] cursor-pointer"
+                            className="w-full bg-white hover:bg-zinc-200 text-black py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg transition-transform active:scale-[0.99] cursor-pointer"
                           >
                             {appliedModes[`${msg.id}-all`] ? (
                               <>
-                                <Check className="w-4 h-4 text-emerald-400" />
-                                <span>All Product Details Applied to Form!</span>
+                                <Check className="w-4 h-4 text-black stroke-[3]" />
+                                <span>Applied Everything to Form!</span>
                               </>
                             ) : (
                               <>
@@ -523,7 +666,7 @@ export default function ProdyCopilotModal({
                               >
                                 <span>🏷️ Title & Slug</span>
                                 {appliedModes[`${msg.id}-title`] ? (
-                                  <Check className="w-3 h-3 text-emerald-400" />
+                                  <Check className="w-3 h-3 text-white" />
                                 ) : null}
                               </button>
 
@@ -534,7 +677,7 @@ export default function ProdyCopilotModal({
                               >
                                 <span>📝 SEO Descriptions</span>
                                 {appliedModes[`${msg.id}-description`] ? (
-                                  <Check className="w-3 h-3 text-emerald-400" />
+                                  <Check className="w-3 h-3 text-white" />
                                 ) : null}
                               </button>
 
@@ -545,7 +688,7 @@ export default function ProdyCopilotModal({
                               >
                                 <span>📂 Category & Sub</span>
                                 {appliedModes[`${msg.id}-category`] ? (
-                                  <Check className="w-3 h-3 text-emerald-400" />
+                                  <Check className="w-3 h-3 text-white" />
                                 ) : null}
                               </button>
 
@@ -556,7 +699,7 @@ export default function ProdyCopilotModal({
                               >
                                 <span>🎵 Genres Only</span>
                                 {appliedModes[`${msg.id}-genres`] ? (
-                                  <Check className="w-3 h-3 text-emerald-400" />
+                                  <Check className="w-3 h-3 text-white" />
                                 ) : null}
                               </button>
 
@@ -567,7 +710,7 @@ export default function ProdyCopilotModal({
                               >
                                 <span>💲 Pricing Only</span>
                                 {appliedModes[`${msg.id}-pricing`] ? (
-                                  <Check className="w-3 h-3 text-emerald-400" />
+                                  <Check className="w-3 h-3 text-white" />
                                 ) : null}
                               </button>
 
@@ -578,7 +721,7 @@ export default function ProdyCopilotModal({
                               >
                                 <span>🎛️ VST Specs & DAWs</span>
                                 {appliedModes[`${msg.id}-specs`] ? (
-                                  <Check className="w-3 h-3 text-emerald-400" />
+                                  <Check className="w-3 h-3 text-white" />
                                 ) : null}
                               </button>
                             </div>
@@ -604,19 +747,19 @@ export default function ProdyCopilotModal({
             </span>
             <button
               type="button"
-              onClick={() => handleSendMessage('Build the complete Google SEO product listing now!')}
+              onClick={() => handleSendMessage('Suggest 3 high-ranking commercial titles for this product')}
               disabled={isTyping}
               className="px-2.5 py-1 rounded-lg bg-[#18181c] hover:bg-[#25252b] border border-white/10 text-[11px] text-zinc-300 hover:text-white shrink-0 cursor-pointer disabled:opacity-50"
             >
-              ✨ Build Complete Listing
+              💡 Suggest 3 Titles
             </button>
             <button
               type="button"
-              onClick={() => handleSendMessage('Suggest 3 catchy commercial titles for this product')}
+              onClick={() => handleSendMessage('What is the best pricing strategy for this product?')}
               disabled={isTyping}
               className="px-2.5 py-1 rounded-lg bg-[#18181c] hover:bg-[#25252b] border border-white/10 text-[11px] text-zinc-300 hover:text-white shrink-0 cursor-pointer disabled:opacity-50"
             >
-              💡 Suggest 3 More Titles
+              💲 Pricing Strategy
             </button>
             <button
               type="button"
@@ -625,6 +768,14 @@ export default function ProdyCopilotModal({
               className="px-2.5 py-1 rounded-lg bg-[#18181c] hover:bg-[#25252b] border border-white/10 text-[11px] text-zinc-300 hover:text-white shrink-0 cursor-pointer disabled:opacity-50"
             >
               🔍 High-CTR SEO Hook
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSendMessage('Build the complete Google SEO product listing now!')}
+              disabled={isTyping}
+              className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-[11px] text-white shrink-0 cursor-pointer disabled:opacity-50 font-semibold"
+            >
+              ⚡ Build Full Listing
             </button>
           </div>
 

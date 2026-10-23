@@ -1561,6 +1561,19 @@ export default function ProductDetailPage() {
         onClose={() => setShowProdyModal(false)}
         brandName={brand?.name}
         onApplyProduct={handleApplyProdyProduct}
+        currentFormValues={{
+          name,
+          slug: product?.slug || '',
+          productType,
+          categorySlug: categoriesList.find((c) => c.id === categoryId)?.slug || (productType === 'sample_pack' ? 'sample-pack' : 'plugin'),
+          subcategoryName: subcategoriesList.find((s) => s.id === subcategoryId)?.name,
+          selectedGenres,
+          priceUsd,
+          originalPriceUsd,
+          shortDesc,
+          fullDesc,
+          vstFormat,
+        }}
       />
     </div>
   );
