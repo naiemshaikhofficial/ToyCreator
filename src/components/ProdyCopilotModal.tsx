@@ -50,6 +50,7 @@ export interface CurrentFormValues {
   shortDesc?: string;
   fullDesc?: string;
   vstFormat?: string;
+  externalUrl?: string;
 }
 
 interface ProdyCopilotModalProps {
@@ -754,12 +755,12 @@ export default function ProdyCopilotModal({
                       </div>
                     )}
 
-                    {/* Dynamic Contextual Suggestions Directly Under Assistant Answer */}
-                    {!msg.product && (
+                    {/* Dynamic Contextual Suggestions — Shown ONLY on the latest assistant message to prevent menu spam */}
+                    {!msg.product && messages.filter((m) => m.sender === 'assistant' && !m.isThinking).slice(-1)[0]?.id === msg.id && (
                       <div className="pt-1.5 space-y-1.5">
                         <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 block flex items-center gap-1.5">
                           <Sparkles className="w-3 h-3 text-white" />
-                          Suggestions (Quick Actions):
+                          Next Step Suggestions:
                         </span>
                         <div className="flex flex-wrap gap-1.5">
                           {getContextualSuggestions(msg.content, currentFormValues).map((chip) => (

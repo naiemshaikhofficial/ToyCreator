@@ -1573,6 +1573,7 @@ export default function ProductDetailPage() {
           shortDesc,
           fullDesc,
           vstFormat,
+          externalUrl: product?.external_url || undefined,
         }}
       />
     </div>

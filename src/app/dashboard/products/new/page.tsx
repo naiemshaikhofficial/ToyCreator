@@ -1426,6 +1426,7 @@ export default function NewProductPage() {
           shortDesc,
           fullDesc,
           vstFormat,
+          externalUrl,
         }}
         onApplyProduct={handleApplyProdyProduct}
       />

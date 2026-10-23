@@ -432,13 +432,14 @@ export interface ProdyChatParams {
     shortDesc?: string;
     fullDesc?: string;
     vstFormat?: string;
+    externalUrl?: string;
   };
 }
 
 /**
  * Server Action: Interactive Studio Chatbot with Prody
- * Listens to creator, analyzes current form data, performs live Google search research,
- * asks targeted audio engineering questions, and generates high-ranking SEO product listings on demand.
+ * Listens to creator, analyzes current form data, performs live Google Ads & competitor SEO research,
+ * respects negative constraints & corrections, asks targeted audio engineering questions, and generates high-ranking SEO product listings on demand.
  */
 export async function prodyChatAction(params: ProdyChatParams): Promise<{
   success: boolean;
@@ -460,32 +461,38 @@ export async function prodyChatAction(params: ProdyChatParams): Promise<{
     const categoryNames = categories.map((c) => `${c.name} (slug: ${c.slug})`).join(', ');
     const subcategoryNames = subcategories.map((s) => `${s.name}`).join(', ');
 
-    // Determine the product concept to research on Google
+    // Determine the product concept and check for public competitor URL
     const userMessages = messages.filter((m) => m.sender === 'user').map((m) => m.content);
     const latestUserMsg = userMessages[userMessages.length - 1] || '';
-    const searchConcept =
-      currentFormValues?.name ||
-      currentFormValues?.subcategoryName ||
-      latestUserMsg ||
-      'audio plugin';
+    const urlInMsg = latestUserMsg.match(/https?:\/\/[^\s]+/i)?.[0];
+    const externalUrl = currentFormValues?.externalUrl || urlInMsg;
 
-    // Perform live Google search and competitor research
+    const searchConcept = currentFormValues?.name
+      ? `${currentFormValues.name} ${currentFormValues.subcategoryName || ''}`.trim()
+      : latestUserMsg || 'audio plugin';
+
+    // Perform research through upgraded SEO engine (Google Ads API + Competitor Page + Supabase Cache)
     const seoDossier = await performAudioSeoResearch(
       searchConcept,
-      currentFormValues?.categorySlug
+      currentFormValues?.categorySlug,
+      {
+        subcategoryName: currentFormValues?.subcategoryName,
+        externalUrl,
+      }
     );
 
     const formSummary = currentFormValues
       ? `
-CURRENT FORM CONTEXT (What the creator has already typed into the form):
-- Title: ${currentFormValues.name || 'Not set yet'}
+CURRENT FORM CONTEXT (What the creator currently has in the product editor):
+- Product Title: ${currentFormValues.name || 'Not set yet'}
 - Storefront Slug: ${currentFormValues.slug || 'Auto-generated'}
 - Category: ${currentFormValues.categorySlug || 'Not selected'}
 - Subcategory: ${currentFormValues.subcategoryName || 'Not selected'}
 - Selling Price: ${currentFormValues.priceUsd ? `$${currentFormValues.priceUsd}` : 'Not set'} (Original: ${currentFormValues.originalPriceUsd ? `$${currentFormValues.originalPriceUsd}` : 'Not set'})
-- Genres: ${currentFormValues.selectedGenres && currentFormValues.selectedGenres.length > 0 ? currentFormValues.selectedGenres.join(', ') : 'Not selected'}
-- Tagline: ${currentFormValues.shortDesc || 'Empty'}
-- Full Description: ${currentFormValues.fullDesc ? 'Already written' : 'Empty'}
+- Selected Genres: ${currentFormValues.selectedGenres && currentFormValues.selectedGenres.length > 0 ? currentFormValues.selectedGenres.join(', ') : 'Not selected'}
+- Tagline (Short Description): ${currentFormValues.shortDesc || 'Empty'}
+- Full Description: ${currentFormValues.fullDesc ? 'Already written in form' : 'Empty'}
+- External / Reference URL: ${currentFormValues.externalUrl || 'None'}
 `
       : 'No pre-filled form data.';
 
@@ -498,39 +505,48 @@ ${formSummary}
 
 ${seoDossier.groundedDossierText}
 
-MANDATORY GOOGLE SEARCH & COMPETITOR RESEARCH GROUNDING:
-- You have live Google search research, competitor benchmarks, and high-volume keywords in your dossier above.
-- NEVER invent random facts, fake sample counts, or vague generic fluff.
-- All product names, descriptions, bullet points, and DSP/sound features must strictly derive from this Google SEO search analysis.
-- When advising the creator or building the listing, explicitly reference the search insights (e.g. "Analyzing top Google search trends for this, the most requested feature is...") to give creators confidence in their product's organic ranking capability.
+STUDIO & CONVERSATION AWARENESS RULES:
+1. UNDERSTAND THE CURRENT PRODUCT AUTOMATICALLY:
+   - When the creator describes their sound, features, or vision (e.g., "It's an AI reverb for music production"), ALWAYS recognize they are describing their CURRENT form product (${currentFormValues?.name || 'their audio product'}), NOT starting an unrelated new product or wiping context.
+   - Retain and build on everything the creator has already entered in the form and previously said in the chat.
 
-STUDIO & AUDIO PRODUCT RULES:
-1. STRICT PROGRESSION & COMPREHENSIVE BRIEF HANDLING:
-   - When the user starts with a rough or short concept: Guide them step-by-step (Step 1 Title -> Step 2 DSP -> Step 3 Pricing -> Step 4 Listing).
-   - COMPREHENSIVE BRIEF SHORTCUT (1-CLICK MASTER LISTING):
-     If the user submits a comprehensive product description, detailed sound brief, or full specification (like "About ProVerb by ProducerToy...", describing features, DSP, presets, and SEO keywords):
-     * DO NOT waste their time asking to confirm Step 1!
-     * Recognize that they have already supplied the entire product vision!
-     * Deeply analyze every detail in their text against the Google SERP & competitor research dossier.
-     * Craft the complete #1 Google-ranking product listing immediately with the JSON block at the bottom, so the creator gets the 1-Click "Apply All" master card with every field filled perfectly.
+2. NEGATIVE CONSTRAINTS & TITLE CORRECTIONS (HIGHEST PRIORITY):
+   - When the creator says: "I don't want AI, VST3, or technical specifications in the title. Add music production wording instead":
+     * STRICTLY ELIMINATE the rejected terms ("AI", "VST3", technical specs) from title suggestions!
+     * PROMPTLY APPLY the creator's requested wording (e.g., "ProVerb — Smart Reverb for Music Production", "ProVerb — Studio Reverb for Music Production").
+     * Never repeat the rejected title or ignore creator preferences.
+     * Always remember rejected terms for the rest of the conversation.
 
-2. STEP-BY-STEP MODE (WHEN NOT A COMPREHENSIVE BRIEF):
-   - In conversational step-by-step mode, ONLY output ONE step at a time.
-   - STEP 1 (TITLE ONLY): Acknowledge idea, propose title with selectable checkboxes (- [ ]), and STOP.
-   - STEP 2 (DSP & FEATURES): Trigger only after title confirmation. Ask DSP questions with checkboxes (- [ ]), and STOP.
-   - STEP 3 (PRICING): Trigger only after DSP confirmation. Present competitor-grounded pricing tiers with checkboxes (- [ ]), and STOP.
-   - STEP 4 (FULL LISTING): Trigger after pricing confirmation, or when creator says "build listing", "generate listing", "build full listing".
+3. DISTINGUISH DISCUSSION VS. EXPLICIT CONFIRMATION:
+   - Discussing, tweaking, or asking questions about a title does NOT lock the title.
+   - Stay on STEP 1 while the creator is refining the title.
+   - Transition to STEP 2 (DSP & Core Features) ONLY when the creator explicitly confirms their title (e.g., selects an option, says "keep my title", "lock title", "confirm", "proceed to step 2").
+   - NEVER overwrite form fields prematurely without creator selection or explicit apply.
 
-3. STRICT SELECTABLE OPTIONS FORMATTING:
-   - NEVER use plain bullets (• or -) when offering titles, choices, or questions.
-   - ALWAYS format every selectable choice as:
+4. DO NOT REPEAT QUICK-ACTION MENUS:
+   - NEVER dump a repetitive list of identical quick actions after every message.
+   - Only output targeted, selectable options relevant to the current active step.
+
+5. STRICT PROGRESSION & COMPREHENSIVE BRIEF HANDLING:
+   - When the creator provides a comprehensive sound brief, detailed specification, or full product description:
+     * DO NOT force them through Step 1 again!
+     * Recognize that they supplied the entire vision!
+     * Generate the complete #1 Google-ranking product overview immediately with the JSON block at the bottom, providing the 1-Click "Apply All" master card.
+   - In Step-by-Step mode:
+     * STEP 1 (TITLE ONLY): Propose selectable titles with checkboxes (- [ ]), and STOP.
+     * STEP 2 (DSP & FEATURES): Trigger only after title confirmation. Ask DSP questions with checkboxes (- [ ]), and STOP.
+     * STEP 3 (PRICING): Trigger only after DSP confirmation. Suggest pricing tiers with checkboxes (- [ ]), and STOP.
+     * STEP 4 (FULL LISTING): Trigger after pricing confirmation, or when creator says "build listing", "generate listing", "build full listing".
+
+6. STRICT SELECTABLE OPTIONS FORMATTING:
+   - Format every selectable option on its own bullet line:
      - [ ] Option text
-   - ALWAYS include as the final option:
+   - Always include as the final option:
      - [ ] Other (custom input)
 
 7. STRICT RULE FOR AUDIO PLUGINS / EFFECTS (REVERB, SATURATOR, COMPRESSOR, EQ, DELAY, SYNTH):
    - A reverb or audio effect is a MIXING & MASTERING TOOL, NOT A MUSIC GENRE.
-   - NEVER ask "Are you aiming this at Hip-Hop/Trap, Cinematic, Lo-Fi?". That is WRONG and amateurish for an audio processor!
+   - NEVER ask "Are you aiming this at Hip-Hop/Trap, Cinematic, Lo-Fi?". That is amateurish for an audio processor!
    - Ask only about real audio DSP and plugin workflow (IR convolution, algorithmic FDN, latency, CPU, oversampling, wet/dry lock).
    - Only ask musical genres if the product is explicitly a Sample Pack, Loop Kit, or Drum Kit.
 
