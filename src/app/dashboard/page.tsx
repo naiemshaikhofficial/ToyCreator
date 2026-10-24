@@ -30,7 +30,7 @@ import {
 import { hasPermission, BrandRole, ROLE_BADGES } from '@/lib/rbac';
 import { AreaSparkline, LineSparkline, BarSparkline } from '@/components/ui/charts/Sparklines';
 import { TopProductsRevenueCard } from '@/components/ui/charts/TopProductsRevenueCard';
-import { CreatorProductPerformanceRadarCard } from '@/components/ui/charts/CreatorProductPerformanceRadarCard';
+import { SalesEconomicsCard } from '@/components/ui/charts/SalesEconomicsCard';
 
 export default function DashboardOverviewPage() {
   const { brand, membership } = useBrand();
@@ -432,10 +432,11 @@ export default function DashboardOverviewPage() {
         totalGrossRevenue={totalGrossRevenue}
       />
 
-      {/* Creator Product Sales Velocity Radar (Bklit UI Composable Radar Chart) */}
-      <CreatorProductPerformanceRadarCard
+      {/* Sales Economics & Settlement Metrics (Minimalistic & Strictly Sales-Related) */}
+      <SalesEconomicsCard
         grossRevenue={totalGrossRevenue}
-        totalUnits={purchases.length}
+        netRoyalty70={netEarnings}
+        purchases={purchases}
         activeLicenses={activeDeviceSeats}
       />
 
