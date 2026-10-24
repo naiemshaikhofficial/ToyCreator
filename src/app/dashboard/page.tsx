@@ -22,8 +22,9 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { hasPermission, BrandRole, ROLE_BADGES } from '@/lib/rbac';
-import { AreaSparkline, LineSparkline, BarSparkline } from '@/components/ui/charts/Sparklines';
+import { AreaSparkline, LineSparkline } from '@/components/ui/charts/Sparklines';
 import { TopProductsRevenueCard } from '@/components/ui/charts/TopProductsRevenueCard';
+import { TotalProductsRadialChartCard } from '@/components/ui/charts/TotalProductsRadialChartCard';
 
 export default function DashboardOverviewPage() {
   const { brand, membership } = useBrand();
@@ -117,32 +118,11 @@ export default function DashboardOverviewPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#242424]">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-            Developer Overview
+            Creator Overview
           </h1>
           <p className="text-xs text-zinc-400">
-            Real-time sales, license seats, and catalog performance
+            Real-time sales, royalties, and catalog performance
           </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {canManageProducts && (
-            <Link
-              href="/dashboard/products/new"
-              className="btn-primary px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Publish Product</span>
-            </Link>
-          )}
-          <a
-            href={`https://producertoy.com/brands/${brand?.slug || 'producer-toy'}`}
-            target="_blank"
-            rel="noreferrer"
-            className="btn-secondary px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2"
-          >
-            <span>Public Store</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
         </div>
       </div>
 
@@ -186,24 +166,11 @@ export default function DashboardOverviewPage() {
           <div className="text-[11px] text-zinc-400 mt-1">Direct publisher royalties</div>
         </div>
 
-        {/* Products */}
-        <div className="toy-card p-5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-zinc-400 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider">Products</span>
-              <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
-                <Package className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-xl sm:text-2xl font-black text-white font-mono">
-              {activeProductsCount}
-            </div>
-          </div>
-          <div className="py-1">
-            <BarSparkline data={[2, 4, 3, 6, 5, 8, 7, 10, 9, 12]} height={24} />
-          </div>
-          <div className="text-[11px] text-zinc-400 mt-1">Live in marketplace store</div>
-        </div>
+        {/* Total Products Custom Radial Chart */}
+        <TotalProductsRadialChartCard
+          totalProducts={activeProductsCount}
+          products={products}
+        />
       </div>
 
       {/* Main Charts & Catalog Row */}

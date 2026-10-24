@@ -28,6 +28,8 @@ import {
   type ProdyGeneratedProduct,
   type ProdyChatMessage,
 } from '@/actions/prodyActions';
+import { AITextLoading } from '@/components/kokonutui/ai-text-loading';
+import { PlaceholdersAndVanishInput } from '@/components/ui/placeholders-and-vanish-input';
 
 export type ProdyApplyMode =
   | 'all'
@@ -68,6 +70,83 @@ interface ChatItem {
   content: string;
   product?: ProdyGeneratedProduct | null;
   isThinking?: boolean;
+  userPrompt?: string;
+}
+
+const PRODY_PLACEHOLDERS = [
+  "Describe your next audio plugin, synth, or sample pack...",
+  "Suggest 3 high-ranking commercial titles for my sound...",
+  "Give me competitive pricing and tags for a hip-hop kit...",
+  "How can I rank #1 on Google for this audio release?",
+  "Write an engaging short description and SEO keywords...",
+];
+
+function getThinkingPhases(userPrompt?: string): string[] {
+  if (!userPrompt) {
+    return [
+      "Thinking about your sound vision...",
+      "Synthesizing audio specifications...",
+      "Formulating release architecture...",
+      "Almost ready...",
+    ];
+  }
+  const p = userPrompt.toLowerCase();
+  if (p.includes('reverb') || p.includes('delay') || p.includes('space') || p.includes('acoustic')) {
+    return [
+      "Analyzing acoustic reverb reflections...",
+      "Modeling spatial decay curves...",
+      "Calibrating audio DSP engine...",
+      "Crafting high-ranking commercial title...",
+    ];
+  }
+  if (p.includes('autotune') || p.includes('pitch') || p.includes('vocal') || p.includes('tune')) {
+    return [
+      "Analyzing vocal pitch-correction algorithms...",
+      "Evaluating real-time scale tracking...",
+      "Benchmarking modern autotune DSP...",
+      "Formulating SEO metadata & keywords...",
+    ];
+  }
+  if (p.includes('synth') || p.includes('serum') || p.includes('vital') || p.includes('preset') || p.includes('bank')) {
+    return [
+      "Synthesizing wavetable modulation matrices...",
+      "Categorizing soundbank preset banks...",
+      "Optimizing synth tags for discovery...",
+      "Generating commercial release packaging...",
+    ];
+  }
+  if (p.includes('drum') || p.includes('sample') || p.includes('loop') || p.includes('808') || p.includes('pack')) {
+    return [
+      "Curating 24-bit lossless WAV sound design...",
+      "Structuring drum kit & loop taxonomy...",
+      "Calibrating punch & transient dynamics...",
+      "Packaging sample kit for marketplace...",
+    ];
+  }
+  if (p.includes('price') || p.includes('dollar') || p.includes('cost') || p.includes('royalty')) {
+    return [
+      "Analyzing marketplace pricing benchmarks...",
+      "Evaluating 70/30 creator royalty economics...",
+      "Modeling buyer checkout conversions...",
+      "Finalizing pricing strategy...",
+    ];
+  }
+  if (p.includes('seo') || p.includes('google') || p.includes('ranking') || p.includes('search')) {
+    return [
+      "Querying Google audio search volume...",
+      "Extracting high-intent search keywords...",
+      "Targeting #1 SERP ranking position...",
+      "Polishing meta titles & descriptions...",
+    ];
+  }
+  const cleanSnippet = userPrompt.length > 24 ? userPrompt.slice(0, 24) + '...' : userPrompt;
+  return [
+    `Thinking about ${cleanSnippet}...`,
+    "Synthesizing audio product specs...",
+    "Consulting ProducerToy audio intelligence...",
+    "Formulating release architecture...",
+    "Almost ready...",
+  ];
 }
 
 /**
@@ -516,6 +595,7 @@ export default function ProdyCopilotModal({
       timestamp: formatCurrentTime(),
       content: '',
       isThinking: true,
+      userPrompt: textToSend,
     };
 
     setMessages((prev) => [...prev, userMsg, thinkingMsg]);
@@ -711,16 +791,12 @@ export default function ProdyCopilotModal({
 
                 {msg.isThinking ? (
                   <div className="inline-flex items-center gap-3 bg-[#151518] border border-white/[0.12] text-zinc-300 rounded-2xl rounded-tl-xs px-4 py-3 shadow-md">
-                    <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin flex-shrink-0" />
-                    <div className="flex flex-col text-left">
-                      <span className="text-xs text-white font-medium flex items-center gap-1.5">
-                        <Search className="w-3 h-3 text-zinc-400" />
-                        Analyzing Google search trends & competitor research...
-                      </span>
-                      <span className="text-[10px] text-zinc-500 font-mono">
-                        Synthesizing top-ranking queries & audio SEO benchmarks
-                      </span>
-                    </div>
+                    <AITextLoading
+                      texts={getThinkingPhases(msg.userPrompt)}
+                      interval={1800}
+                      showElapsed
+                      className="font-mono text-xs sm:text-[13px] text-zinc-200"
+                    />
                   </div>
                 ) : (
                   <div className="w-full space-y-3">
@@ -1041,43 +1117,16 @@ export default function ProdyCopilotModal({
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Bottom Fixed Chat Input Bar — Matching Producer Toy /support */}
+        {/* Bottom Fixed Chat Input Bar — Animated Placeholders & Particle Vanish Input */}
         <div className="p-3 sm:p-4 bg-[#101014] border-t border-white/[0.08] flex-shrink-0">
-          {/* Form Input */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSendMessage();
-            }}
-            className="flex items-center gap-2 sm:gap-3"
-          >
-            <input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={isTyping ? 'Prody is analyzing...' : 'Write your sound idea, tweak request, or question to Prody...'}
-              disabled={isTyping}
-              className="flex-1 bg-[#16161a] hover:bg-[#1a1a20] focus:bg-[#1a1a20] border border-white/10 focus:border-white/30 rounded-xl px-4 py-3 text-xs sm:text-[13px] text-white placeholder-zinc-500 focus:outline-none transition-all disabled:opacity-50"
-            />
-
-            <button
-              type="submit"
-              disabled={!input.trim() || isTyping}
-              aria-label="Send message"
-              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all flex-shrink-0 active:scale-95 ${
-                input.trim().length > 0 && !isTyping
-                  ? 'bg-white hover:bg-zinc-200 text-black shadow-lg cursor-pointer'
-                  : 'bg-white/5 text-zinc-600 border border-white/5 cursor-not-allowed'
-              }`}
-            >
-              {isTyping ? (
-                <Loader2 className="w-4 h-4 animate-spin text-zinc-400" />
-              ) : (
-                <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-              )}
-            </button>
-          </form>
+          <PlaceholdersAndVanishInput
+            placeholders={PRODY_PLACEHOLDERS}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onSubmit={() => handleSendMessage()}
+            disabled={isTyping}
+            className="border-white/10 bg-[#16161a]"
+          />
         </div>
 
       </div>

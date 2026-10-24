@@ -53,13 +53,13 @@ export function Header() {
               {pageTitle}
             </h1>
             <p className="text-[11px] text-zinc-400 font-medium hidden sm:block mt-0.5">
-              {brand?.name ? `${brand.name} • Developer Dashboard` : 'Toy Creator Portal'}
+              {brand?.name ? `${brand.name} • Creator Dashboard` : 'Toy Creator Portal'}
             </p>
           </div>
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
+        <div className="flex items-center gap-3 sm:gap-4">
           {/* Marketplace Store Link */}
           <a
             href="https://producertoy.com"
@@ -75,7 +75,7 @@ export function Header() {
           {canAddProduct && (
             <Link
               href="/dashboard/products/new"
-              className="btn-primary px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm"
+              className="btn-primary px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm whitespace-nowrap ml-0.5 sm:ml-1"
             >
               <Plus className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Add Product</span>
