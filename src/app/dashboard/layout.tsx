@@ -13,12 +13,12 @@ export default function DashboardLayout({
 }) {
   return (
     <BrandGate>
-      <div className="min-h-screen bg-[#121212] text-white flex">
+      <div className="h-screen w-full bg-[#121212] text-white flex overflow-hidden">
         {/* Desktop Sidebar */}
         <Sidebar />
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+        <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
           <Header />
           <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
             {children}

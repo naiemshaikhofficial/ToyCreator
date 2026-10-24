@@ -29,7 +29,7 @@ import {
 } from 'recharts';
 import { hasPermission, BrandRole, ROLE_BADGES } from '@/lib/rbac';
 import { AreaSparkline, LineSparkline, BarSparkline } from '@/components/ui/charts/Sparklines';
-import { EcosystemDonutLinkedLegend } from '@/components/ui/charts/EcosystemDonutLinkedLegend';
+import { TopProductsRevenueCard } from '@/components/ui/charts/TopProductsRevenueCard';
 import { CreatorProductPerformanceRadarCard } from '@/components/ui/charts/CreatorProductPerformanceRadarCard';
 
 export default function DashboardOverviewPage() {
@@ -426,25 +426,11 @@ export default function DashboardOverviewPage() {
         </div>
       </div>
 
-      {/* Audio Platform & Host DAW Bklit UI Linked Legend Donut Snapshot */}
-      {/* Sales-Related Bklit UI Linked Legend Donut Snapshots */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <EcosystemDonutLinkedLegend
-          title="Sales by Product Format"
-          subtitle="Revenue distribution across audio plugins, sample packs, and soundbanks"
-          defaultLabel="Format Share"
-          data={salesByCategoryData}
-          formatValue={(v) => `${v}%`}
-        />
-
-        <EcosystemDonutLinkedLegend
-          title="Royalty & Revenue Distribution"
-          subtitle="Net 70% audio developer payout vs 30% platform infrastructure"
-          defaultLabel="Royalty Split"
-          data={revenueShareData}
-          formatValue={(v) => typeof v === 'number' && v > 100 ? `$${v.toFixed(2)}` : `${v}%`}
-        />
-      </div>
+      {/* Top 5 Products Revenue Share (Bklit UI Donut & Linked Legend) */}
+      <TopProductsRevenueCard
+        products={topSellingProducts}
+        totalGrossRevenue={totalGrossRevenue}
+      />
 
       {/* Creator Product Sales Velocity Radar (Bklit UI Composable Radar Chart) */}
       <CreatorProductPerformanceRadarCard

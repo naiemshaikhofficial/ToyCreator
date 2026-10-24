@@ -303,7 +303,7 @@ export function Sidebar() {
     <aside
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={`hidden lg:flex relative shrink-0 min-h-screen sticky top-0 h-screen z-30 select-none transition-[width] duration-200 ease-out ${
+      className={`hidden lg:flex relative shrink-0 sticky top-0 h-screen z-30 select-none transition-[width] duration-200 ease-out ${
         !isOverview && isPinned ? 'w-[316px]' : 'w-[56px]'
       }`}
     >
