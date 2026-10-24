@@ -30,6 +30,7 @@ import {
 import { hasPermission, BrandRole, ROLE_BADGES } from '@/lib/rbac';
 import { AreaSparkline, LineSparkline, BarSparkline } from '@/components/ui/charts/Sparklines';
 import { EcosystemDonutLinkedLegend } from '@/components/ui/charts/EcosystemDonutLinkedLegend';
+import { AudienceStreamRadarCard } from '@/components/ui/charts/AudienceStreamRadarCard';
 
 export default function DashboardOverviewPage() {
   const { brand, membership } = useBrand();
@@ -459,6 +460,13 @@ export default function DashboardOverviewPage() {
           formatValue={(v) => `${v}%`}
         />
       </div>
+
+      {/* Audience Stream Radar (Bklit UI Composable Radar Chart) */}
+      <AudienceStreamRadarCard
+        totalCustomers={Math.max(10, purchases.length * 3)}
+        totalPurchases={purchases.length}
+        activeDevices={activeDeviceSeats}
+      />
 
       {/* Recent Purchases & Orders Table (Only for roles with order access) */}
       {canViewOrders && (
