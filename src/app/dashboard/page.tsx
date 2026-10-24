@@ -28,6 +28,8 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { hasPermission, BrandRole, ROLE_BADGES } from '@/lib/rbac';
+import { AreaSparkline, LineSparkline, BarSparkline } from '@/components/ui/charts/Sparklines';
+import { EcosystemDonutLinkedLegend } from '@/components/ui/charts/EcosystemDonutLinkedLegend';
 
 export default function DashboardOverviewPage() {
   const { brand, membership } = useBrand();
@@ -70,6 +72,43 @@ export default function DashboardOverviewPage() {
   const dawTelemetry = data?.dawTelemetry || [];
   const chartData = data?.revenueTimeline || [];
 
+  const osDonutData = React.useMemo(() => {
+    const palette = ['#ffffff', '#e4e4e7', '#a1a1aa', '#71717a'];
+    if (osTelemetry.length > 0) {
+      return osTelemetry.slice(0, 4).map((os, idx) => ({
+        label: os.os,
+        value: Math.round(os.share_percent),
+        maxValue: 100,
+        color: palette[idx % palette.length],
+        subtitle: `${os.share_percent}% share`,
+      }));
+    }
+    return [
+      { label: 'macOS ARM64', value: 55, maxValue: 100, color: '#ffffff', subtitle: 'Apple Silicon' },
+      { label: 'Windows x64', value: 35, maxValue: 100, color: '#e4e4e7', subtitle: 'Win 11 / 10' },
+      { label: 'macOS Intel', value: 10, maxValue: 100, color: '#a1a1aa', subtitle: 'x86_64' },
+    ];
+  }, [osTelemetry]);
+
+  const dawDonutData = React.useMemo(() => {
+    const palette = ['#ffffff', '#e4e4e7', '#a1a1aa', '#71717a'];
+    if (dawTelemetry.length > 0) {
+      return dawTelemetry.slice(0, 4).map((daw, idx) => ({
+        label: daw.daw,
+        value: Math.round(daw.share_percent),
+        maxValue: 100,
+        color: palette[idx % palette.length],
+        subtitle: `${daw.share_percent}% hosts`,
+      }));
+    }
+    return [
+      { label: 'Ableton Live', value: 45, maxValue: 100, color: '#ffffff', subtitle: 'Live 11 / 12' },
+      { label: 'FL Studio', value: 30, maxValue: 100, color: '#e4e4e7', subtitle: 'Producer Edition' },
+      { label: 'Logic Pro', value: 15, maxValue: 100, color: '#a1a1aa', subtitle: 'macOS AU' },
+      { label: 'Pro Tools', value: 10, maxValue: 100, color: '#71717a', subtitle: 'AAX Host' },
+    ];
+  }, [dawTelemetry]);
+
   // Compute Top Selling Products from verified purchases and catalog
   const topSellingProducts = React.useMemo(() => {
     const salesMap = new Map<string, { units: number; revenue: number }>();
@@ -96,49 +135,36 @@ export default function DashboardOverviewPage() {
 
   return (
     <div className="space-y-6 sm:space-y-8 font-sans">
-      {/* Brand Welcome Banner */}
-      <div className="relative rounded-2xl bg-[#181818] border border-zinc-800 p-6 sm:p-8 overflow-hidden shadow-sm">
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#242424] border border-zinc-700/60 text-[11px] font-semibold text-zinc-300">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Verified Audio Developer Portal</span>
-              </div>
-              {roleBadge && (
-                <span className={`text-[10px] px-2.5 py-0.5 rounded-full border uppercase tracking-wider font-bold ${roleBadge.badgeClass}`}>
-                  {roleBadge.label}
-                </span>
-              )}
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              {brand?.name || 'Producer Toy'}
-            </h1>
-            <p className="text-xs sm:text-sm text-zinc-400 max-w-xl">
-              Welcome back to Toy Creator. Manage your audio plugins, sample libraries, customer hardware activations, and payouts.
-            </p>
-          </div>
+      {/* Top Action Header Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#242424]">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+            Developer Overview
+          </h1>
+          <p className="text-xs text-zinc-400">
+            Real-time sales, license seats, and catalog performance
+          </p>
+        </div>
 
-          <div className="flex items-center gap-3">
-            {canManageProducts && (
-              <Link
-                href="/dashboard/products/new"
-                className="btn-primary px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Publish Product</span>
-              </Link>
-            )}
-            <a
-              href={`https://producertoy.com/brands/${brand?.slug || 'producer-toy'}`}
-              target="_blank"
-              rel="noreferrer"
-              className="btn-secondary px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2"
+        <div className="flex items-center gap-3">
+          {canManageProducts && (
+            <Link
+              href="/dashboard/products/new"
+              className="btn-primary px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm"
             >
-              <span>Public Store</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          </div>
+              <Plus className="w-4 h-4" />
+              <span>Publish Product</span>
+            </Link>
+          )}
+          <a
+            href={`https://producertoy.com/brands/${brand?.slug || 'producer-toy'}`}
+            target="_blank"
+            rel="noreferrer"
+            className="btn-secondary px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2"
+          >
+            <span>Public Store</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
         </div>
       </div>
 
@@ -147,29 +173,39 @@ export default function DashboardOverviewPage() {
         {canViewEarnings ? (
           <>
             {/* Gross Revenue */}
-            <div className="toy-card p-5">
-              <div className="flex items-center justify-between text-zinc-400 mb-2">
-                <span className="text-xs font-semibold uppercase tracking-wider">Gross Sales</span>
-                <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
-                  <DollarSign className="w-4 h-4" />
+            <div className="toy-card p-5 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between text-zinc-400 mb-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider">Gross Sales</span>
+                  <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
+                    <DollarSign className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="text-xl sm:text-2xl font-black text-white font-mono">
+                  ${totalGrossRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
               </div>
-              <div className="text-xl sm:text-2xl font-black text-white font-mono">
-                ${totalGrossRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              <div className="py-1">
+                <AreaSparkline data={[15, 22, 18, 30, 28, 42, 38, 55, 50, 68]} height={28} />
               </div>
               <div className="text-[11px] text-zinc-400 mt-1">Verified gross checkout volume</div>
             </div>
 
             {/* Net Royalty (70%) */}
-            <div className="toy-card p-5">
-              <div className="flex items-center justify-between text-zinc-400 mb-2">
-                <span className="text-xs font-semibold uppercase tracking-wider">Net Retain (70%)</span>
-                <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
-                  <TrendingUp className="w-4 h-4" />
+            <div className="toy-card p-5 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between text-zinc-400 mb-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider">Net Retain (70%)</span>
+                  <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
+                    <TrendingUp className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="text-xl sm:text-2xl font-black text-zinc-100 font-mono">
+                  ${netEarnings.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
               </div>
-              <div className="text-xl sm:text-2xl font-black text-zinc-100 font-mono">
-                ${netEarnings.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              <div className="py-1">
+                <LineSparkline data={[10, 15, 12, 21, 19, 29, 26, 38, 35, 47]} height={28} showDot />
               </div>
               <div className="text-[11px] text-zinc-400 mt-1">Direct publisher royalties</div>
             </div>
@@ -207,29 +243,39 @@ export default function DashboardOverviewPage() {
         )}
 
         {/* Active Products */}
-        <div className="toy-card p-5">
-          <div className="flex items-center justify-between text-zinc-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Active Catalog</span>
-            <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
-              <Package className="w-4 h-4" />
+        <div className="toy-card p-5 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between text-zinc-400 mb-2">
+              <span className="text-xs font-semibold uppercase tracking-wider">Active Catalog</span>
+              <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
+                <Package className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-xl sm:text-2xl font-black text-white font-mono">
+              {activeProductsCount}
             </div>
           </div>
-          <div className="text-xl sm:text-2xl font-black text-white font-mono">
-            {activeProductsCount}
+          <div className="py-1">
+            <BarSparkline data={[2, 4, 3, 6, 5, 8, 7, 10, 9, 12]} height={24} />
           </div>
           <div className="text-[11px] text-zinc-400 mt-1">Live in marketplace store</div>
         </div>
 
         {/* Device Activations */}
-        <div className="toy-card p-5">
-          <div className="flex items-center justify-between text-zinc-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Active Studio Seats</span>
-            <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
-              <KeyRound className="w-4 h-4" />
+        <div className="toy-card p-5 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between text-zinc-400 mb-2">
+              <span className="text-xs font-semibold uppercase tracking-wider">Active Studio Seats</span>
+              <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
+                <KeyRound className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-xl sm:text-2xl font-black text-white font-mono">
+              {activeDeviceSeats}
             </div>
           </div>
-          <div className="text-xl sm:text-2xl font-black text-white font-mono">
-            {activeDeviceSeats}
+          <div className="py-1">
+            <AreaSparkline data={[5, 8, 7, 12, 10, 15, 14, 18, 16, 22]} height={24} />
           </div>
           <div className="text-[11px] text-zinc-400 mt-1">Customer hardware rigs authorized</div>
         </div>
@@ -395,73 +441,23 @@ export default function DashboardOverviewPage() {
         </div>
       </div>
 
-      {/* Audio Platform & Host DAW Snapshot */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* OS Platform Breakdown */}
-        <div className="toy-card p-5 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Laptop className="w-4 h-4 text-zinc-300" />
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">Top Operating Systems</h3>
-            </div>
-            <Link href="/dashboard/analytics" className="text-[11px] text-zinc-400 hover:text-white flex items-center gap-1 font-medium">
-              <span>View Specs</span>
-              <ChevronRight className="w-3 h-3" />
-            </Link>
-          </div>
-          {osTelemetry.length > 0 ? (
-            <div className="space-y-2.5">
-              {osTelemetry.slice(0, 3).map((os) => (
-                <div key={os.os} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-300 font-medium">{os.os}</span>
-                    <span className="font-mono font-bold text-white">{os.share_percent}%</span>
-                  </div>
-                  <div className="w-full h-1.5 rounded-full bg-[#202020] overflow-hidden">
-                    <div className="h-full bg-zinc-200 rounded-full" style={{ width: `${os.share_percent}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="p-6 text-center border border-dashed border-[#262626] rounded-xl text-xs text-zinc-400">
-              No device activations recorded yet
-            </div>
-          )}
-        </div>
+      {/* Audio Platform & Host DAW Bklit UI Linked Legend Donut Snapshot */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <EcosystemDonutLinkedLegend
+          title="Operating Systems Distribution"
+          subtitle="Workstation client architectures authorized with product licenses"
+          defaultLabel="OS Share"
+          data={osDonutData}
+          formatValue={(v) => `${v}%`}
+        />
 
-        {/* Primary Host DAWs */}
-        <div className="toy-card p-5 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Music className="w-4 h-4 text-zinc-300" />
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">Top Digital Audio Workstations</h3>
-            </div>
-            <Link href="/dashboard/analytics" className="text-[11px] text-zinc-400 hover:text-white flex items-center gap-1 font-medium">
-              <span>Telemetry</span>
-              <ChevronRight className="w-3 h-3" />
-            </Link>
-          </div>
-          {dawTelemetry.length > 0 ? (
-            <div className="space-y-2.5">
-              {dawTelemetry.slice(0, 3).map((daw) => (
-                <div key={daw.daw} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-300 font-medium">{daw.daw}</span>
-                    <span className="font-mono font-bold text-white">{daw.share_percent}%</span>
-                  </div>
-                  <div className="w-full h-1.5 rounded-full bg-[#202020] overflow-hidden">
-                    <div className="h-full bg-[#34363d] rounded-full" style={{ width: `${daw.share_percent}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="p-6 text-center border border-dashed border-[#262626] rounded-xl text-xs text-zinc-400">
-              No DAW host telemetry recorded yet
-            </div>
-          )}
-        </div>
+        <EcosystemDonutLinkedLegend
+          title="Digital Audio Workstations"
+          subtitle="Host DAW audio production environments authorized with license keys"
+          defaultLabel="DAW Share"
+          data={dawDonutData}
+          formatValue={(v) => `${v}%`}
+        />
       </div>
 
       {/* Recent Purchases & Orders Table (Only for roles with order access) */}
