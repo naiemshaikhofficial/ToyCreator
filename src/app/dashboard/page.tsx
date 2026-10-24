@@ -114,18 +114,6 @@ export default function DashboardOverviewPage() {
 
   return (
     <div className="space-y-6 sm:space-y-8 font-sans">
-      {/* Top Action Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#242424]">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-            Creator Overview
-          </h1>
-          <p className="text-xs text-zinc-400">
-            Real-time sales, royalties, and catalog performance
-          </p>
-        </div>
-      </div>
-
       {/* KPI Cards Grid - Exactly 3 Cards: Total Sales, Net Revenue, Products */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
         {/* Total Sales */}
