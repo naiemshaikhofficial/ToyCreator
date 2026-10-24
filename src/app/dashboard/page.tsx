@@ -8,15 +8,9 @@ import {
   DollarSign,
   TrendingUp,
   Package,
-  KeyRound,
   Plus,
-  ShieldCheck,
   ExternalLink,
   ChevronRight,
-  Laptop,
-  Music,
-  ShoppingBag,
-  RefreshCw,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -30,7 +24,6 @@ import {
 import { hasPermission, BrandRole, ROLE_BADGES } from '@/lib/rbac';
 import { AreaSparkline, LineSparkline, BarSparkline } from '@/components/ui/charts/Sparklines';
 import { TopProductsRevenueCard } from '@/components/ui/charts/TopProductsRevenueCard';
-import { SalesEconomicsCard } from '@/components/ui/charts/SalesEconomicsCard';
 
 export default function DashboardOverviewPage() {
   const { brand, membership } = useBrand();
@@ -153,85 +146,51 @@ export default function DashboardOverviewPage() {
         </div>
       </div>
 
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
-        {canViewEarnings ? (
-          <>
-            {/* Gross Revenue */}
-            <div className="toy-card p-5 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between text-zinc-400 mb-2">
-                  <span className="text-xs font-semibold uppercase tracking-wider">Gross Sales</span>
-                  <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
-                    <DollarSign className="w-4 h-4" />
-                  </div>
-                </div>
-                <div className="text-xl sm:text-2xl font-black text-white font-mono">
-                  ${totalGrossRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </div>
-              </div>
-              <div className="py-1">
-                <AreaSparkline data={[15, 22, 18, 30, 28, 42, 38, 55, 50, 68]} height={28} />
-              </div>
-              <div className="text-[11px] text-zinc-400 mt-1">Verified gross checkout volume</div>
-            </div>
-
-            {/* Net Royalty (70%) */}
-            <div className="toy-card p-5 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between text-zinc-400 mb-2">
-                  <span className="text-xs font-semibold uppercase tracking-wider">Net Retain (70%)</span>
-                  <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
-                    <TrendingUp className="w-4 h-4" />
-                  </div>
-                </div>
-                <div className="text-xl sm:text-2xl font-black text-zinc-100 font-mono">
-                  ${netEarnings.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </div>
-              </div>
-              <div className="py-1">
-                <LineSparkline data={[10, 15, 12, 21, 19, 29, 26, 38, 35, 47]} height={28} showDot />
-              </div>
-              <div className="text-[11px] text-zinc-400 mt-1">Direct publisher royalties</div>
-            </div>
-          </>
-        ) : (
-          <>
-            {/* Supported DAWs */}
-            <div className="toy-card p-5">
-              <div className="flex items-center justify-between text-zinc-400 mb-2">
-                <span className="text-xs font-semibold uppercase tracking-wider">Host DAWs</span>
-                <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
-                  <Music className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="text-xl sm:text-2xl font-black text-white font-mono">
-                {dawTelemetry.length > 0 ? `${dawTelemetry.length} DAWs` : 'Universal'}
-              </div>
-              <div className="text-[11px] text-zinc-400 mt-1">DAW host integrations verified</div>
-            </div>
-
-            {/* Client OS Platforms */}
-            <div className="toy-card p-5">
-              <div className="flex items-center justify-between text-zinc-400 mb-2">
-                <span className="text-xs font-semibold uppercase tracking-wider">OS Platforms</span>
-                <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
-                  <Laptop className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="text-xl sm:text-2xl font-black text-white font-mono">
-                {osTelemetry.length > 0 ? `${osTelemetry.length} Systems` : 'Win / Mac'}
-              </div>
-              <div className="text-[11px] text-zinc-400 mt-1">Active client architectures</div>
-            </div>
-          </>
-        )}
-
-        {/* Active Products */}
+      {/* KPI Cards Grid - Exactly 3 Cards: Total Sales, Net Revenue, Products */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
+        {/* Total Sales */}
         <div className="toy-card p-5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between text-zinc-400 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider">Active Catalog</span>
+              <span className="text-xs font-semibold uppercase tracking-wider">Total Sales</span>
+              <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
+                <DollarSign className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-xl sm:text-2xl font-black text-white font-mono">
+              ${totalGrossRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+          </div>
+          <div className="py-1">
+            <AreaSparkline data={[15, 22, 18, 30, 28, 42, 38, 55, 50, 68]} height={28} />
+          </div>
+          <div className="text-[11px] text-zinc-400 mt-1">Verified gross checkout volume</div>
+        </div>
+
+        {/* Net Revenue */}
+        <div className="toy-card p-5 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between text-zinc-400 mb-2">
+              <span className="text-xs font-semibold uppercase tracking-wider">Net Revenue</span>
+              <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
+                <TrendingUp className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-xl sm:text-2xl font-black text-zinc-100 font-mono">
+              ${netEarnings.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+          </div>
+          <div className="py-1">
+            <LineSparkline data={[10, 15, 12, 21, 19, 29, 26, 38, 35, 47]} height={28} showDot />
+          </div>
+          <div className="text-[11px] text-zinc-400 mt-1">Direct publisher royalties</div>
+        </div>
+
+        {/* Products */}
+        <div className="toy-card p-5 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between text-zinc-400 mb-2">
+              <span className="text-xs font-semibold uppercase tracking-wider">Products</span>
               <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
                 <Package className="w-4 h-4" />
               </div>
@@ -245,25 +204,6 @@ export default function DashboardOverviewPage() {
           </div>
           <div className="text-[11px] text-zinc-400 mt-1">Live in marketplace store</div>
         </div>
-
-        {/* Device Activations */}
-        <div className="toy-card p-5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-zinc-400 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider">Active Studio Seats</span>
-              <div className="w-7 h-7 rounded-lg bg-[#242424] border border-zinc-700/50 flex items-center justify-center text-zinc-300">
-                <KeyRound className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-xl sm:text-2xl font-black text-white font-mono">
-              {activeDeviceSeats}
-            </div>
-          </div>
-          <div className="py-1">
-            <AreaSparkline data={[5, 8, 7, 12, 10, 15, 14, 18, 16, 22]} height={24} />
-          </div>
-          <div className="text-[11px] text-zinc-400 mt-1">Customer hardware rigs authorized</div>
-        </div>
       </div>
 
       {/* Main Charts & Catalog Row */}
@@ -273,7 +213,7 @@ export default function DashboardOverviewPage() {
           <div className="toy-card p-6 lg:col-span-2">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-sm font-bold text-white uppercase tracking-wider">Sales Velocity Trajectory</h2>
+                <h2 className="text-sm font-bold text-white uppercase tracking-wider">Daily Sales</h2>
                 <p className="text-xs text-zinc-400">Gross revenue across verified orders</p>
               </div>
               <Link
@@ -431,89 +371,6 @@ export default function DashboardOverviewPage() {
         products={topSellingProducts}
         totalGrossRevenue={totalGrossRevenue}
       />
-
-      {/* Sales Economics & Settlement Metrics (Minimalistic & Strictly Sales-Related) */}
-      <SalesEconomicsCard
-        grossRevenue={totalGrossRevenue}
-        netRoyalty70={netEarnings}
-        purchases={purchases}
-        activeLicenses={activeDeviceSeats}
-      />
-
-      {/* Recent Purchases & Orders Table (Only for roles with order access) */}
-      {canViewOrders && (
-        <div className="toy-card p-5 sm:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm font-bold text-white uppercase tracking-wider">Recent Orders & Purchases</h2>
-              </div>
-              <p className="text-xs text-zinc-400">
-                Direct verified customer orders recorded on ProducerToy
-              </p>
-            </div>
-            <Link
-              href="/dashboard/orders"
-              className="text-xs text-zinc-300 hover:text-white font-medium flex items-center gap-1"
-            >
-              <span>View All Orders</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          {purchases.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-[#2a2a2a] text-zinc-400 uppercase text-[10px] tracking-wider">
-                    <th className="py-2.5 px-3">Order / Purchase ID</th>
-                    <th className="py-2.5 px-3">Customer</th>
-                    <th className="py-2.5 px-3">Product</th>
-                    <th className="py-2.5 px-3">Date</th>
-                    <th className="py-2.5 px-3 text-right">Amount</th>
-                    <th className="py-2.5 px-3 text-right">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#222222]">
-                  {purchases.slice(0, 5).map((ord: any) => (
-                    <tr key={ord.id} className="hover:bg-[#1a1a1a] transition-colors">
-                      <td className="py-3 px-3 font-mono text-zinc-300">
-                        {(ord.razorpay_order_id || ord.razorpay_payment_id || ord.id).slice(0, 14)}
-                      </td>
-                      <td className="py-3 px-3">
-                        <p className="font-medium text-white">{ord.customer_name || 'Customer'}</p>
-                        <p className="text-[11px] text-zinc-400">{ord.customer_email}</p>
-                      </td>
-                      <td className="py-3 px-3 text-zinc-200">
-                        {ord.products?.name || ord.product_name || 'Audio Product'}
-                      </td>
-                      <td className="py-3 px-3 text-zinc-400">
-                        {new Date(ord.purchased_at || ord.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="py-3 px-3 text-right font-mono font-bold text-white">
-                        ${parseFloat(ord.amount_paid || 0).toFixed(2)}
-                      </td>
-                      <td className="py-3 px-3 text-right">
-                        <span className="toy-badge toy-badge-charcoal">
-                          Completed
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="p-8 text-center border border-dashed border-[#262626] rounded-xl space-y-2">
-              <ShoppingBag className="w-6 h-6 text-zinc-600 mx-auto" />
-              <p className="text-xs text-zinc-300 font-medium">No customer orders placed yet</p>
-              <p className="text-[11px] text-zinc-500 max-w-xs mx-auto">
-                When customers purchase your plugins or sound packs on ProducerToy, their orders will appear here automatically.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
