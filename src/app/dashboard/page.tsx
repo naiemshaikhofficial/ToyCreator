@@ -30,7 +30,7 @@ import {
 import { hasPermission, BrandRole, ROLE_BADGES } from '@/lib/rbac';
 import { AreaSparkline, LineSparkline, BarSparkline } from '@/components/ui/charts/Sparklines';
 import { EcosystemDonutLinkedLegend } from '@/components/ui/charts/EcosystemDonutLinkedLegend';
-import { AudienceStreamRadarCard } from '@/components/ui/charts/AudienceStreamRadarCard';
+import { CreatorProductPerformanceRadarCard } from '@/components/ui/charts/CreatorProductPerformanceRadarCard';
 
 export default function DashboardOverviewPage() {
   const { brand, membership } = useBrand();
@@ -73,42 +73,26 @@ export default function DashboardOverviewPage() {
   const dawTelemetry = data?.dawTelemetry || [];
   const chartData = data?.revenueTimeline || [];
 
-  const osDonutData = React.useMemo(() => {
-    const palette = ['#ffffff', '#e4e4e7', '#a1a1aa', '#71717a'];
-    if (osTelemetry.length > 0) {
-      return osTelemetry.slice(0, 4).map((os, idx) => ({
-        label: os.os,
-        value: Math.round(os.share_percent),
-        maxValue: 100,
-        color: palette[idx % palette.length],
-        subtitle: `${os.share_percent}% share`,
-      }));
-    }
+  // 100% Sales-Related Donut Distributions
+  const salesByCategoryData = React.useMemo(() => {
     return [
-      { label: 'macOS ARM64', value: 55, maxValue: 100, color: '#ffffff', subtitle: 'Apple Silicon' },
-      { label: 'Windows x64', value: 35, maxValue: 100, color: '#e4e4e7', subtitle: 'Win 11 / 10' },
-      { label: 'macOS Intel', value: 10, maxValue: 100, color: '#a1a1aa', subtitle: 'x86_64' },
+      { label: 'Audio Plugins (VST3/AU)', value: 55, maxValue: 100, color: '#ffffff', subtitle: 'Virtual Instruments & Effects' },
+      { label: 'Sample Packs & WAV Stems', value: 25, maxValue: 100, color: '#e4e4e7', subtitle: 'Drum Kits & Melodic Loops' },
+      { label: 'Synth & FX Presets', value: 12, maxValue: 100, color: '#a1a1aa', subtitle: 'Serum, Vital & Diva Banks' },
+      { label: 'Creator Sound Bundles', value: 8, maxValue: 100, color: '#71717a', subtitle: 'Multi-Product Producer Suites' },
     ];
-  }, [osTelemetry]);
+  }, []);
 
-  const dawDonutData = React.useMemo(() => {
-    const palette = ['#ffffff', '#e4e4e7', '#a1a1aa', '#71717a'];
-    if (dawTelemetry.length > 0) {
-      return dawTelemetry.slice(0, 4).map((daw, idx) => ({
-        label: daw.daw,
-        value: Math.round(daw.share_percent),
-        maxValue: 100,
-        color: palette[idx % palette.length],
-        subtitle: `${daw.share_percent}% hosts`,
-      }));
-    }
+  const revenueShareData = React.useMemo(() => {
+    const creatorEarned = totalGrossRevenue > 0 ? Number((totalGrossRevenue * 0.7).toFixed(2)) : 70;
+    const platformEarned = totalGrossRevenue > 0 ? Number((totalGrossRevenue * 0.3).toFixed(2)) : 30;
+    const maxVal = Math.max(100, creatorEarned + platformEarned);
+
     return [
-      { label: 'Ableton Live', value: 45, maxValue: 100, color: '#ffffff', subtitle: 'Live 11 / 12' },
-      { label: 'FL Studio', value: 30, maxValue: 100, color: '#e4e4e7', subtitle: 'Producer Edition' },
-      { label: 'Logic Pro', value: 15, maxValue: 100, color: '#a1a1aa', subtitle: 'macOS AU' },
-      { label: 'Pro Tools', value: 10, maxValue: 100, color: '#71717a', subtitle: 'AAX Host' },
+      { label: 'Creator Royalties (70%)', value: creatorEarned, maxValue: maxVal, color: '#ffffff', subtitle: 'Net Creator Bank & UPI Payout' },
+      { label: 'Platform Share (30%)', value: platformEarned, maxValue: maxVal, color: '#a1a1aa', subtitle: 'Cloud Hosting & Payment Processing' },
     ];
-  }, [dawTelemetry]);
+  }, [totalGrossRevenue]);
 
   // Compute Top Selling Products from verified purchases and catalog
   const topSellingProducts = React.useMemo(() => {
@@ -443,29 +427,30 @@ export default function DashboardOverviewPage() {
       </div>
 
       {/* Audio Platform & Host DAW Bklit UI Linked Legend Donut Snapshot */}
+      {/* Sales-Related Bklit UI Linked Legend Donut Snapshots */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <EcosystemDonutLinkedLegend
-          title="Operating Systems Distribution"
-          subtitle="Workstation client architectures authorized with product licenses"
-          defaultLabel="OS Share"
-          data={osDonutData}
+          title="Sales by Product Format"
+          subtitle="Revenue distribution across audio plugins, sample packs, and soundbanks"
+          defaultLabel="Format Share"
+          data={salesByCategoryData}
           formatValue={(v) => `${v}%`}
         />
 
         <EcosystemDonutLinkedLegend
-          title="Digital Audio Workstations"
-          subtitle="Host DAW audio production environments authorized with license keys"
-          defaultLabel="DAW Share"
-          data={dawDonutData}
-          formatValue={(v) => `${v}%`}
+          title="Royalty & Revenue Distribution"
+          subtitle="Net 70% audio developer payout vs 30% platform infrastructure"
+          defaultLabel="Royalty Split"
+          data={revenueShareData}
+          formatValue={(v) => typeof v === 'number' && v > 100 ? `$${v.toFixed(2)}` : `${v}%`}
         />
       </div>
 
-      {/* Audience Stream Radar (Bklit UI Composable Radar Chart) */}
-      <AudienceStreamRadarCard
-        totalCustomers={Math.max(10, purchases.length * 3)}
-        totalPurchases={purchases.length}
-        activeDevices={activeDeviceSeats}
+      {/* Creator Product Sales Velocity Radar (Bklit UI Composable Radar Chart) */}
+      <CreatorProductPerformanceRadarCard
+        grossRevenue={totalGrossRevenue}
+        totalUnits={purchases.length}
+        activeLicenses={activeDeviceSeats}
       />
 
       {/* Recent Purchases & Orders Table (Only for roles with order access) */}

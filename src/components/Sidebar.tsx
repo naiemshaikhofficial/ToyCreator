@@ -333,10 +333,10 @@ export function Sidebar() {
           </Link>
 
           {/* Clean divider */}
-          <div className="w-6 h-px bg-[#262626]" />
+          <div className="w-6 h-px bg-[#262626] shrink-0" />
 
           {/* Rail Navigation Icons */}
-          <div className="flex flex-col items-center gap-1.5">
+          <div className="flex flex-col items-center gap-1.5 overflow-y-auto no-scrollbar max-h-[calc(100vh-140px)] py-1">
             {SECTIONS.map((sec) => {
               const Icon = sec.icon;
               const isActive = activeSection === sec.id;
@@ -359,7 +359,7 @@ export function Sidebar() {
                     }
                   }}
                   title={sec.label}
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors relative group ${
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors relative group ${
                     isActive
                       ? 'bg-[#222222] text-white shadow-inner border border-white/10'
                       : 'text-zinc-400 hover:text-white hover:bg-[#181818]'
@@ -383,28 +383,12 @@ export function Sidebar() {
         </div>
 
         {/* Bottom Rail Actions */}
-        <div className="flex flex-col items-center gap-2">
-          {/* External Store Link */}
-          <a
-            href="https://producertoy.com"
-            target="_blank"
-            rel="noreferrer"
-            title="Open ProducerToy Store"
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[#181818] transition relative group"
-          >
-            <ExternalLink className="w-4 h-4" />
-            {!isPanelVisible && (
-              <span className="absolute left-14 px-2.5 py-1 bg-[#181818] text-white text-xs rounded-md shadow-xl border border-[#2a2a2a] whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
-                producertoy.com
-              </span>
-            )}
-          </a>
-
+        <div className="flex flex-col items-center gap-2 shrink-0 pt-2 border-t border-[#1f1f1f]">
           {/* Collapse/Expand Toggle Button */}
           <button
             onClick={() => setIsPinned(!isPinned)}
             title={isPinned ? 'Collapse Sidebar' : 'Expand Sidebar'}
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[#181818] transition"
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[#181818] transition shrink-0"
           >
             {isPinned ? <PanelLeftClose className="w-4.5 h-4.5" /> : <PanelLeft className="w-4.5 h-4.5" />}
           </button>
@@ -413,7 +397,7 @@ export function Sidebar() {
           <button
             onClick={() => signOut()}
             title="Sign Out"
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[#181818] transition"
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[#181818] transition shrink-0"
           >
             <LogOut className="w-4 h-4" />
           </button>

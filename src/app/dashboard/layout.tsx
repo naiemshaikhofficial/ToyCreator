@@ -27,7 +27,7 @@ export default function DashboardLayout({
           {/* ProducerToy 3D Logo Footer Corner */}
           <footer className="border-t border-[#202020] py-4 px-6 sm:px-8 flex items-center justify-between text-xs text-zinc-500 bg-[#141414]/60">
             <div className="text-[11px] font-mono text-zinc-500">
-              © {new Date().getFullYear()} ProducerToy Creator Engine
+              © {new Date().getFullYear()} Toy Creator
             </div>
             <a
               href="https://producertoy.com"
@@ -43,9 +43,7 @@ export default function DashboardLayout({
                   className="object-contain object-right"
                 />
               </div>
-              <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-zinc-400 group-hover:text-white transition">
-                PRODUCERTOY
-              </span>
+
             </a>
           </footer>
         </div>
