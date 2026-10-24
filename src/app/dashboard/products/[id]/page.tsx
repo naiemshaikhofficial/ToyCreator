@@ -40,6 +40,7 @@ import {
 } from 'lucide-react';
 import SerialKeyPoolManager from '@/components/SerialKeyPoolManager';
 import DualAssetUploadInput from '@/components/DualAssetUploadInput';
+import { ProductReleaseScheduler } from '@/components/products/ProductReleaseScheduler';
 
 const PRESET_GENRES = [
   'Hip Hop',
@@ -1399,30 +1400,24 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Active Toggle Box */}
+            {/* 3D WheelPicker Product Release Scheduler */}
+            <ProductReleaseScheduler
+              initialReleaseDate={releaseDate}
+              initialIsComingSoon={isComingSoon}
+              initialIsActive={isActive}
+              onChange={({ releaseDate: newRelDate, isComingSoon: newCs, isActive: newAct }) => {
+                setReleaseDate(newRelDate);
+                setIsComingSoon(newCs);
+                setIsActive(newAct);
+              }}
+            />
+
+            {/* Additional Visibility Options */}
             <div className="space-y-3">
               <div className="bg-[#121212] border border-[#2a2a2a] p-4 rounded-xl flex items-center justify-between">
                 <div>
                   <span className="text-xs font-bold text-white block">
-                    Catalog Status: {isActive ? 'Live on Storefront' : 'Draft Mode (Hidden)'}
-                  </span>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">
-                    When enabled, verified music producers can discover and purchase this item.
-                  </p>
-                </div>
-
-                <input
-                  type="checkbox"
-                  id="isActiveToggle"
-                  checked={isActive}
-                  onChange={(e) => setIsActive(e.target.checked)}
-                  className="w-5 h-5 rounded bg-[#181818] border-[#34363d] text-white focus:ring-zinc-600 cursor-pointer"
-                />
-              </div>
-
-              <div className="bg-[#121212] border border-[#2a2a2a] p-4 rounded-xl flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-white block">
-                    Featured Product
+                    Featured Storefront Placement
                   </span>
                   <p className="text-[11px] text-zinc-400 mt-0.5">
                     Highlight in featured storefront carousels and top recommendations
@@ -1433,24 +1428,6 @@ export default function ProductDetailPage() {
                   id="isFeaturedEdit"
                   checked={isFeatured}
                   onChange={(e) => setIsFeatured(e.target.checked)}
-                  className="w-5 h-5 rounded bg-[#181818] border-[#34363d] text-white focus:ring-zinc-600 cursor-pointer"
-                />
-              </div>
-
-              <div className="bg-[#121212] border border-[#2a2a2a] p-4 rounded-xl flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-white block">
-                    Coming Soon Badge
-                  </span>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">
-                    Display pre-launch teaser badge for upcoming sound packs or plugins
-                  </p>
-                </div>
-                <input
-                  type="checkbox"
-                  id="isComingSoonEdit"
-                  checked={isComingSoon}
-                  onChange={(e) => setIsComingSoon(e.target.checked)}
                   className="w-5 h-5 rounded bg-[#181818] border-[#34363d] text-white focus:ring-zinc-600 cursor-pointer"
                 />
               </div>

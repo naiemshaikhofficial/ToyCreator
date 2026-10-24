@@ -13,6 +13,7 @@ import {
   ExternalLink,
   Edit,
   Key,
+  Clock,
 } from 'lucide-react';
 import { RoleGate } from '@/components/RoleGate';
 
@@ -245,6 +246,12 @@ function ProductsListInner() {
                         >
                           {p.is_active ? 'Active' : 'Draft'}
                         </button>
+                        {p.release_date && new Date(p.release_date).getTime() > Date.now() && (
+                          <span className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-[#202020] text-zinc-300 border border-zinc-700/60 whitespace-nowrap flex items-center gap-1">
+                            <Clock className="w-2.5 h-2.5 text-zinc-400" />
+                            <span>Launch: {new Date(p.release_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                          </span>
+                        )}
                         {!p.download_url && !p.download_url_win && !p.download_url_mac && !p.external_url && (
                           <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#ff4053] text-black whitespace-nowrap uppercase tracking-wider">
                             No Files Attached
