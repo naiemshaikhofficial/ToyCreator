@@ -84,8 +84,8 @@ export default function PayoutsPage() {
           amount: amt,
           currency: 'USD',
           status: 'scheduled',
-          destination: `${membership?.payout_method || 'Stripe Connect'} (${membership?.payout_email || user?.email})`,
-          method: membership?.payout_method || 'Stripe Connect',
+          destination: `${membership?.payout_method || 'Bank Transfer'} (${membership?.payout_email || user?.email})`,
+          method: membership?.payout_method || 'Bank Transfer',
           fee: 0,
           net_amount: amt,
         })
@@ -167,7 +167,7 @@ export default function PayoutsPage() {
             Payout Destination
           </p>
           <p className="text-sm font-bold text-white mt-1 truncate">
-            {membership?.payout_method || 'Stripe Connect'}
+            {membership?.payout_method || 'Bank Transfer'}
           </p>
           <span className="text-[11px] font-mono text-zinc-400 truncate block">
             {membership?.payout_email || user?.email}
@@ -288,7 +288,7 @@ export default function PayoutsPage() {
               <div className="p-3 bg-[#202020] border border-[#2a2a2a] rounded-xl text-xs text-zinc-300 space-y-1">
                 <p className="text-zinc-400">Destination:</p>
                 <p className="font-semibold text-white">
-                  {membership?.payout_method || 'Stripe Connect'} ({membership?.payout_email || user?.email})
+                  {membership?.payout_method || 'Bank Transfer'} ({membership?.payout_email || user?.email})
                 </p>
                 <p className="text-[10px] text-zinc-400 pt-1">
                   Processed on standard weekly schedule (Fridays) with 0 transfer fee.

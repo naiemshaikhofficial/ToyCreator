@@ -15,6 +15,7 @@ export interface BrandData {
   contract_accepted_at?: string | null;
   contract_signatory_name?: string | null;
   contract_version?: string | null;
+  payout_details?: Record<string, any> | null;
   created_at: string;
 }
 
@@ -27,6 +28,7 @@ export interface BrandMembership {
   status: 'active' | 'pending_approval' | 'suspended';
   payout_email: string | null;
   payout_method: string;
+  payout_details?: Record<string, any> | null;
   revenue_share_percent: number;
   created_at: string;
   brands: BrandData;

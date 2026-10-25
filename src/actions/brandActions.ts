@@ -16,6 +16,7 @@ export async function updateBrandProfileAction(
     country?: string | null;
     payoutEmail?: string | null;
     payoutMethod?: string;
+    payoutDetails?: Record<string, any> | null;
   }
 ) {
   try {
@@ -23,29 +24,40 @@ export async function updateBrandProfileAction(
     const admin = getAdminClient();
 
     // 1. Update brand info in brands table
+    const brandUpdates: Record<string, any> = {
+      name: data.brandName.trim(),
+      website_url: data.websiteUrl?.trim() || null,
+      description: data.description?.trim() || null,
+      logo_url: data.logoUrl?.trim() || null,
+      support_email: data.supportEmail?.trim() || null,
+      country: data.country?.trim() || null,
+    };
+
+    if (data.payoutDetails !== undefined) {
+      brandUpdates.payout_details = data.payoutDetails;
+    }
+
     const { error: brandErr } = await admin
       .from('brands')
-      .update({
-        name: data.brandName.trim(),
-        website_url: data.websiteUrl?.trim() || null,
-        description: data.description?.trim() || null,
-        logo_url: data.logoUrl?.trim() || null,
-        support_email: data.supportEmail?.trim() || null,
-        country: data.country?.trim() || null,
-      })
+      .update(brandUpdates)
       .eq('id', brandId);
 
     if (brandErr) throw brandErr;
 
     // 2. Update payout info in brand_members table if membership exists
     if (membershipId) {
+      const memUpdates: Record<string, any> = {
+        payout_email: data.payoutEmail?.trim() || null,
+        payout_method: data.payoutMethod || 'Bank Transfer',
+        updated_at: new Date().toISOString(),
+      };
+      if (data.payoutDetails !== undefined) {
+        memUpdates.payout_details = data.payoutDetails;
+      }
+
       const { error: memErr } = await admin
         .from('brand_members')
-        .update({
-          payout_email: data.payoutEmail?.trim() || null,
-          payout_method: data.payoutMethod || 'Direct Bank Wire / SWIFT',
-          updated_at: new Date().toISOString(),
-        })
+        .update(memUpdates)
         .eq('id', membershipId);
 
       if (memErr) throw memErr;
@@ -72,6 +84,7 @@ export async function completeBrandOnboardingAction(params: {
   country?: string | null;
   payoutEmail: string;
   payoutMethod: string;
+  payoutDetails?: Record<string, any> | null;
   signatoryName: string;
   signatoryTitle?: string;
 }) {
@@ -103,6 +116,9 @@ export async function completeBrandOnboardingAction(params: {
       contract_version: 'v1.0',
     };
 
+    if (params.payoutDetails !== undefined) {
+      brandUpdates.payout_details = params.payoutDetails;
+    }
     if (params.logoUrl !== undefined) {
       brandUpdates.logo_url = params.logoUrl?.trim() || null;
     }
@@ -128,14 +144,19 @@ export async function completeBrandOnboardingAction(params: {
 
     // 2. Update brand_members table if membership exists
     if (params.membershipId) {
+      const memberUpdates: Record<string, any> = {
+        payout_email: params.payoutEmail?.trim() || params.supportEmail.trim(),
+        payout_method: params.payoutMethod || 'Bank Transfer',
+        status: 'active',
+        updated_at: now,
+      };
+      if (params.payoutDetails !== undefined) {
+        memberUpdates.payout_details = params.payoutDetails;
+      }
+
       const { error: memErr } = await admin
         .from('brand_members')
-        .update({
-          payout_email: params.payoutEmail?.trim() || params.supportEmail.trim(),
-          payout_method: params.payoutMethod || 'Direct Bank Wire / SWIFT',
-          status: 'active',
-          updated_at: now,
-        })
+        .update(memberUpdates)
         .eq('id', params.membershipId);
 
       if (memErr) throw memErr;
