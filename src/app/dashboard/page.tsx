@@ -113,7 +113,7 @@ export default function DashboardOverviewPage() {
   }, [products, purchases]);
 
   return (
-    <div className="space-y-6 sm:space-y-8 font-sans">
+    <div className="space-y-6 sm:space-y-8 font-sans pt-1 sm:pt-3">
       {/* KPI Cards Grid - Exactly 3 Cards: Total Sales, Net Revenue, Products */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
         {/* Total Sales */}
