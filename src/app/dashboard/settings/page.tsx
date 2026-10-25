@@ -21,7 +21,6 @@ import {
 } from 'lucide-react';
 import { BrandTeamManager } from '@/components/BrandTeamManager';
 import { RoleGate } from '@/components/RoleGate';
-import { AvatarStack, PROJECT_TEAM_MEMBERS } from '@/components/spectrumui/avatar-stack';
 
 type SettingsTab =
   | 'profile'
@@ -416,27 +415,7 @@ export default function SettingsPage() {
 
         {/* 2. TEAM TAB */}
         {activeTab === 'team' && (
-          <div className="space-y-6">
-            {/* Project Team Card with Spectrum UI Avatar Stack */}
-            <div className="bg-[#161616] border border-[#242424] rounded-xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-sm font-semibold text-white">Project team</h2>
-                <div className="flex items-center gap-2 text-xs text-zinc-400 mt-1">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </span>
-                  <span>7 members · 3 online</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <AvatarStack items={PROJECT_TEAM_MEMBERS} max={4} size="md" />
-              </div>
-            </div>
-
-            <BrandTeamManager />
-          </div>
+          <BrandTeamManager />
         )}
 
         {/* 3. PAYOUTS TAB */}

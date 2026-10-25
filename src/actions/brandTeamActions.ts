@@ -9,6 +9,8 @@ export interface BrandTeamMember {
   id: string;
   userId: string;
   email?: string;
+  name?: string;
+  avatarUrl?: string;
   role: 'owner' | 'admin' | 'developer' | 'support' | 'finance';
   status: 'active' | 'pending_approval' | 'suspended';
   createdAt: string;
@@ -41,24 +43,71 @@ export async function getBrandTeamAction(brandId: string) {
 
     if (memErr) throw memErr;
 
-    // Fetch user emails from auth.users via admin
+    // Fetch user profile & auth metadata via admin
     const teamMembers: BrandTeamMember[] = [];
     if (members && members.length > 0) {
+      const userIds = members.map((m) => m.user_id);
+      let profileMap: Record<
+        string,
+        { full_name?: string; display_name?: string; avatar_url?: string; email?: string }
+      > = {};
+
+      try {
+        const { data: profs } = await admin
+          .from('profiles')
+          .select('id, full_name, display_name, avatar_url, email')
+          .in('id', userIds);
+        if (profs) {
+          for (const p of profs) {
+            profileMap[p.id] = p;
+          }
+        }
+      } catch (profErr) {
+        console.warn('Note fetching profiles:', profErr);
+      }
+
       for (const m of members) {
         let userEmail = 'Authorized Member';
+        let userName = '';
+        let avatarUrl = '';
+
+        const prof = profileMap[m.user_id];
+        if (prof) {
+          if (prof.email) userEmail = prof.email;
+          if (prof.display_name || prof.full_name) {
+            userName = prof.display_name || prof.full_name || '';
+          }
+          if (prof.avatar_url) avatarUrl = prof.avatar_url;
+        }
+
         try {
           const { data: userData } = await admin.auth.admin.getUserById(m.user_id);
-          if (userData?.user?.email) {
-            userEmail = userData.user.email;
+          if (userData?.user) {
+            if (userData.user.email) {
+              userEmail = userData.user.email;
+            }
+            const meta = userData.user.user_metadata || {};
+            if (!userName) {
+              userName = meta.full_name || meta.name || meta.display_name || '';
+            }
+            if (!avatarUrl) {
+              avatarUrl = meta.avatar_url || meta.picture || '';
+            }
           }
         } catch {
           // ignore error fetching single user
+        }
+
+        if (!userName && userEmail && userEmail.includes('@')) {
+          userName = userEmail.split('@')[0];
         }
 
         teamMembers.push({
           id: m.id,
           userId: m.user_id,
           email: userEmail,
+          name: userName || 'Team Member',
+          avatarUrl: avatarUrl || undefined,
           role: m.role as any,
           status: m.status as any,
           createdAt: m.created_at,

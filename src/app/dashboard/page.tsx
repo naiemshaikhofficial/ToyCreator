@@ -321,11 +321,13 @@ export default function DashboardOverviewPage() {
         </div>
       </div>
 
-      {/* Top 5 Products Revenue Share (Bklit UI Donut & Linked Legend) */}
-      <TopProductsRevenueCard
-        products={topSellingProducts}
-        totalGrossRevenue={totalGrossRevenue}
-      />
+      {/* Revenue Breakdown Section (2-Column Grid ready for companion pie chart) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        <TopProductsRevenueCard
+          products={topSellingProducts}
+          totalGrossRevenue={totalGrossRevenue}
+        />
+      </div>
     </div>
   );
 }

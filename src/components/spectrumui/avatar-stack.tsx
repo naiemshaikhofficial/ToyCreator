@@ -33,6 +33,14 @@ export interface AvatarItem {
   isOnline?: boolean
   /** Optional role or team title */
   role?: string
+  /** Optional member ID */
+  id?: string
+  /** Optional member email */
+  email?: string
+  /** Optional raw role */
+  rawRole?: string
+  /** Optional join timestamp */
+  createdAt?: string
 }
 
 export interface AvatarStackProps {
@@ -46,6 +54,8 @@ export interface AvatarStackProps {
   expandable?: boolean
   /** Fires when an avatar is clicked or activated with Enter/Space */
   onAvatarClick?: (item: AvatarItem, index: number) => void
+  /** Currently selected member ID */
+  selectedId?: string | null
   /** Additional classes merged onto the group container */
   className?: string
   /** Custom ring color class to match background surface (default: ring-[#161616]) */
@@ -148,6 +158,7 @@ function AvatarItemButton({
   index,
   size,
   isActive,
+  isSelected,
   roving,
   ringClassName,
   onAvatarClick,
@@ -161,6 +172,7 @@ function AvatarItemButton({
   index: number
   size: "sm" | "md" | "lg"
   isActive: boolean
+  isSelected?: boolean
   roving: number
   ringClassName: string
   onAvatarClick?: (item: AvatarItem, index: number) => void
@@ -179,6 +191,7 @@ function AvatarItemButton({
       ref={buttonRef}
       type="button"
       aria-label={item.name}
+      aria-pressed={isSelected}
       tabIndex={roving === index ? 0 : -1}
       onClick={() => onAvatarClick?.(item, index)}
       onMouseEnter={onMouseEnter}
@@ -186,11 +199,13 @@ function AvatarItemButton({
       onFocus={onFocus}
       onBlur={onBlur}
       initial={false}
-      animate={isActive ? { y: LIFT_Y, scale: LIFT_SCALE } : { y: 0, scale: 1 }}
+      animate={isActive || isSelected ? { y: LIFT_Y, scale: LIFT_SCALE } : { y: 0, scale: 1 }}
       transition={shouldReduceMotion ? INSTANT : SPRING_SNAPPY}
       className={cn(
-        "relative flex select-none items-center justify-center overflow-hidden rounded-full bg-zinc-800 font-medium text-zinc-300 ring-2 transition-colors",
-        ringClassName,
+        "relative flex select-none items-center justify-center overflow-hidden rounded-full bg-zinc-800 font-medium text-zinc-300 ring-2 transition-all cursor-pointer",
+        isSelected
+          ? "ring-white ring-offset-2 ring-offset-[#161616] shadow-[0_0_12px_rgba(255,255,255,0.35)]"
+          : ringClassName,
         "focus-visible:outline-hidden focus-visible:ring-zinc-400",
         text,
       )}
@@ -222,6 +237,7 @@ export function AvatarStack({
   size = "md",
   expandable = true,
   onAvatarClick,
+  selectedId,
   className,
   ringClassName = "ring-[#161616] dark:ring-[#161616]",
 }: AvatarStackProps) {
@@ -322,7 +338,7 @@ export function AvatarStack({
               className="relative"
               style={{
                 marginLeft: index === 0 ? 0 : fanned ? FAN_GAP : OVERLAP_MARGIN,
-                zIndex: isActive ? LIFTED_Z_INDEX : undefined,
+                zIndex: isActive || (selectedId && item.id === selectedId) ? LIFTED_Z_INDEX : undefined,
               }}
               transition={{ layout: layoutTransition }}
               initial={
@@ -359,6 +375,7 @@ export function AvatarStack({
                 index={index}
                 size={size}
                 isActive={isActive}
+                isSelected={Boolean(selectedId && item.id === selectedId)}
                 roving={roving}
                 ringClassName={ringClassName}
                 onAvatarClick={onAvatarClick}
