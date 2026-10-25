@@ -33,7 +33,7 @@ const ONBOARDING_STEPS = [
   { id: 3, label: 'Legal Agreement', desc: 'Developer Distribution Contract', icon: FileText },
 ];
 
-import { COUNTRIES } from '@/lib/countries';
+import { CountrySelect } from '@/components/CountrySelect';
 
 export function BrandOnboardingWizard({ onCompleted }: BrandOnboardingWizardProps) {
   const { brand, membership, user, signOut, refreshBrand } = useBrand();
@@ -485,17 +485,10 @@ export function BrandOnboardingWizard({ onCompleted }: BrandOnboardingWizardProp
                   <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
                     Operating Country / Jurisdiction
                   </label>
-                  <select
+                  <CountrySelect
                     value={country}
-                    onChange={(e) => setCountry(e.target.value)}
-                    className="w-full bg-[#121212] border border-[#2a2a2a] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
-                  >
-                    {COUNTRIES.map((c) => (
-                      <option key={c.isoCode} value={c.name}>
-                        {c.flag ? `${c.flag} ` : ''}{c.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => setCountry(val)}
+                  />
                 </div>
               </div>
 

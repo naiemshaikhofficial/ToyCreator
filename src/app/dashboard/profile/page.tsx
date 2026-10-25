@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import DualAssetUploadInput from '@/components/DualAssetUploadInput';
 import { RoleGate } from '@/components/RoleGate';
-import { COUNTRIES } from '@/lib/countries';
+import { CountrySelect } from '@/components/CountrySelect';
 
 export default function ProfilePage() {
   const { brand, user, membership, refreshBrand } = useBrand();
@@ -259,17 +259,10 @@ export default function ProfilePage() {
                 <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5">
                   Operating Jurisdiction / Country
                 </label>
-                <select
+                <CountrySelect
                   value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
-                >
-                  {COUNTRIES.map((c) => (
-                    <option key={c.isoCode} value={c.name}>
-                      {c.flag ? `${c.flag} ` : ''}{c.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setCountry(val)}
+                />
               </div>
             </div>
 
