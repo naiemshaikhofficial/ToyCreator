@@ -921,44 +921,46 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            {/* Direct Link & Brand Referral Redirect */}
-            <div className="p-4 rounded-xl bg-[#141414] border border-[#242424] space-y-3">
-              <div className="flex items-center justify-between">
-                <FormLabel
-                  label="Direct Store Link / Brand Referral (Optional)"
-                  info="If you have an external brand store, affiliate partnership, or partner deal (e.g. Ford partnership, direct checkout), enter your link here. On producertoy.com, customers will be redirected directly to this URL."
-                />
-                <span className="text-[10px] font-mono text-zinc-400 bg-[#1c1c1c] border border-[#2c2c2c] px-2 py-0.5 rounded-full">
-                  External Referral
-                </span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[11px] font-medium text-zinc-400 mb-1">
-                    Destination URL
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://brand.com/products/toy or referral link"
-                    value={externalUrl}
-                    onChange={(e) => setExternalUrl(e.target.value)}
-                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-[#42454e] transition-colors"
+            {/* Direct Link & Brand Referral Redirect (Only shown if Admin approved for this product) */}
+            {product?.allow_external_url && (
+              <div className="p-4 rounded-xl bg-[#141414] border border-[#242424] space-y-3">
+                <div className="flex items-center justify-between">
+                  <FormLabel
+                    label="External Referral Link"
+                    info="Admin has allotted external referral for this product. Enter your destination URL and custom button text."
                   />
+                  <span className="text-[10px] font-mono text-zinc-300 bg-[#222222] border border-[#333333] px-2 py-0.5 rounded-full">
+                    Admin Approved
+                  </span>
                 </div>
-                <div>
-                  <label className="block text-[11px] font-medium text-zinc-400 mb-1">
-                    Custom Button CTA Text
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Get on Brand Website / Buy from Partner"
-                    value={buttonText}
-                    onChange={(e) => setButtonText(e.target.value)}
-                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-[#42454e] transition-colors"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-medium text-zinc-400 mb-1">
+                      Destination URL
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://brand.com/products/toy or referral link"
+                      value={externalUrl}
+                      onChange={(e) => setExternalUrl(e.target.value)}
+                      className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-[#42454e] transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium text-zinc-400 mb-1">
+                      Custom Button CTA Text
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Get on Brand Website / Buy from Partner"
+                      value={buttonText}
+                      onChange={(e) => setButtonText(e.target.value)}
+                      className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-[#42454e] transition-colors"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             <div>
               <FormLabel

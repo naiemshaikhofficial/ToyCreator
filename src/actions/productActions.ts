@@ -29,6 +29,9 @@ export async function updateBrandProductAction(productId: string, updates: any) 
       }
     }
 
+    // Security: Only Central Admin can allot external referral privileges
+    delete cleanedUpdates.allow_external_url;
+
     const { data, error } = await admin
       .from('products')
       .update(cleanedUpdates)
@@ -80,6 +83,9 @@ export async function createBrandProductAction(productData: any) {
         cleanedData[key] = value;
       }
     }
+
+    // Security: Only Central Admin can allot external referral privileges
+    delete cleanedData.allow_external_url;
 
     const { data, error } = await admin
       .from('products')

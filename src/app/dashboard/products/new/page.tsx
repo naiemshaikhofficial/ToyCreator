@@ -161,8 +161,6 @@ export default function NewProductPage() {
   const [isActive, setIsActive] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
   const [isComingSoon, setIsComingSoon] = useState(false);
-  const [externalUrl, setExternalUrl] = useState('');
-  const [buttonText, setButtonText] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -371,8 +369,8 @@ export default function NewProductPage() {
         category_slugs: selectedGenres.length > 0 ? selectedGenres : null,
         price_usd: parseFloat(priceUsd) || 0,
         original_price_usd: originalPriceUsd ? parseFloat(originalPriceUsd) : null,
-        external_url: externalUrl.trim() || null,
-        button_text: buttonText.trim() || null,
+        external_url: null,
+        button_text: null,
         short_description: shortDesc.trim() || null,
         full_description: fullDesc.trim() || null,
         cover_image: coverImage.trim() || null,
@@ -424,7 +422,7 @@ export default function NewProductPage() {
     { label: 'Product Description', isDone: Boolean(shortDesc.trim() || fullDesc.trim()), weight: 15 },
     { label: 'Category / Genres', isDone: Boolean(categoryId || selectedGenres.length > 0), weight: 10 },
     { label: 'Cover Artwork', isDone: Boolean(coverImage.trim()), weight: 15 },
-    { label: 'Installers / Download Link', isDone: Boolean(downloadUrl.trim() || downloadUrlWin.trim() || downloadUrlMac.trim() || externalUrl.trim()), weight: 15 },
+    { label: 'Installers / Download Link', isDone: Boolean(downloadUrl.trim() || downloadUrlWin.trim() || downloadUrlMac.trim()), weight: 15 },
     { label: 'Demo Audio / Video', isDone: Boolean(demoAudioUrl.trim() || youtubeUrl.trim()), weight: 5 },
     { label: 'Software Specs & Version', isDone: Boolean(version.trim() || fileSize.trim()), weight: 5 },
   ];
@@ -862,44 +860,6 @@ export default function NewProductPage() {
               </div>
             </div>
 
-            {/* Direct Link & Brand Referral Redirect */}
-            <div className="p-4 rounded-xl bg-[#141414] border border-[#242424] space-y-3">
-              <div className="flex items-center justify-between">
-                <FormLabel
-                  label="Direct Store Link / Brand Referral (Optional)"
-                  info="If you have an external brand store, affiliate partnership, or partner deal (e.g. Ford partnership, direct checkout), enter your link here. On producertoy.com, customers will be redirected directly to this URL."
-                />
-                <span className="text-[10px] font-mono text-zinc-400 bg-[#1c1c1c] border border-[#2c2c2c] px-2 py-0.5 rounded-full">
-                  External Referral
-                </span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[11px] font-medium text-zinc-400 mb-1">
-                    Destination URL
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://brand.com/products/toy or referral link"
-                    value={externalUrl}
-                    onChange={(e) => setExternalUrl(e.target.value)}
-                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-[#42454e] transition-colors"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-medium text-zinc-400 mb-1">
-                    Custom Button CTA Text
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Get on Brand Website / Buy from Partner"
-                    value={buttonText}
-                    onChange={(e) => setButtonText(e.target.value)}
-                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-[#42454e] transition-colors"
-                  />
-                </div>
-              </div>
-            </div>
 
             <div>
               <FormLabel
@@ -1512,7 +1472,7 @@ export default function NewProductPage() {
           shortDesc,
           fullDesc,
           vstFormat,
-          externalUrl,
+          externalUrl: '',
         }}
         onApplyProduct={handleApplyProdyProduct}
       />
