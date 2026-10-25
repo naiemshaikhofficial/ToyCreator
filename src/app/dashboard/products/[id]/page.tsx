@@ -1519,26 +1519,7 @@ export default function ProductDetailPage() {
               }}
             />
 
-            {/* Additional Visibility Options */}
-            <div className="space-y-3">
-              <div className="bg-[#121212] border border-[#2a2a2a] p-4 rounded-xl flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-white block">
-                    Featured Storefront Placement
-                  </span>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">
-                    Highlight in featured storefront carousels and top recommendations
-                  </p>
-                </div>
-                <input
-                  type="checkbox"
-                  id="isFeaturedEdit"
-                  checked={isFeatured}
-                  onChange={(e) => setIsFeatured(e.target.checked)}
-                  className="w-5 h-5 rounded bg-[#181818] border-[#34363d] text-white focus:ring-zinc-600 cursor-pointer"
-                />
-              </div>
-            </div>
+
 
             {/* Product Configuration Checklist */}
             <div className="space-y-2">
