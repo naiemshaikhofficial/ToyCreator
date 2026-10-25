@@ -100,7 +100,7 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-20 h-20 bg-[#121212]/95 backdrop-blur-sm border-b border-[#242424] px-4 sm:px-6 lg:px-8 flex items-center justify-between select-none">
+      <header className="sticky top-0 z-20 h-20 bg-[#121212]/95 backdrop-blur-sm px-4 sm:px-6 lg:px-8 flex items-center justify-between select-none">
         {/* Left: Mobile Toggle & Page Title */}
         <div className="flex items-center gap-3">
           <button
