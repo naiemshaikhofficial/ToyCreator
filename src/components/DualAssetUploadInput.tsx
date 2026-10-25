@@ -179,7 +179,7 @@ export default function DualAssetUploadInput({
           if (res.size && onFileSizeDetected) {
             onFileSizeDetected(res.size);
           }
-          setSuccessMsg(`WebP optimized & stored on Supabase (${res.size || 'Verified'})`);
+          setSuccessMsg('');
           setSelectedFile(null);
           setOptimizationInfo(null);
         } else {
@@ -220,7 +220,14 @@ export default function DualAssetUploadInput({
     setErrorMsg('');
   };
 
-  const effectiveThumbnail = thumbnailUrl || (assetCategory === 'cover' && value ? value : undefined);
+  const isImageValue = Boolean(
+    value &&
+      (value.includes('/product-assets/') ||
+        value.includes('/brand-logos/') ||
+        value.includes('/covers/') ||
+        value.match(/\.(webp|png|jpe?g|gif|svg)($|\?)/i))
+  );
+  const effectiveThumbnail = thumbnailUrl || (isImageValue ? value : undefined);
 
   return (
     <div className="space-y-1.5 w-full min-w-0 max-w-full">
@@ -298,22 +305,18 @@ export default function DualAssetUploadInput({
                 <div className="min-w-0 flex-1 overflow-hidden">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="text-xs font-semibold text-white truncate block">
-                      {assetCategory === 'cover'
+                      {label.toLowerCase().includes('logo')
+                        ? 'Brand Logo Uploaded'
+                        : assetCategory === 'cover'
                         ? 'Cover Artwork Configured'
                         : isGoogleDriveLink
-                        ? 'ProducerToy Cloud Asset (CDN Ready)'
-                        : 'Storage Asset Configured'}
+                        ? 'ProducerToy Cloud Asset'
+                        : 'Asset Configured'}
                     </span>
-                    <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-[#202020] text-zinc-400 border border-[#2e2e2e] flex-shrink-0">
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#202020] text-zinc-400 border border-[#2e2e2e] flex-shrink-0">
                       Active
                     </span>
                   </div>
-                  <span
-                    className="text-[10px] font-mono text-zinc-500 truncate block max-w-full"
-                    title={value}
-                  >
-                    {value}
-                  </span>
                 </div>
               </div>
 
@@ -323,7 +326,7 @@ export default function DualAssetUploadInput({
                   target="_blank"
                   rel="noreferrer"
                   className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-[#202020] transition-colors"
-                  title="Test Link"
+                  title="View"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
@@ -359,26 +362,12 @@ export default function DualAssetUploadInput({
                       {compressing ? (
                         <span className="text-zinc-400 font-mono flex items-center gap-1.5">
                           <Loader2 className="w-3 h-3 animate-spin text-white" />
-                          <span>Optimizing image to WebP...</span>
-                        </span>
-                      ) : optimizationInfo ? (
-                        <span className="text-zinc-300 font-mono flex items-center gap-1.5">
-                          <CheckCircle className="w-3 h-3 text-white" />
-                          <span>WebP: {optimizationInfo.originalSize} &rarr; {optimizationInfo.compressedSize}</span>
-                          <span className="px-1.5 py-0.2 rounded bg-[#202020] text-white border border-[#333] text-[9px] font-bold">
-                            -{optimizationInfo.reductionPercent}%
-                          </span>
+                          <span>Optimizing image...</span>
                         </span>
                       ) : selectedFile ? (
-                        selectedFile.size > 50 * 1024 * 1024 ? (
-                          <span className="text-amber-400 font-mono">
-                            {formatBytes(selectedFile.size)} • Switch to External Link tab for 50MB+
-                          </span>
-                        ) : (
-                          <span className="text-zinc-300">
-                            {formatBytes(selectedFile.size)} selected • Ready
-                          </span>
-                        )
+                        <span className="text-zinc-300">
+                          {selectedFile.name} • Ready
+                        </span>
                       ) : (
                         'Direct upload or link from cloud storage'
                       )}
