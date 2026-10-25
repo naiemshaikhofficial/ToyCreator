@@ -135,13 +135,13 @@ export function PlaceholdersAndVanishInput({
     requestAnimationFrame(step);
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement> | React.SyntheticEvent) => {
     e.preventDefault();
     if (!value.trim() || animating || disabled) return;
 
     setAnimating(true);
     animateVanish(0);
-    onSubmit(e);
+    onSubmit(e as any);
     if (controlledValue === undefined) {
       setInternalValue("");
     }
@@ -157,8 +157,7 @@ export function PlaceholdersAndVanishInput({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
+    <div
       className={cn(
         "w-full relative max-w-2xl mx-auto bg-[#161616] h-12 rounded-xl overflow-hidden border border-[#2a2a2a] transition duration-200",
         value && "bg-[#181818]",
@@ -178,6 +177,12 @@ export function PlaceholdersAndVanishInput({
         type="text"
         value={value}
         onChange={handleInputChange}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleSubmit(e);
+          }
+        }}
         disabled={disabled || animating}
         className={cn(
           "w-full relative text-xs sm:text-sm z-10 border-none bg-transparent text-white h-full rounded-xl focus:outline-none focus:ring-0 pl-4 pr-12 font-sans placeholder-transparent",
@@ -188,7 +193,8 @@ export function PlaceholdersAndVanishInput({
       {/* Submit Action Button */}
       <button
         disabled={!value.trim() || animating || disabled}
-        type="submit"
+        type="button"
+        onClick={handleSubmit}
         className="absolute right-2 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-lg bg-white disabled:bg-[#282828] text-black disabled:text-zinc-500 transition duration-200 flex items-center justify-center cursor-pointer disabled:cursor-not-allowed shadow-sm"
         aria-label="Send prompt to Prody"
       >
@@ -212,7 +218,7 @@ export function PlaceholdersAndVanishInput({
           )}
         </AnimatePresence>
       </div>
-    </form>
+    </div>
   );
 }
 
