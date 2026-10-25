@@ -297,16 +297,16 @@ function SidebarBodyContent({
 
             <motion.div
               animate={{
-                display: open ? 'block' : 'none',
+                display: open ? 'flex' : 'none',
                 opacity: open ? 1 : 0,
               }}
               transition={{ duration: 0.15 }}
               className="flex flex-col min-w-0"
             >
-              <span className="font-bold text-xs uppercase tracking-tight text-white leading-tight whitespace-nowrap">
+              <span className="block font-bold text-xs uppercase tracking-tight text-white leading-tight whitespace-nowrap">
                 Toy Creator
               </span>
-              <span className="text-[9px] font-semibold text-zinc-400 uppercase tracking-widest whitespace-nowrap">
+              <span className="block text-[9px] font-semibold text-zinc-400 uppercase tracking-widest whitespace-nowrap">
                 by ProducerToy
               </span>
             </motion.div>
@@ -321,7 +321,7 @@ function SidebarBodyContent({
               type="button"
               onClick={() => setIsPinned(!isPinned)}
               title={isPinned ? 'Unpin sidebar (auto-collapse)' : 'Pin sidebar open'}
-              className={`hidden md:flex p-1.5 rounded-lg text-zinc-400 hover:text-white transition ${
+              className={`hidden md:flex p-1.5 rounded-lg text-zinc-400 hover:text-white transition shrink-0 ${
                 isPinned ? 'bg-[#222222] text-white' : 'hover:bg-[#1a1a1a]'
               }`}
             >
@@ -336,9 +336,9 @@ function SidebarBodyContent({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="mt-2.5 px-2.5 py-1.5 rounded-lg bg-[#161616] border border-[#262626] flex items-center justify-between shrink-0"
+            className="mt-2.5 px-2.5 py-1.5 rounded-lg bg-[#161616] border border-[#262626] flex items-center justify-between gap-2 shrink-0 min-w-0"
           >
-            <span className="text-[11px] font-medium text-zinc-300 truncate max-w-[130px]">
+            <span className="text-[11px] font-medium text-zinc-300 truncate min-w-0 flex-1">
               {brand.name}
             </span>
             {roleBadge && (
@@ -466,16 +466,16 @@ function SidebarBodyContent({
 
             <motion.div
               animate={{
-                display: open ? 'block' : 'none',
+                display: open ? 'flex' : 'none',
                 opacity: open ? 1 : 0,
               }}
               transition={{ duration: 0.15 }}
-              className="flex flex-col min-w-0"
+              className="flex flex-col min-w-0 flex-1 leading-tight overflow-hidden"
             >
-              <span className="text-xs font-medium text-white truncate max-w-[130px]">
+              <span className="block text-xs font-semibold text-white truncate max-w-[130px] leading-snug">
                 {brand?.name || 'Producer Toy'}
               </span>
-              <span className="text-[10px] text-zinc-400 truncate max-w-[130px]">
+              <span className="block text-[10px] text-zinc-400 truncate max-w-[130px] font-mono leading-snug">
                 {user?.email || 'creator@toy.com'}
               </span>
             </motion.div>

@@ -18,6 +18,61 @@ import {
 import { NAV_ITEMS } from './Sidebar';
 import { canAccessRoute, hasPermission, ROLE_BADGES, BrandRole } from '@/lib/rbac';
 
+const PAGE_CONFIG: Record<string, { title: string; subtitle: string }> = {
+  '/dashboard': {
+    title: 'Overview',
+    subtitle: 'Real-time sales velocity, verified revenue, and catalog telemetry',
+  },
+  '/dashboard/products': {
+    title: 'My Audio Products',
+    subtitle: 'Manage audio plugins, sample libraries, and presets published under your brand',
+  },
+  '/dashboard/products/new': {
+    title: 'New Product',
+    subtitle: 'Publish a new audio plugin, preset pack, or sound library',
+  },
+  '/dashboard/coupons': {
+    title: 'Offers & Deals',
+    subtitle: 'Create promotional discounts, coupons, and seasonal sales',
+  },
+  '/dashboard/orders': {
+    title: 'Orders & Sales',
+    subtitle: 'Verified customer orders, revenue receipts, and purchase history',
+  },
+  '/dashboard/analytics': {
+    title: 'Analytics & Conversions',
+    subtitle: 'Deep-dive gross merchandise volume, OS metrics, and DAW telemetry',
+  },
+  '/dashboard/earnings': {
+    title: 'Earnings & Royalties',
+    subtitle: '70% creator payout breakdown and monthly statements',
+  },
+  '/dashboard/payouts': {
+    title: 'Payouts & Banking',
+    subtitle: 'Weekly bank transfers, UPI credits, and payout history',
+  },
+  '/dashboard/licensing': {
+    title: 'Licensing & DRM',
+    subtitle: 'Machine activations, hardware seats, and serial key inventory',
+  },
+  '/dashboard/developers': {
+    title: 'Developer Guide & API',
+    subtitle: 'C++ JUCE SDK integration, REST endpoints, and webhook delivery',
+  },
+  '/dashboard/documents': {
+    title: 'Agreements & Legal',
+    subtitle: 'Distribution terms, intellectual property, and signed contracts',
+  },
+  '/dashboard/support': {
+    title: 'Customer Support',
+    subtitle: 'Buyer inquiries, ticket resolutions, and license assistance',
+  },
+  '/dashboard/settings': {
+    title: 'Brand Settings',
+    subtitle: 'Manufacturer profile, team members, and security preferences',
+  },
+};
+
 export function Header() {
   const pathname = usePathname();
   const { brand, user, membership, signOut } = useBrand();
@@ -30,14 +85,22 @@ export function Header() {
   const canAccessSettings = hasPermission(currentRole, 'canAccessSettings');
   const roleBadge = currentRole ? ROLE_BADGES[currentRole] : null;
 
-  const currentNav = NAV_ITEMS.find((n) =>
-    n.href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(n.href)
-  );
-  const pageTitle = currentNav?.name || (pathname.includes('/products/new') ? 'New Product' : 'Creator Portal');
+  const pageConfig = React.useMemo(() => {
+    if (PAGE_CONFIG[pathname]) return PAGE_CONFIG[pathname];
+    for (const [route, cfg] of Object.entries(PAGE_CONFIG)) {
+      if (route !== '/dashboard' && pathname.startsWith(route)) {
+        return cfg;
+      }
+    }
+    return {
+      title: 'Creator Portal',
+      subtitle: 'Manage your creator storefront and digital audio catalog',
+    };
+  }, [pathname]);
 
   return (
     <>
-      <header className="sticky top-0 z-20 h-16 bg-[#121212]/90 backdrop-blur-md border-b border-[#242424] px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      <header className="sticky top-0 z-20 h-20 bg-[#121212] px-4 sm:px-6 lg:px-8 flex items-center justify-between select-none">
         {/* Left: Mobile Toggle & Page Title */}
         <div className="flex items-center gap-3">
           <button
@@ -49,11 +112,11 @@ export function Header() {
           </button>
 
           <div>
-            <h1 className="text-base sm:text-lg font-bold text-white tracking-tight leading-none">
-              {pageTitle}
+            <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight leading-tight">
+              {pageConfig.title}
             </h1>
-            <p className="text-[11px] text-zinc-400 font-medium hidden sm:block mt-0.5">
-              {brand?.name ? `${brand.name} • Creator Dashboard` : 'Toy Creator Portal'}
+            <p className="text-xs text-zinc-400 font-medium hidden sm:block mt-1">
+              {brand?.name ? `${brand.name} • ${pageConfig.subtitle}` : pageConfig.subtitle}
             </p>
           </div>
         </div>

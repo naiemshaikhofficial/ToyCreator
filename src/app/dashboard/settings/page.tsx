@@ -190,12 +190,12 @@ export default function SettingsPage() {
   return (
     <RoleGate allowedRoles={['owner', 'admin']} sectionName="Portal Settings">
       <div className="max-w-4xl mx-auto space-y-6 font-sans">
-        {/* Header - No duplicate inner navigation! The sidebar handles all navigation. */}
-        <div className="border-b border-[#242424] pb-5">
-          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+        {/* Active Tab Info */}
+        <div className="pb-2">
+          <h2 className="text-lg font-bold text-white tracking-tight">
             {currentTabInfo.title}
-          </h1>
-          <p className="text-xs text-zinc-400 mt-1">
+          </h2>
+          <p className="text-xs text-zinc-400 mt-0.5">
             {currentTabInfo.subtitle}
           </p>
         </div>

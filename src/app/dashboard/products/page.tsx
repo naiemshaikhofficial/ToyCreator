@@ -73,26 +73,6 @@ function ProductsListInner() {
   return (
     <RoleGate allowedRoles={['owner', 'admin', 'developer']} sectionName="Audio Products Catalog">
       <div className="space-y-6 font-sans">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-            My Audio Products
-          </h1>
-          <p className="text-xs text-zinc-400">
-            Manage audio plugins, sample libraries, and presets published under {brand?.name || 'your brand'}
-          </p>
-        </div>
-
-        <Link
-          href="/dashboard/products/new"
-          className="btn-primary px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 self-start sm:self-auto shadow-sm"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Product</span>
-        </Link>
-      </div>
-
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between bg-[#181818] border border-[#2a2a2a] p-3 rounded-xl">
         <div className="relative flex-1">
