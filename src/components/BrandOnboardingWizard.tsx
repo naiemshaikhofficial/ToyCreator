@@ -33,23 +33,7 @@ const ONBOARDING_STEPS = [
   { id: 3, label: 'Legal Agreement', desc: 'Developer Distribution Contract', icon: FileText },
 ];
 
-const COUNTRIES = [
-  'United States',
-  'United Kingdom',
-  'Germany',
-  'India',
-  'Canada',
-  'France',
-  'Japan',
-  'Australia',
-  'Netherlands',
-  'Sweden',
-  'Spain',
-  'Italy',
-  'Brazil',
-  'South Korea',
-  'Other / Global',
-];
+import { COUNTRIES } from '@/lib/countries';
 
 export function BrandOnboardingWizard({ onCompleted }: BrandOnboardingWizardProps) {
   const { brand, membership, user, signOut, refreshBrand } = useBrand();
@@ -507,8 +491,8 @@ export function BrandOnboardingWizard({ onCompleted }: BrandOnboardingWizardProp
                     className="w-full bg-[#121212] border border-[#2a2a2a] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
                   >
                     {COUNTRIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
+                      <option key={c.isoCode} value={c.name}>
+                        {c.flag ? `${c.flag} ` : ''}{c.name}
                       </option>
                     ))}
                   </select>

@@ -20,24 +20,7 @@ import {
 } from 'lucide-react';
 import DualAssetUploadInput from '@/components/DualAssetUploadInput';
 import { RoleGate } from '@/components/RoleGate';
-
-const COUNTRIES = [
-  'United States',
-  'United Kingdom',
-  'Germany',
-  'India',
-  'Canada',
-  'France',
-  'Japan',
-  'Australia',
-  'Netherlands',
-  'Sweden',
-  'Spain',
-  'Italy',
-  'Brazil',
-  'South Korea',
-  'Other / Global',
-];
+import { COUNTRIES } from '@/lib/countries';
 
 export default function ProfilePage() {
   const { brand, user, membership, refreshBrand } = useBrand();
@@ -282,8 +265,8 @@ export default function ProfilePage() {
                   className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
                 >
                   {COUNTRIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
+                    <option key={c.isoCode} value={c.name}>
+                      {c.flag ? `${c.flag} ` : ''}{c.name}
                     </option>
                   ))}
                 </select>
