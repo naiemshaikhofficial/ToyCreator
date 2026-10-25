@@ -924,15 +924,9 @@ export default function ProductDetailPage() {
             {/* Direct Link & Brand Referral Redirect (Only shown if Admin approved for this product) */}
             {product?.allow_external_url && (
               <div className="p-4 rounded-xl bg-[#141414] border border-[#242424] space-y-3">
-                <div className="flex items-center justify-between">
-                  <FormLabel
-                    label="External Referral Link"
-                    info="Admin has allotted external referral for this product. Enter your destination URL and custom button text."
-                  />
-                  <span className="text-[10px] font-mono text-zinc-300 bg-[#222222] border border-[#333333] px-2 py-0.5 rounded-full">
-                    Admin Approved
-                  </span>
-                </div>
+                <FormLabel
+                  label="Direct Store Link / Brand Referral (Optional)"
+                />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[11px] font-medium text-zinc-400 mb-1">
