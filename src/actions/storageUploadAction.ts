@@ -25,17 +25,25 @@ function formatBytes(bytes: number): string {
  * Files are stored with public read access and optimal HTTP cache headers.
  */
 export async function uploadImageToSupabaseAction(formData: FormData): Promise<StorageUploadResult> {
+  let isAuthenticated = false;
   try {
     await requireAuthenticatedUser();
+    isAuthenticated = true;
   } catch {
-    return {
-      success: false,
-      error: 'Unauthorized: Please log in to upload brand assets.',
-    };
+    isAuthenticated = false;
   }
 
   const file = formData.get('file') as File;
   const folder = (formData.get('folder') as string) || 'brand-logos';
+
+  // For unauthenticated visitors (e.g. prospective sellers on the application form),
+  // only permit logo uploads. Product covers and other assets require active authentication.
+  if (!isAuthenticated && folder === 'covers') {
+    return {
+      success: false,
+      error: 'Unauthorized: Please log in to upload product cover artwork.',
+    };
+  }
 
   if (!file) {
     return { success: false, error: 'No image file was provided.' };
