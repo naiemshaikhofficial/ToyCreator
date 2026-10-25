@@ -37,6 +37,7 @@ export interface CreatorProduct {
   license_api_fallback_to_pool?: boolean;
   created_at: string;
   updated_at?: string;
+  faqs?: Array<{ question: string; answer: string }> | null;
   // Computed / Aggregated metrics
   sales_count: number;
   revenue_usd: number;

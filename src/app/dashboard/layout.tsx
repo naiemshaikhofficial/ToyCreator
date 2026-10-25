@@ -13,8 +13,8 @@ export default function DashboardLayout({
 }) {
   return (
     <BrandGate>
-      <div className="h-screen w-full bg-[#121212] text-white flex overflow-hidden">
-        {/* Desktop Sidebar */}
+      <div className="h-screen w-full bg-[#121212] text-white flex flex-col md:flex-row overflow-hidden">
+        {/* Aceternity Expandable Sidebar */}
         <Sidebar />
 
         {/* Main Content Area */}

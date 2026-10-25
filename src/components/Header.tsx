@@ -42,7 +42,7 @@ export function Header() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="lg:hidden p-2 text-zinc-400 hover:text-white rounded-lg hover:bg-[#202020] transition-colors"
+            className="hidden p-2 text-zinc-400 hover:text-white rounded-lg hover:bg-[#202020] transition-colors"
             aria-label="Open navigation menu"
           >
             <Menu className="w-5 h-5" />

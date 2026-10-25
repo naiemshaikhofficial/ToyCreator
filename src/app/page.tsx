@@ -7,18 +7,18 @@ import { useBrand } from '@/context/BrandContext';
 import {
   ArrowRight,
   ShieldCheck,
-  Cpu,
-  Layers,
-  BarChart3,
   Building2,
-  Lock,
-  Zap,
-  Globe2,
   DollarSign,
-  ChevronDown,
   Sparkles,
 } from 'lucide-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { CreatorSpotlightBanner } from '@/components/CreatorSpotlightBanner';
+import { CreatorBrandsSection } from '@/components/CreatorBrandsSection';
 
 export default function HomePage() {
   const { user, isRegisteredBrand, isLoading } = useBrand();
@@ -27,7 +27,6 @@ export default function HomePage() {
   // Interactive Earnings Calculator (Gumroad-style)
   const [productPrice, setProductPrice] = useState<number>(29);
   const [monthlySales, setMonthlySales] = useState<number>(100);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isLoading && user && isRegisteredBrand) {
@@ -118,22 +117,8 @@ export default function HomePage() {
           <CreatorSpotlightBanner />
         </div>
 
-        {/* Formats Ticker */}
-        <div className="mt-14 pt-8 border-t border-[#222222] w-full max-w-3xl">
-          <p className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest mb-4">
-            Accepted Formats &amp; Standards
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 text-xs font-mono">
-            {['VST3', 'AU (Audio Units)', 'AAX', 'CLAP', '24-Bit WAV', 'MIDI', 'Serum Presets', 'Vital', 'Diva', 'Kontakt'].map((fmt) => (
-              <span
-                key={fmt}
-                className="px-3 py-1.5 rounded-lg bg-[#181818] border border-[#262626] text-zinc-300"
-              >
-                {fmt}
-              </span>
-            ))}
-          </div>
-        </div>
+        {/* Brands on ProducerToy - Animated Logo Carousel & Apply CTA */}
+        <CreatorBrandsSection />
 
         {/* Gumroad-Style Interactive Earnings Calculator */}
         <section className="w-full max-w-4xl mt-24 p-8 sm:p-12 rounded-3xl bg-[#161616] border border-[#262626] text-left shadow-2xl">
@@ -210,74 +195,37 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Feature Grid */}
-        <section className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full mt-24 text-left">
-          <div className="p-7 rounded-2xl bg-[#161616] border border-[#262626]">
-            <div className="w-12 h-12 rounded-xl bg-[#202020] border border-[#303030] flex items-center justify-center text-white mb-5">
-              <Cpu className="w-6 h-6" />
-            </div>
-            <h3 className="text-lg font-bold text-white mb-2">Built-in License Protection</h3>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              Protect your software from piracy. Generate license keys automatically, set computer activation limits per user, and manage customer keys with one click.
-            </p>
-          </div>
-
-          <div className="p-7 rounded-2xl bg-[#161616] border border-[#262626]">
-            <div className="w-12 h-12 rounded-xl bg-[#202020] border border-[#303030] flex items-center justify-center text-white mb-5">
-              <BarChart3 className="w-6 h-6" />
-            </div>
-            <h3 className="text-lg font-bold text-white mb-2">Real-Time Sales &amp; Earnings</h3>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              See your customer orders, daily sales revenue, and monthly payouts live. Keep full track of your best-selling plugins and sample packs.
-            </p>
-          </div>
-
-          <div className="p-7 rounded-2xl bg-[#161616] border border-[#262626]">
-            <div className="w-12 h-12 rounded-xl bg-[#202020] border border-[#303030] flex items-center justify-center text-white mb-5">
-              <Globe2 className="w-6 h-6" />
-            </div>
-            <h3 className="text-lg font-bold text-white mb-2">Fast Worldwide Downloads</h3>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              Your buyers get lightning-fast, secure cloud downloads for heavy plugin installers and large sound archives anywhere across the globe.
-            </p>
-          </div>
-        </section>
-
-        {/* FAQ Section (Gumroad-style) */}
-        <section className="w-full max-w-4xl mt-28 text-left">
-          <div className="text-center mb-12">
+        {/* FAQ Section (Matching /faq Spectrum UI Accordion Theme) */}
+        <section className="w-full max-w-4xl mt-24 text-left">
+          <div className="text-center mb-10">
             <h2 className="text-3xl font-extrabold text-white">Frequently Asked Questions</h2>
             <p className="text-xs text-zinc-400 mt-2">
               Everything audio developers need to know about publishing on Producer Toy.
             </p>
           </div>
 
-          <div className="space-y-3">
+          <Accordion
+            type="multiple"
+            variant="filled"
+            indicator="plus"
+            defaultValue={[]}
+            className="w-full space-y-2.5"
+          >
             {faqs.map((faq, idx) => (
-              <div
+              <AccordionItem
                 key={idx}
-                className="rounded-2xl bg-[#161616] border border-[#262626] overflow-hidden"
+                value={`faq-${idx}`}
+                className="rounded-xl bg-[#161616] hover:bg-[#1a1a1a] transition-colors border border-[#242424]"
               >
-                <button
-                  type="button"
-                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                  className="w-full p-5 text-left flex items-center justify-between text-sm font-bold text-white hover:bg-[#1a1a1d] transition-colors cursor-pointer"
-                >
-                  <span>{faq.q}</span>
-                  <ChevronDown
-                    className={`w-4 h-4 text-zinc-400 transition-transform ${
-                      openFaq === idx ? 'rotate-180 text-white' : ''
-                    }`}
-                  />
-                </button>
-                {openFaq === idx && (
-                  <div className="px-5 pb-5 text-xs text-zinc-400 leading-relaxed border-t border-[#222226] pt-3">
-                    {faq.a}
-                  </div>
-                )}
-              </div>
+                <AccordionTrigger className="w-full p-5 text-left text-sm sm:text-base font-bold text-white leading-snug hover:text-white">
+                  <span className="flex-1 pr-2">{faq.q}</span>
+                </AccordionTrigger>
+                <AccordionContent className="px-5 pb-5 text-xs sm:text-sm text-zinc-400 leading-relaxed border-t border-[#202020] pt-3.5">
+                  <p className="text-zinc-300">{faq.a}</p>
+                </AccordionContent>
+              </AccordionItem>
             ))}
-          </div>
+          </Accordion>
 
           <div className="mt-8 text-center">
             <Link

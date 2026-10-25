@@ -37,10 +37,12 @@ import {
   X,
   Sparkles,
   FolderPlus,
+  HelpCircle,
 } from 'lucide-react';
 import SerialKeyPoolManager from '@/components/SerialKeyPoolManager';
 import DualAssetUploadInput from '@/components/DualAssetUploadInput';
 import { ProductReleaseScheduler } from '@/components/products/ProductReleaseScheduler';
+import Progress from '@/components/animata/graphs/progress';
 
 const PRESET_GENRES = [
   'Hip Hop',
@@ -123,6 +125,22 @@ export default function ProductDetailPage() {
   const [originalPriceUsd, setOriginalPriceUsd] = useState('');
   const [shortDesc, setShortDesc] = useState('');
   const [fullDesc, setFullDesc] = useState('');
+
+  // Custom Brand FAQs (Max 5 Limit)
+  const [faqs, setFaqs] = useState<{ question: string; answer: string }[]>([]);
+
+  const handleAddFaq = () => {
+    if (faqs.length >= 5) return;
+    setFaqs([...faqs, { question: '', answer: '' }]);
+  };
+
+  const handleRemoveFaq = (index: number) => {
+    setFaqs(faqs.filter((_, i) => i !== index));
+  };
+
+  const handleFaqChange = (index: number, field: 'question' | 'answer', value: string) => {
+    setFaqs(faqs.map((f, i) => (i === index ? { ...f, [field]: value } : f)));
+  };
 
   // Media
   const [coverImage, setCoverImage] = useState('');
@@ -313,9 +331,14 @@ export default function ProductDetailPage() {
           setOfflineGraceDays(data.offline_grace_days || 14);
           setIsActive(data.is_active ?? true);
           setIsFeatured(data.is_featured ?? false);
-          setIsComingSoon(data.is_coming_soon ?? false);
           const initialDelivery = data.delivery_method || (data.product_type === 'sample_pack' || data.product_type === 'preset' ? 'direct_download' : 'serial_key');
           setDeliveryMethod(initialDelivery as any);
+
+          let loadedFaqs = data.faqs;
+          if (typeof loadedFaqs === 'string') {
+            try { loadedFaqs = JSON.parse(loadedFaqs); } catch { loadedFaqs = []; }
+          }
+          setFaqs(Array.isArray(loadedFaqs) ? loadedFaqs.slice(0, 5) : []);
         }
       } catch (err) {
         console.error('Failed to load product:', err);
@@ -402,6 +425,7 @@ export default function ProductDetailPage() {
         is_active: isActive,
         is_featured: isFeatured,
         is_coming_soon: isComingSoon,
+        faqs: faqs.filter((f) => f.question.trim() && f.answer.trim()).slice(0, 5),
       });
 
       setSuccessMsg('All product details saved successfully.');
@@ -433,6 +457,27 @@ export default function ProductDetailPage() {
       </div>
     );
   }
+
+  // Real-time Form Readiness Tracking (Animata Progress)
+  const readinessCriteria = [
+    { label: 'Product Title', isDone: Boolean(name.trim()), weight: 15 },
+    { label: 'URL Identifier', isDone: Boolean(product?.slug), weight: 10 },
+    { label: 'Price (USD)', isDone: Boolean(priceUsd.trim() && !isNaN(Number(priceUsd)) && Number(priceUsd) >= 0), weight: 10 },
+    { label: 'Product Description', isDone: Boolean(shortDesc.trim() || fullDesc.trim()), weight: 15 },
+    { label: 'Category / Genres', isDone: Boolean(categoryId || selectedGenres.length > 0), weight: 10 },
+    { label: 'Cover Artwork', isDone: Boolean(coverImage.trim()), weight: 15 },
+    { label: 'Installers / Download Link', isDone: Boolean(downloadUrl.trim() || downloadUrlWin.trim() || downloadUrlMac.trim() || externalUrl.trim()), weight: 15 },
+    { label: 'Demo Audio / Video', isDone: Boolean(demoAudioUrl.trim() || youtubeUrl.trim()), weight: 5 },
+    { label: 'Software Specs & Version', isDone: Boolean(version.trim() || fileSize.trim()), weight: 5 },
+  ];
+
+  const completedCount = readinessCriteria.filter((c) => c.isDone).length;
+  const totalCriteria = readinessCriteria.length;
+  const progressPercent = Math.min(
+    100,
+    readinessCriteria.reduce((acc, c) => acc + (c.isDone ? c.weight : 0), 0)
+  );
+  const nextMissing = readinessCriteria.find((c) => !c.isDone)?.label;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 font-sans">
@@ -533,9 +578,39 @@ export default function ProductDetailPage() {
         </div>
       )}
 
-      {/* YouTube Studio Style Stepper Bar */}
-      <div className="bg-[#141414] border border-[#262626] rounded-2xl p-2 sm:p-3">
-        <div className="grid grid-cols-5 gap-1 sm:gap-2">
+      {/* Real-time Readiness & Stepper Header with Animata Progress */}
+      <div className="bg-[#141414] border border-[#262626] rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-md">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-white">
+              Product Readiness
+            </span>
+            <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-[#202020] border border-[#2e2e2e] text-zinc-300 font-semibold">
+              {progressPercent}% Ready
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-[11px] text-zinc-400 font-medium">
+            <span>
+              {completedCount} of {totalCriteria} requirements completed
+            </span>
+            {nextMissing && (
+              <span className="text-zinc-500 hidden sm:inline">
+                · Next: <span className="text-zinc-300">{nextMissing}</span>
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Animata Progress Component */}
+        <Progress
+          progress={progressPercent}
+          heightClass="h-2.5"
+          activeColorClass="bg-white group-hover/progress:bg-zinc-100"
+          inactiveColorClass="bg-zinc-800/80 group-hover/progress:bg-zinc-800/40"
+        />
+
+        {/* Stepper Navigation */}
+        <div className="pt-2 border-t border-[#202020] grid grid-cols-5 gap-1 sm:gap-2">
           {STEPS.map((step) => {
             const Icon = step.icon;
             const isCurrent = activeStep === step.id;
@@ -943,6 +1018,98 @@ export default function ProductDetailPage() {
                 onChange={(e) => setFullDesc(e.target.value)}
                 className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl p-3.5 text-xs text-white focus:border-[#42454e] transition-colors resize-y leading-relaxed"
               />
+            </div>
+
+            {/* Custom Product FAQs (Max 5 Limit) */}
+            <div className="p-4 rounded-xl bg-[#141414] border border-[#242424] space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <FormLabel
+                    label="Custom Product FAQs (Max 5 Limit)"
+                    info="Optional: Add up to 5 custom Q&As for this product. These appear on your product page and are indexed in Google Search Rich Snippets. If left empty, 5 automated compatibility & licensing FAQs are displayed."
+                    icon={HelpCircle}
+                  />
+                  <p className="text-[11px] text-zinc-400">
+                    Directly indexed in Google Search Rich Snippets. Default compatibility FAQs are used if omitted.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[10px] text-zinc-400 bg-[#1c1c1c] border border-[#2c2c2c] px-2 py-0.5 rounded-full">
+                    {faqs.length} / 5 Questions
+                  </span>
+                  {faqs.length < 5 && (
+                    <button
+                      type="button"
+                      onClick={handleAddFaq}
+                      className="btn-secondary px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-[#252525] transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Question</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {faqs.length === 0 ? (
+                <div className="p-4 rounded-lg bg-[#111111] border border-dashed border-[#2a2a2a] text-center space-y-1.5">
+                  <p className="text-xs text-zinc-400">No custom FAQs added yet.</p>
+                  <p className="text-[11px] text-zinc-500">
+                    Standard automated FAQs (DAW compatibility, OS support, royalty-free licensing) will be active.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleAddFaq}
+                    className="mt-2 text-xs text-white hover:text-zinc-300 font-semibold inline-flex items-center gap-1 underline underline-offset-4"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>Add first custom question</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3 pt-1">
+                  {faqs.map((faq, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3.5 rounded-xl bg-[#111111] border border-[#2a2a2a] space-y-2.5 relative group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-[10px] text-zinc-400 uppercase font-semibold">
+                          FAQ #{idx + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFaq(idx)}
+                          className="text-zinc-500 hover:text-red-400 text-xs flex items-center gap-1 transition-colors"
+                          title="Remove FAQ item"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                          <span>Remove</span>
+                        </button>
+                      </div>
+
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="Question (e.g. Does this plugin include dry/wet mix presets?)"
+                          value={faq.question}
+                          onChange={(e) => handleFaqChange(idx, 'question', e.target.value)}
+                          className="w-full bg-[#181818] border border-[#2e2e2e] rounded-lg px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-[#42454e] transition-colors"
+                        />
+                      </div>
+
+                      <div>
+                        <textarea
+                          rows={2}
+                          placeholder="Answer (clear, helpful answer for prospective buyers)..."
+                          value={faq.answer}
+                          onChange={(e) => handleFaqChange(idx, 'answer', e.target.value)}
+                          className="w-full bg-[#181818] border border-[#2e2e2e] rounded-lg p-3 text-xs text-white placeholder-zinc-600 focus:border-[#42454e] transition-colors resize-y leading-relaxed"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}

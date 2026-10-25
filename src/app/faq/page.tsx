@@ -228,7 +228,7 @@ const FAQS: FaqItem[] = [
 export default function CreatorFaqPage() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<string>('all');
-  const [openValues, setOpenValues] = useState<string[]>(['commission', 'calculation-order']);
+  const [openValues, setOpenValues] = useState<string[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const copyLink = (id: string, e: React.MouseEvent) => {
