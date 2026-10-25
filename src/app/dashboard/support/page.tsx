@@ -72,11 +72,13 @@ export default function SupportPage() {
   const [escalateReason, setEscalateReason] = useState('');
   const [isEscalating, setIsEscalating] = useState(false);
 
+  const [activeTab, setActiveTab] = useState<'ALL' | 'CORE' | 'CUSTOMER'>('ALL');
+
   const loadTickets = async () => {
     if (!user?.email) return;
     setLoading(true);
     try {
-      const data = await getDeveloperTickets(user.email);
+      const data = await getDeveloperTickets(user.email, brand?.id);
       setTickets(data);
     } catch (err) {
       console.error('Failed to load tickets:', err);
@@ -87,7 +89,7 @@ export default function SupportPage() {
 
   useEffect(() => {
     loadTickets();
-  }, [user?.email]);
+  }, [user?.email, brand?.id]);
 
   const handleSubmitTicket = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,6 +110,7 @@ export default function SupportPage() {
         priority,
         daw,
         os_platform: osPlatform,
+        brand_id: brand?.id,
       });
 
       setSuccessMsg('Developer priority ticket submitted successfully.');
@@ -191,79 +194,113 @@ export default function SupportPage() {
     }
   };
 
+  // Segregate Core Team Requests vs Customer Plugin Queries
+  const coreTickets = tickets.filter(
+    (t) => t.category === 'DEVELOPER' || t.routing_source === 'DEVELOPER_DESK'
+  );
+  const customerTickets = tickets.filter(
+    (t) => t.category !== 'DEVELOPER' && t.routing_source !== 'DEVELOPER_DESK'
+  );
+
+  const displayedTickets =
+    activeTab === 'CORE'
+      ? coreTickets
+      : activeTab === 'CUSTOMER'
+      ? customerTickets
+      : tickets;
+
   return (
-    <div className="space-y-6 font-sans">
+    <div className="space-y-5 font-sans">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-            Developer Priority Support Desk
+          <h1 className="text-lg font-bold text-white tracking-tight">
+            Developer Support Desk
           </h1>
           <p className="text-xs text-zinc-400">
-            Direct audio engineering assistance for VST compilation, CDN distribution, licensing, and escalation
+            ProducerToy core engineering tickets & customer plugin inquiries
           </p>
         </div>
 
         <button
           onClick={() => setShowModal(true)}
-          className="btn-primary px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 self-start sm:self-auto shadow-sm uppercase tracking-wider"
+          className="btn-primary px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 self-start sm:self-auto shadow-sm tracking-wide"
         >
-          <Plus className="w-4 h-4" />
-          <span>Open Developer Ticket</span>
+          <Plus className="w-3.5 h-3.5" />
+          <span>Raise Core Ticket</span>
         </button>
       </div>
 
       {successMsg && (
-        <div className="p-4 bg-[#202020] border border-zinc-700/60 rounded-xl text-white text-xs flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-zinc-300 flex-shrink-0" />
+        <div className="p-3 bg-[#1e1e1e] border border-zinc-700/60 rounded-xl text-white text-xs flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-zinc-300 shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
       {errorMsg && (
-        <div className="p-4 bg-[#202020] border border-zinc-700/60 rounded-xl text-white text-xs flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-zinc-300 flex-shrink-0" />
+        <div className="p-3 bg-[#1e1e1e] border border-zinc-700/60 rounded-xl text-white text-xs flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-zinc-300 shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
 
-      {/* SLA Info Banner */}
-      <div className="toy-card p-5 bg-[#181818] border border-zinc-800 flex items-center gap-4">
-        <div className="w-10 h-10 rounded-xl bg-[#242424] border border-zinc-700/60 flex items-center justify-center text-zinc-300 flex-shrink-0">
-          <ShieldCheck className="w-5 h-5" />
-        </div>
-        <div className="text-xs">
-          <p className="font-bold text-white">Guaranteed 4-Hour SLA & ProducerToy Core Escalation</p>
-          <p className="text-zinc-400 mt-0.5">
-            Your developer tickets are directly routed to senior DSP engineers. If an issue blocks your release, you can escalate directly to the ProducerToy core team.
-          </p>
-        </div>
+      {/* Minimalist Filter Tabs */}
+      <div className="flex items-center gap-2 border-b border-[#242424] pb-3 text-xs overflow-x-auto">
+        <button
+          type="button"
+          onClick={() => setActiveTab('ALL')}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer select-none ${
+            activeTab === 'ALL'
+              ? 'bg-white text-black font-semibold'
+              : 'text-zinc-400 hover:text-white hover:bg-[#1a1a1a]'
+          }`}
+        >
+          All ({tickets.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('CORE')}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer select-none ${
+            activeTab === 'CORE'
+              ? 'bg-white text-black font-semibold'
+              : 'text-zinc-400 hover:text-white hover:bg-[#1a1a1a]'
+          }`}
+        >
+          Core Requests ({coreTickets.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('CUSTOMER')}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer select-none ${
+            activeTab === 'CUSTOMER'
+              ? 'bg-white text-black font-semibold'
+              : 'text-zinc-400 hover:text-white hover:bg-[#1a1a1a]'
+          }`}
+        >
+          Customer Plugin Issues ({customerTickets.length})
+        </button>
       </div>
 
       {/* Tickets List */}
       <div className="toy-card overflow-hidden">
-        <div className="p-4 border-b border-[#2a2a2a] flex items-center justify-between">
-          <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-            Ticket History & Escalations
-          </h2>
-          <span className="text-xs text-zinc-400">{tickets.length} tickets</span>
-        </div>
-
         {loading ? (
-          <div className="p-12 text-center text-xs text-zinc-400">
-            Loading support tickets...
+          <div className="p-10 text-center text-xs text-zinc-500 font-mono">
+            Loading tickets...
           </div>
-        ) : tickets.length === 0 ? (
-          <div className="p-12 text-center space-y-2">
-            <MessageSquare className="w-10 h-10 text-zinc-600 mx-auto mb-2" />
-            <h3 className="text-sm font-semibold text-white">No active support tickets</h3>
-            <p className="text-xs text-zinc-400 max-w-sm mx-auto">
-              Need help with JUCE plugin compilation, sample instrument mapping, or tax verification? Open a ticket above.
+        ) : displayedTickets.length === 0 ? (
+          <div className="p-10 text-center space-y-1.5">
+            <MessageSquare className="w-8 h-8 text-zinc-600 mx-auto mb-1.5" />
+            <h3 className="text-xs font-semibold text-white">No tickets in this view</h3>
+            <p className="text-[11px] text-zinc-500 max-w-xs mx-auto">
+              Use &ldquo;Raise Core Ticket&rdquo; to contact ProducerToy engineering or review customer plugin issues here.
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-[#222222]">
-            {tickets.map((t) => {
+          <div className="divide-y divide-[#202020]">
+            {displayedTickets.map((t) => {
+              const isCoreRequest =
+                t.category === 'DEVELOPER' || t.routing_source === 'DEVELOPER_DESK';
               const isEscalatedTeam = t.status === 'ESCALATED_TO_TEAM';
               const isEscalatedDev = t.status === 'ESCALATED_TO_DEV';
 
@@ -271,22 +308,33 @@ export default function SupportPage() {
                 <div
                   key={t.id}
                   onClick={() => handleSelectTicket(t)}
-                  className="p-4 sm:p-5 hover:bg-[#1a1a1a]/70 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer group"
+                  className="p-4 hover:bg-[#181818] transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer group"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-mono text-xs font-bold text-zinc-300">
                         {t.ticket_number}
                       </span>
+
+                      {isCoreRequest ? (
+                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#222] text-zinc-300 border border-zinc-700/60 uppercase">
+                          CORE ASSISTANCE
+                        </span>
+                      ) : (
+                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white text-black font-bold uppercase">
+                          PLUGIN QUERY
+                        </span>
+                      )}
+
                       {isEscalatedTeam ? (
-                        <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded bg-white text-black font-mono uppercase animate-pulse">
-                          <Flame className="w-3 h-3 fill-black" />
-                          <span>ESCALATED TO CORE TEAM</span>
+                        <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-white text-black font-mono uppercase animate-pulse">
+                          <Flame className="w-2.5 h-2.5 fill-black" />
+                          <span>CORE ESCALATION</span>
                         </span>
                       ) : isEscalatedDev ? (
-                        <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded bg-[#2a2a2a] text-white border border-[#444] font-mono uppercase">
-                          <ArrowUpRight className="w-3 h-3" />
-                          <span>ROUTED TO YOUR BRAND</span>
+                        <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#242424] text-zinc-200 border border-[#3a3a3a] font-mono uppercase">
+                          <ArrowUpRight className="w-2.5 h-2.5" />
+                          <span>ROUTED TO BRAND</span>
                         </span>
                       ) : (
                         <span
@@ -299,19 +347,21 @@ export default function SupportPage() {
                           {t.status.replace('_', ' ')}
                         </span>
                       )}
-                      <span className="text-[10px] text-zinc-400 font-mono">
-                        Priority: {t.priority}
+
+                      <span className="text-[10px] text-zinc-500 font-mono">
+                        {t.priority}
                       </span>
                     </div>
-                    <h3 className="text-sm font-semibold text-white group-hover:text-zinc-200 transition">
+
+                    <h3 className="text-xs font-semibold text-white group-hover:text-zinc-200 transition">
                       {t.subject}
                     </h3>
-                    <p className="text-xs text-zinc-400 line-clamp-1">{t.description}</p>
+                    <p className="text-[11px] text-zinc-400 line-clamp-1">{t.description}</p>
                   </div>
 
                   <div className="text-right text-[11px] text-zinc-500 whitespace-nowrap">
                     <span>{new Date(t.created_at).toLocaleDateString()}</span>
-                    {t.daw && <p className="text-zinc-400 font-mono">{t.daw} • {t.os_platform}</p>}
+                    {t.daw && <p className="text-zinc-400 font-mono text-[10px]">{t.daw} • {t.os_platform}</p>}
                   </div>
                 </div>
               );

@@ -353,13 +353,23 @@ export async function getBrandPayouts(brandId: string) {
 /**
  * Fetch developer support tickets
  */
-export async function getDeveloperTickets(email: string) {
+export async function getDeveloperTickets(email: string, brandId?: string) {
   const supabase = getSupabaseBrowserClient();
-  const { data, error } = await supabase
-    .from('support_tickets')
-    .select('*')
-    .or(`email.eq.${email},category.eq.DEVELOPER`)
+  let query = supabase.from('support_tickets').select('*');
+
+  if (brandId) {
+    query = query.or(`brand_id.eq.${brandId},and(email.eq.${email},category.eq.DEVELOPER)`);
+  } else {
+    query = query.eq('email', email).eq('category', 'DEVELOPER');
+  }
+
+  query = query
+    .not('subject', 'ilike', '%[Brand Application]%')
+    .not('subject', 'ilike', '%[Seller Application]%')
+    .neq('category', 'PARTNERSHIP')
     .order('created_at', { ascending: false });
+
+  const { data, error } = await query;
 
   if (error) {
     console.error('Error fetching tickets:', error);
@@ -379,6 +389,7 @@ export async function createDeveloperTicket(ticketData: {
   priority?: string;
   daw?: string;
   os_platform?: string;
+  brand_id?: string;
 }) {
   const admin = getAdminClient();
   const ticketNumber = `DEV-${Date.now().toString().slice(-6)}`;
@@ -396,6 +407,8 @@ export async function createDeveloperTicket(ticketData: {
       description: ticketData.description,
       daw: ticketData.daw || null,
       os_platform: ticketData.os_platform || null,
+      brand_id: ticketData.brand_id || null,
+      routing_source: 'DEVELOPER_DESK',
     })
     .select('*')
     .single();

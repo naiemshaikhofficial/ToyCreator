@@ -177,7 +177,7 @@ ${payload.businessAddress}
 
     await admin.from('support_tickets').insert({
       ticket_number: ticketNumber,
-      category: 'DEVELOPER',
+      category: 'PARTNERSHIP',
       status: 'OPEN',
       priority: 'HIGH',
       name: `${payload.fullLegalName} (${payload.manufacturerName})`,
