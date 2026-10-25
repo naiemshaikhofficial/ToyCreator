@@ -307,21 +307,11 @@ export default function SerialKeyPoolManager({
     <div className="toy-card p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#2a2a2a] pb-4">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[#202020] border border-[#34363d] flex items-center justify-center flex-shrink-0">
-            <Key className="w-4 h-4 text-zinc-300" />
-          </div>
-          <div>
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <span>License Keys & Automated Pool</span>
-              <span className="text-[10px] font-mono font-normal text-zinc-400 bg-[#202020] px-2 py-0.5 rounded border border-zinc-700/50">
-                Automated License Pool
-              </span>
-            </h2>
-            <p className="text-[11px] text-zinc-400">
-              Pre-load serials for checkout delivery and audit assigned customer licenses
-            </p>
-          </div>
+        <div className="flex items-center gap-2">
+          <Key className="w-4 h-4 text-zinc-300 shrink-0" />
+          <h2 className="text-xs font-semibold text-white uppercase tracking-wider">
+            License Keys & Serials
+          </h2>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
@@ -432,30 +422,20 @@ export default function SerialKeyPoolManager({
 
       {/* Threshold Warnings */}
       {availableCount === 0 && deliveryType !== 'external_api' && (
-        <div className="p-4 bg-red-500/10 border border-red-500/25 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-red-300">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold uppercase tracking-wider text-[11px] text-red-300">
-                  Storefront Checkout Locked
-                </span>
-                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 border border-red-500/30 uppercase">
-                  Detected Out of Stock
-                </span>
-              </div>
-              <p className="text-zinc-300 text-[11px] leading-relaxed">
-                All serial keys are depleted (<strong>0 available</strong>). This product is now automatically detected as <strong>Out of Stock</strong> on ProducerToy so buyers cannot accidentally purchase without receiving a license. Add keys now to immediately resume automated checkouts.
-              </p>
-            </div>
+        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-red-300">
+          <div className="flex items-center gap-2.5">
+            <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+            <span className="text-xs">
+              <strong>Pool Depleted:</strong> Product is paused on storefront until serial keys are added.
+            </span>
           </div>
           <button
             type="button"
             onClick={() => setActiveTab('upload')}
-            className="px-3.5 py-2 bg-red-500 hover:bg-red-400 text-black font-bold rounded-xl text-xs transition-colors flex-shrink-0 flex items-center gap-1.5 shadow-sm"
+            className="px-3 py-1.5 bg-red-500 hover:bg-red-400 text-black font-semibold rounded-lg text-xs transition-colors shrink-0 flex items-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Add Keys Now</span>
+            <span>Add Keys</span>
           </button>
         </div>
       )}

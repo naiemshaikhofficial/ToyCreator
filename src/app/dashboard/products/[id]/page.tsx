@@ -988,28 +988,22 @@ export default function ProductDetailPage() {
               />
             </div>
 
-            {/* Custom Product FAQs (Max 5 Limit) */}
+            {/* Custom Product FAQs */}
             <div className="p-4 rounded-xl bg-[#141414] border border-[#242424] space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <FormLabel
-                    label="Custom Product FAQs (Max 5 Limit)"
-                    info="Optional: Add up to 5 custom Q&As for this product. These appear on your product page and are indexed in Google Search Rich Snippets. If left empty, 5 automated compatibility & licensing FAQs are displayed."
-                    icon={HelpCircle}
-                  />
-                  <p className="text-[11px] text-zinc-400">
-                    Directly indexed in Google Search Rich Snippets. Default compatibility FAQs are used if omitted.
-                  </p>
-                </div>
+              <div className="flex items-center justify-between gap-2">
+                <FormLabel
+                  label="Product FAQs"
+                  icon={HelpCircle}
+                />
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-[10px] text-zinc-400 bg-[#1c1c1c] border border-[#2c2c2c] px-2 py-0.5 rounded-full">
-                    {faqs.length} / 5 Questions
+                    {faqs.length} / 5
                   </span>
                   {faqs.length < 5 && (
                     <button
                       type="button"
                       onClick={handleAddFaq}
-                      className="btn-secondary px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-[#252525] transition-colors"
+                      className="btn-secondary px-2.5 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 hover:bg-[#252525] transition-colors"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Add Question</span>
@@ -1019,18 +1013,15 @@ export default function ProductDetailPage() {
               </div>
 
               {faqs.length === 0 ? (
-                <div className="p-4 rounded-lg bg-[#111111] border border-dashed border-[#2a2a2a] text-center space-y-1.5">
-                  <p className="text-xs text-zinc-400">No custom FAQs added yet.</p>
-                  <p className="text-[11px] text-zinc-500">
-                    Standard automated FAQs (DAW compatibility, OS support, royalty-free licensing) will be active.
-                  </p>
+                <div className="p-3.5 rounded-lg bg-[#111111] border border-dashed border-[#262626] text-center space-y-1">
+                  <p className="text-xs text-zinc-400">No custom FAQs added.</p>
                   <button
                     type="button"
                     onClick={handleAddFaq}
-                    className="mt-2 text-xs text-white hover:text-zinc-300 font-semibold inline-flex items-center gap-1 underline underline-offset-4"
+                    className="mt-1 text-xs text-white hover:text-zinc-300 font-medium inline-flex items-center gap-1 underline underline-offset-4"
                   >
                     <Plus className="w-3 h-3" />
-                    <span>Add first custom question</span>
+                    <span>Add question</span>
                   </button>
                 </div>
               ) : (
@@ -1159,14 +1150,9 @@ export default function ProductDetailPage() {
             </div>
 
             {!downloadUrl && !downloadUrlWin && !downloadUrlMac && (
-              <div className="p-3.5 bg-[#1a1213] border border-[#ff4053]/30 rounded-xl flex items-start gap-3 text-xs text-white">
-                <AlertCircle className="w-4 h-4 text-[#ff4053] flex-shrink-0 mt-0.5" />
-                <div className="space-y-0.5">
-                  <span className="font-bold text-[#ff4053]">No Downloadable Deliverables Attached</span>
-                  <p className="text-zinc-400 text-[11px] leading-relaxed">
-                    This product is marked as <strong className="text-zinc-200">Out of Stock</strong> on ProducerToy so checkout stays protected until you link Windows or Mac installers below.
-                  </p>
-                </div>
+              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-2.5 text-xs text-amber-300">
+                <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                <span>Upload installer binaries below to enable customer downloads.</span>
               </div>
             )}
 
@@ -1492,23 +1478,9 @@ export default function ProductDetailPage() {
 
             {/* Conditional Delivery View: Keyless vs Serial Key Pool */}
             {deliveryMethod === 'direct_download' ? (
-              <div className="toy-card p-6 space-y-3 bg-[#131313] border-[#282828]">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#202020] border border-[#34363d] flex items-center justify-center flex-shrink-0">
-                    <Download className="w-4 h-4 text-zinc-300" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                      <span>Keyless Direct Download Delivery Active</span>
-                      <span className="text-[9px] font-mono text-zinc-400 bg-[#1e1e1e] px-2 py-0.5 rounded border border-zinc-700/50">
-                        Royalty-Free Delivery
-                      </span>
-                    </h3>
-                    <p className="text-xs text-zinc-300 leading-relaxed">
-                      Buyers receive instant download access upon purchase with full royalty-free commercial rights. No serial key entry is required. This product is exempt from serial inventory thresholds and maintains 100% in-stock availability as long as installer files or audio archives are attached in Step 3.
-                    </p>
-                  </div>
-                </div>
+              <div className="toy-card p-4 flex items-center gap-3 text-xs text-zinc-400">
+                <Download className="w-4 h-4 text-zinc-300 shrink-0" />
+                <span>Direct download active. Buyers receive instant access without serial keys.</span>
               </div>
             ) : (
               <SerialKeyPoolManager
