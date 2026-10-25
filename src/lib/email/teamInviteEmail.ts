@@ -12,9 +12,19 @@ const MAIN_SITE_URL = 'https://producertoy.com';
 const SUPPORT_EMAIL = 'support@producertoy.com';
 
 const ROLE_METADATA: Record<
-  'admin' | 'developer' | 'support' | 'finance',
+  'owner' | 'admin' | 'developer' | 'support' | 'finance',
   { title: string; summary: string; permissions: string[] }
 > = {
+  owner: {
+    title: 'Brand Owner & Executive',
+    summary: 'Executive ownership over your audio brand catalog, 70/30 revenue splits, and team access.',
+    permissions: [
+      'Publish and manage audio plugins, sound presets, and sample libraries',
+      'Manage 70/30 revenue shares, direct bank payouts, and tax invoices',
+      'Generate, distribute, and verify DRM software serial keys',
+      'Invite colleagues and assign developer, support, or finance seats',
+    ],
+  },
   developer: {
     title: 'Developer / Sound Designer',
     summary: 'Upload and manage audio plugins, sound presets, and sample packs. (No access to bank details or sales earnings).',
@@ -61,7 +71,7 @@ interface SendBrandTeamInviteParams {
   to: string;
   brandName: string;
   brandLogoUrl?: string | null;
-  role: 'admin' | 'developer' | 'support' | 'finance';
+  role: 'owner' | 'admin' | 'developer' | 'support' | 'finance';
   inviterEmail?: string;
   inviteToken?: string;
   isNewAccount?: boolean;

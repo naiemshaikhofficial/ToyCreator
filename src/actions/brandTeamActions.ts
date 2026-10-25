@@ -20,7 +20,7 @@ export interface BrandInvite {
   id: string;
   brandId: string;
   email: string;
-  role: 'admin' | 'developer' | 'support' | 'finance';
+  role: 'owner' | 'admin' | 'developer' | 'support' | 'finance';
   status: 'pending' | 'accepted' | 'revoked';
   token?: string;
   createdAt: string;
@@ -303,7 +303,7 @@ export async function validateInviteTokenAction(token: string): Promise<{
   error?: string;
   invite?: {
     email: string;
-    role: 'admin' | 'developer' | 'support' | 'finance';
+    role: 'owner' | 'admin' | 'developer' | 'support' | 'finance';
     brandId: string;
     brandName: string;
     brandLogoUrl?: string | null;

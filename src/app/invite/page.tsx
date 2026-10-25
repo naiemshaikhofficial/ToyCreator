@@ -16,6 +16,7 @@ import {
 import { Eye, EyeOff, AlertCircle, CheckCircle2, ShieldCheck, Lock, Building } from 'lucide-react';
 
 const ROLE_LABELS: Record<string, string> = {
+  owner: 'Brand Owner & Executive',
   admin: 'Brand Admin',
   developer: 'Developer / Sound Designer',
   support: 'Support Agent',
@@ -31,7 +32,7 @@ function InviteAcceptForm() {
   const [validating, setValidating] = useState(true);
   const [inviteData, setInviteData] = useState<{
     email: string;
-    role: 'admin' | 'developer' | 'support' | 'finance';
+    role: 'owner' | 'admin' | 'developer' | 'support' | 'finance';
     brandId: string;
     brandName: string;
     brandLogoUrl?: string | null;
