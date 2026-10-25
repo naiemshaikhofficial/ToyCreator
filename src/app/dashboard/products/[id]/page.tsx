@@ -42,7 +42,6 @@ import {
 import SerialKeyPoolManager from '@/components/SerialKeyPoolManager';
 import DualAssetUploadInput from '@/components/DualAssetUploadInput';
 import { ProductReleaseScheduler } from '@/components/products/ProductReleaseScheduler';
-import Progress from '@/components/animata/graphs/progress';
 
 const PRESET_GENRES = [
   'Hip Hop',
@@ -482,61 +481,55 @@ export default function ProductDetailPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6 font-sans">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <Link
             href="/dashboard/products"
-            className="inline-flex items-center gap-2 text-xs text-zinc-400 hover:text-white transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors mb-1"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Products</span>
+            <span>Products</span>
           </Link>
-          <div className="mt-1 flex items-center gap-3">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight">
               {product.name}
             </h1>
-            <span className="text-[11px] font-mono text-zinc-300 bg-[#202020] px-2 py-0.5 rounded-md border border-[#34363d]">
+            <span className="text-[10px] font-mono text-zinc-400 bg-[#1a1a1a] px-1.5 py-0.5 rounded border border-[#2a2a2a]">
               v{version || '1.0.0'}
             </span>
             <span
-              className={`toy-badge ${
+              className={`toy-badge text-[10px] ${
                 isActive ? 'toy-badge-charcoal' : 'bg-zinc-800 text-zinc-500'
               }`}
             >
               {isActive ? 'Live' : 'Draft'}
             </span>
-            {!downloadUrl && !downloadUrlWin && !downloadUrlMac && (
-              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-md bg-[#ff4053] text-black shadow-sm flex items-center gap-1.5 uppercase tracking-wider">
-                <AlertCircle className="w-3 h-3 text-black stroke-[2.5]" />
-                <span>Out of Stock</span>
-              </span>
-            )}
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
             onClick={() => setShowProdyModal(true)}
-            className="px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 bg-[#1c1c1c] hover:bg-[#252525] border border-white/20 text-white transition-all shadow-sm group hover:border-white/40"
+            className="px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 bg-[#181818] hover:bg-[#222] border border-[#2a2a2a] text-zinc-300 hover:text-white transition shadow-sm"
           >
-            <Sparkles className="w-3.5 h-3.5 text-white group-hover:scale-110 transition-transform" />
+            <Sparkles className="w-3.5 h-3.5 text-zinc-300" />
             <span>Ask Prody</span>
           </button>
           <a
             href={`https://producertoy.com/product/${product.slug}`}
             target="_blank"
             rel="noreferrer"
-            className="btn-secondary px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5"
+            className="btn-secondary px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 hover:text-white transition"
           >
-            <span>Live Storefront</span>
-            <ExternalLink className="w-3.5 h-3.5" />
+            <span>Live Store</span>
+            <ExternalLink className="w-3 h-3 text-zinc-400" />
           </a>
           <button
             type="button"
             onClick={() => handleSave()}
             disabled={saving}
-            className="btn-primary px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md"
+            className="btn-primary px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm"
           >
             {saving ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -549,9 +542,9 @@ export default function ProductDetailPage() {
       </div>
 
       {aiAppliedMsg && (
-        <div className="p-3.5 bg-[#181818] border border-white/30 rounded-xl text-white text-xs flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <Sparkles className="w-4 h-4 text-white flex-shrink-0" />
+        <div className="p-3 bg-[#181818] border border-white/20 rounded-xl text-white text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-3.5 h-3.5 text-white flex-shrink-0" />
             <span className="font-medium">{aiAppliedMsg}</span>
           </div>
           <button
@@ -559,60 +552,29 @@ export default function ProductDetailPage() {
             onClick={() => setAiAppliedMsg('')}
             className="text-zinc-400 hover:text-white"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
 
       {successMsg && (
-        <div className="p-3.5 bg-[#202020] border border-zinc-700/60 rounded-xl text-white text-xs flex items-center gap-2">
-          <CheckCircle className="w-4 h-4 text-zinc-300 flex-shrink-0" />
+        <div className="p-3 bg-[#1a1a1a] border border-zinc-700/60 rounded-xl text-white text-xs flex items-center gap-2">
+          <CheckCircle className="w-3.5 h-3.5 text-zinc-300 flex-shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
       {errorMsg && (
-        <div className="bg-[#ff4053] text-black font-extrabold p-3 rounded-xl text-xs flex items-center gap-2 shadow-lg animate-in fade-in">
-          <AlertCircle className="w-4 h-4 text-black flex-shrink-0" />
+        <div className="bg-[#ff4053] text-black font-bold p-3 rounded-xl text-xs flex items-center gap-2 shadow-sm animate-in fade-in">
+          <AlertCircle className="w-3.5 h-3.5 text-black flex-shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
 
-      {/* Real-time Readiness & Stepper Header with Animata Progress */}
-      <div className="bg-[#141414] border border-[#262626] rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-md">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-white">
-              Product Readiness
-            </span>
-            <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-[#202020] border border-[#2e2e2e] text-zinc-300 font-semibold">
-              {progressPercent}% Ready
-            </span>
-          </div>
-          <div className="flex items-center gap-2 text-[11px] text-zinc-400 font-medium">
-            <span>
-              {completedCount} of {totalCriteria} requirements completed
-            </span>
-            {nextMissing && (
-              <span className="text-zinc-500 hidden sm:inline">
-                · Next: <span className="text-zinc-300">{nextMissing}</span>
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Animata Progress Component */}
-        <Progress
-          progress={progressPercent}
-          heightClass="h-2.5"
-          activeColorClass="bg-white group-hover/progress:bg-zinc-100"
-          inactiveColorClass="bg-zinc-800/80 group-hover/progress:bg-zinc-800/40"
-        />
-
-        {/* Stepper Navigation */}
-        <div className="pt-2 border-t border-[#202020] grid grid-cols-5 gap-1 sm:gap-2">
+      {/* Sleek Step Navigation & Readiness */}
+      <div className="flex items-center justify-between border-b border-[#222222] pb-2 gap-3 flex-wrap">
+        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
           {STEPS.map((step) => {
-            const Icon = step.icon;
             const isCurrent = activeStep === step.id;
             const isDone = activeStep > step.id;
 
@@ -621,36 +583,42 @@ export default function ProductDetailPage() {
                 key={step.id}
                 type="button"
                 onClick={() => setActiveStep(step.id)}
-                className={`relative flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2.5 p-2 sm:px-3 sm:py-2.5 rounded-xl transition-all text-left ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0 ${
                   isCurrent
-                    ? 'bg-[#222222] text-white shadow-sm border border-[#34363d]'
+                    ? 'bg-[#222222] text-white font-semibold border border-[#34363d]'
                     : isDone
-                    ? 'text-zinc-300 hover:bg-[#1a1a1a]'
-                    : 'text-zinc-500 hover:text-zinc-400 hover:bg-[#181818]'
+                    ? 'text-zinc-300 hover:text-white hover:bg-[#181818]'
+                    : 'text-zinc-500 hover:text-zinc-400 hover:bg-[#161616]'
                 }`}
               >
-                <div
-                  className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-mono font-bold ${
+                <span
+                  className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-mono font-bold shrink-0 ${
                     isCurrent
                       ? 'bg-white text-black'
                       : isDone
-                      ? 'bg-[#282828] text-zinc-300'
+                      ? 'bg-[#2e2e2e] text-zinc-200'
                       : 'bg-[#181818] text-zinc-600'
                   }`}
                 >
-                  {isDone ? <CheckCircle2 className="w-3.5 h-3.5" /> : step.id}
-                </div>
-                <div className="min-w-0 text-center sm:text-left">
-                  <span className="block text-xs font-semibold truncate leading-tight">
-                    {step.label}
-                  </span>
-                  <span className="hidden sm:block text-[10px] text-zinc-400 truncate">
-                    {step.desc}
-                  </span>
-                </div>
+                  {isDone ? <Check className="w-2.5 h-2.5" /> : step.id}
+                </span>
+                <span>{step.label}</span>
               </button>
             );
           })}
+        </div>
+
+        {/* Minimalist Progress Pill */}
+        <div className="flex items-center gap-2.5 shrink-0 text-xs font-mono">
+          <span className="text-[11px] text-zinc-400">
+            {progressPercent}% Ready
+          </span>
+          <div className="w-20 h-1.5 bg-[#181818] rounded-full overflow-hidden border border-[#262626]">
+            <div
+              className="h-full bg-white transition-all duration-300"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
         </div>
       </div>
 
@@ -835,14 +803,14 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Genres & Musical Style Tags */}
-            <div className="space-y-2 p-3.5 rounded-xl bg-[#141414] border border-[#242424]">
+            <div className="space-y-2 pt-2 border-t border-[#222222]">
               <div className="flex items-center justify-between">
                 <FormLabel
                   label="Genre & Musical Style"
                   info="Select all applicable genres or add custom styles (saved in product tags)"
                   icon={Music}
                 />
-                <span className="text-[10px] font-mono text-zinc-400">
+                <span className="text-[10px] font-mono text-zinc-500">
                   {selectedGenres.length} selected
                 </span>
               </div>
@@ -859,7 +827,7 @@ export default function ProductDetailPage() {
                       className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all flex items-center gap-1 ${
                         isSelected
                           ? 'bg-white text-black font-semibold shadow-sm'
-                          : 'bg-[#181818] border border-[#2a2a2a] text-zinc-400 hover:text-white hover:bg-[#202020]'
+                          : 'bg-[#141414] border border-[#262626] text-zinc-400 hover:text-white hover:bg-[#1c1c1c]'
                       }`}
                     >
                       {isSelected ? <Check className="w-3 h-3" /> : <Plus className="w-3 h-3 text-zinc-500" />}
@@ -870,7 +838,7 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Custom Genre Input */}
-              <div className="flex gap-2 pt-1.5">
+              <div className="flex gap-2 pt-1">
                 <input
                   type="text"
                   placeholder="Type a custom genre (e.g. Afrobeats, Synthwave, Techno)..."
@@ -882,13 +850,13 @@ export default function ProductDetailPage() {
                       handleAddCustomGenre();
                     }
                   }}
-                  className="flex-1 bg-[#121212] border border-[#2e2e2e] rounded-xl px-3 py-1.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                  className="flex-1 bg-[#121212] border border-[#2a2a2a] rounded-lg px-3 py-1.5 text-xs text-white focus:border-zinc-500 transition-colors"
                 />
                 <button
                   type="button"
                   onClick={handleAddCustomGenre}
                   disabled={!customGenre.trim()}
-                  className="btn-secondary px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 disabled:opacity-40"
+                  className="btn-secondary px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 disabled:opacity-40"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add Tag</span>
