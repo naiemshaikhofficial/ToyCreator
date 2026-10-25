@@ -49,23 +49,7 @@ function SignupContent() {
       </div>
 
       {/* Main Form Container */}
-      <div className="my-8 sm:my-12 max-w-4xl mx-auto w-full">
-        {/* Team Seat Notice */}
-        <div className="mb-6 p-3.5 bg-[#18181b] border border-zinc-800 rounded-xl flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2.5 text-zinc-300">
-            <ShieldAlert className="w-4 h-4 text-zinc-400 flex-shrink-0" />
-            <span>
-              Invited by a studio brand? Team member accounts require a secure invite link sent to your inbox.
-            </span>
-          </div>
-          <Link
-            href="/invite"
-            className="text-white underline font-semibold hover:text-zinc-200 ml-3 flex-shrink-0"
-          >
-            Got an Invite? &rarr;
-          </Link>
-        </div>
-
+      <div className="my-6 sm:my-10 max-w-2xl mx-auto w-full">
         <CreatorApplicationForm />
       </div>
 
