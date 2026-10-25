@@ -375,7 +375,32 @@ export async function getDeveloperTickets(email: string, brandId?: string) {
     console.error('Error fetching tickets:', error);
     return [];
   }
-  return data || [];
+
+  // Privacy Protection: Mask customer emails and names for third-party developer view
+  const sanitized = (data || []).map((t) => {
+    const isCustomerQuery =
+      t.category !== 'DEVELOPER' && t.routing_source !== 'DEVELOPER_DESK';
+    if (isCustomerQuery && t.email) {
+      const parts = t.email.split('@');
+      let maskedEmail = 'Protected Customer';
+      if (parts.length === 2) {
+        const userPart = parts[0];
+        const domainPart = parts[1];
+        const maskedUser =
+          userPart.length > 2
+            ? `${userPart[0]}***${userPart[userPart.length - 1]}`
+            : `${userPart[0]}***`;
+        maskedEmail = `${maskedUser}@${domainPart}`;
+      }
+      return {
+        ...t,
+        email: maskedEmail,
+      };
+    }
+    return t;
+  });
+
+  return sanitized;
 }
 
 /**

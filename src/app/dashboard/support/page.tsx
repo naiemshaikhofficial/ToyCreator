@@ -3,12 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { useBrand } from '@/context/BrandContext';
 import {
-  getDeveloperTickets,
-  createDeveloperTicket,
-  getDeveloperTicketMessages,
-  replyDeveloperTicket,
-  escalateDeveloperTicketToTeam,
-} from '@/lib/supabase/actions';
+  getDeveloperSupportTicketsAction,
+  getDeveloperTicketMessagesAction,
+  createDeveloperTicketAction,
+  replyDeveloperTicketAction,
+  escalateDeveloperTicketToTeamAction,
+} from '@/actions/developerSupportActions';
 import {
   LifeBuoy,
   Plus,
@@ -23,6 +23,7 @@ import {
   Laptop,
   Music,
   ArrowUpRight,
+  Lock,
 } from 'lucide-react';
 
 export default function SupportPage() {
@@ -78,9 +79,13 @@ export default function SupportPage() {
     if (!user?.email) return;
     setLoading(true);
     try {
-      const data = await getDeveloperTickets(user.email, brand?.id);
-      setTickets(data);
-    } catch (err) {
+      const res = await getDeveloperSupportTicketsAction(brand?.id);
+      if (res.success) {
+        setTickets(res.tickets);
+      } else {
+        setErrorMsg(res.error || 'Failed to load tickets');
+      }
+    } catch (err: any) {
       console.error('Failed to load tickets:', err);
     } finally {
       setLoading(false);
@@ -102,16 +107,18 @@ export default function SupportPage() {
     setErrorMsg('');
 
     try {
-      await createDeveloperTicket({
-        name: brand?.name || user?.email?.split('@')[0] || 'Developer',
-        email: user?.email || 'developer@producertoy.com',
+      const res = await createDeveloperTicketAction({
         subject: subject.trim(),
         description: description.trim(),
         priority,
         daw,
         os_platform: osPlatform,
-        brand_id: brand?.id,
+        brandId: brand?.id,
       });
+
+      if (!res.success) {
+        throw new Error(res.error || 'Failed to submit support ticket.');
+      }
 
       setSuccessMsg('Developer priority ticket submitted successfully.');
       setShowModal(false);
@@ -132,8 +139,10 @@ export default function SupportPage() {
     setSelectedTicket(t);
     setLoadingMessages(true);
     try {
-      const msgs = await getDeveloperTicketMessages(t.id);
-      setTicketMessages(msgs);
+      const res = await getDeveloperTicketMessagesAction(t.id, brand?.id);
+      if (res.success) {
+        setTicketMessages(res.messages);
+      }
     } catch (err) {
       console.error('Error loading ticket thread:', err);
     } finally {
@@ -148,13 +157,17 @@ export default function SupportPage() {
 
     setIsSendingReply(true);
     try {
-      const newMsg = await replyDeveloperTicket({
+      const res = await replyDeveloperTicketAction({
         ticketId: selectedTicket.id,
         message: replyText,
-        senderName: brand?.name || user?.email?.split('@')[0] || 'Toy Creator Developer',
+        brandId: brand?.id,
       });
 
-      setTicketMessages([...ticketMessages, newMsg]);
+      if (!res.success || !res.message) {
+        throw new Error(res.error || 'Failed to send response');
+      }
+
+      setTicketMessages([...ticketMessages, res.message]);
       setReplyText('');
       setSuccessMsg('Response sent to ProducerToy support desk.');
       setTimeout(() => setSuccessMsg(''), 4000);
@@ -173,14 +186,18 @@ export default function SupportPage() {
 
     setIsEscalating(true);
     try {
-      const newMsg = await escalateDeveloperTicketToTeam({
+      const res = await escalateDeveloperTicketToTeamAction({
         ticketId: selectedTicket.id,
         reason: escalateReason,
-        senderName: brand?.name || user?.email?.split('@')[0] || 'Brand Partner',
+        brandId: brand?.id,
       });
 
+      if (!res.success || !res.message) {
+        throw new Error(res.error || 'Failed to escalate ticket');
+      }
+
       setSelectedTicket({ ...selectedTicket, status: 'ESCALATED_TO_TEAM', priority: 'URGENT' });
-      setTicketMessages([...ticketMessages, newMsg]);
+      setTicketMessages([...ticketMessages, res.message]);
       setShowEscalateModal(false);
       setEscalateReason('');
       setSuccessMsg('Issue escalated directly to ProducerToy Core Engineering team.');
@@ -501,9 +518,21 @@ export default function SupportPage() {
                 <h3 className="text-base font-extrabold text-white mt-1.5">
                   {selectedTicket.subject}
                 </h3>
-                <p className="text-xs text-zinc-400 font-mono mt-0.5">
-                  Contact: {selectedTicket.name} ({selectedTicket.email})
-                </p>
+                {selectedTicket.category !== 'DEVELOPER' && selectedTicket.routing_source !== 'DEVELOPER_DESK' ? (
+                  <div className="flex items-center gap-2 mt-1 text-xs flex-wrap font-mono">
+                    <span className="text-zinc-300 font-semibold">{selectedTicket.name || 'Customer'}</span>
+                    <span className="text-zinc-600">•</span>
+                    <span className="text-zinc-400">{selectedTicket.email}</span>
+                    <span className="inline-flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded bg-[#1f1f1f] border border-[#2e2e2e] text-zinc-400">
+                      <Lock className="w-2.5 h-2.5" />
+                      <span>Privacy Protected</span>
+                    </span>
+                  </div>
+                ) : (
+                  <p className="text-xs text-zinc-400 font-mono mt-0.5">
+                    Raised by Developer: {selectedTicket.name} ({selectedTicket.email})
+                  </p>
+                )}
               </div>
 
               <button
