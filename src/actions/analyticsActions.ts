@@ -26,6 +26,14 @@ export interface BrandAnalyticsData {
   dawTelemetry: { daw: string; count: number; share_percent: number }[];
   formatTelemetry: { format: string; count: number; share_percent: number }[];
   promotionalData: { tier: string; avg_discount: string; revenue: number; units: number }[];
+  analyticsEvents?: {
+    id: string;
+    product_id: string;
+    brand_id: string;
+    event_type: string;
+    referrer?: string;
+    created_at: string;
+  }[];
 }
 
 export async function getBrandFullAnalyticsAction(brandId: string): Promise<{
@@ -115,7 +123,25 @@ export async function getBrandFullAnalyticsAction(brandId: string): Promise<{
       payouts = payData || [];
     }
 
-    // 5. Compute real financial metrics separated by currency to prevent raw INR/USD blending
+    // 5. Fetch real recorded analytics events (views, cart adds, external clicks)
+    let analyticsEvents: any[] = [];
+    try {
+      const { data: eventData, error: eventErr } = await admin
+        .from('product_analytics')
+        .select('*')
+        .eq('brand_id', brandId)
+        .order('created_at', { ascending: false });
+
+      if (eventErr) {
+        console.warn('Note: product_analytics query returned:', eventErr.message);
+      } else {
+        analyticsEvents = eventData || [];
+      }
+    } catch (e: any) {
+      console.warn('product_analytics fetch non-fatal error:', e.message);
+    }
+
+    // 6. Compute real financial metrics separated by currency to prevent raw INR/USD blending
     let grossRevenueUsd = 0;
     let grossRevenueInr = 0;
     let netRoyaltyUsd70 = 0;
@@ -317,6 +343,7 @@ export async function getBrandFullAnalyticsAction(brandId: string): Promise<{
         dawTelemetry,
         formatTelemetry,
         promotionalData,
+        analyticsEvents,
       },
     };
   } catch (err: any) {
