@@ -201,36 +201,60 @@ function AnalyticsContent() {
   return (
     <RoleGate allowedRoles={['owner', 'admin', 'finance']} sectionName="Sales & Financial Analytics">
       <div className="space-y-6 font-sans">
-        {/* Top Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            {selectedProduct && (
-              <button
-                onClick={() => {
-                  setSelectedProductId(null);
-                  router.push('/dashboard/analytics');
-                }}
-                className="btn-secondary px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 hover:text-white transition"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>All Products</span>
-              </button>
-            )}
+        {/* Minimalist Header Toolbar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+          {/* Left: Product Identity or Catalog Overview */}
+          <div className="flex items-center gap-3 min-w-0">
+            {selectedProduct ? (
+              <>
+                <button
+                  onClick={() => {
+                    setSelectedProductId(null);
+                    router.push('/dashboard/analytics');
+                  }}
+                  className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-[#181818] transition shrink-0"
+                  title="All Products"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                </button>
 
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                {selectedProduct ? `${cleanProductName(selectedProduct.name)} Analytics` : 'Product Analytics'}
-              </h1>
-              <p className="text-xs text-zinc-400 mt-0.5">
-                {selectedProduct
-                  ? `Performance, verified sales, and cart additions for ${cleanProductName(selectedProduct.name)}.`
-                  : 'Sales performance, cart additions, and customer telemetry across your catalog.'}
-              </p>
-            </div>
+                <div className="w-8 h-8 rounded-lg bg-[#161616] border border-[#2a2a2a] overflow-hidden shrink-0 flex items-center justify-center">
+                  {selectedProduct.cover_image ? (
+                    <img
+                      src={selectedProduct.cover_image}
+                      alt={selectedProduct.name}
+                      className="w-full h-full object-cover"
+                      onError={(e: any) => {
+                        e.target.src = '/icon.png';
+                      }}
+                    />
+                  ) : (
+                    <Package className="w-4 h-4 text-zinc-500" />
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="font-semibold text-white text-sm sm:text-base tracking-tight truncate">
+                    {cleanProductName(selectedProduct.name)}
+                  </span>
+                  <span className="text-[10px] font-mono text-zinc-400 bg-[#1a1a1a] px-1.5 py-0.5 rounded border border-[#2a2a2a] shrink-0">
+                    v{selectedProduct.version || '1.0.0'}
+                  </span>
+                  <span className="text-xs font-mono text-zinc-400 shrink-0 hidden md:inline">
+                    {parseFloat(selectedProduct.price_usd) === 0 ? 'FREE' : `$${parseFloat(selectedProduct.price_usd).toFixed(2)}`}
+                  </span>
+                </div>
+              </>
+            ) : (
+              <div>
+                <h1 className="text-base sm:text-lg font-bold text-white tracking-tight">Overview</h1>
+                <p className="text-xs text-zinc-500">Catalog performance & telemetry</p>
+              </div>
+            )}
           </div>
 
-          {/* Controls: Product Filter & Timeframe */}
-          <div className="flex items-center gap-2 flex-wrap">
+          {/* Right: Controls (Switcher, Timeframe, Live Store, Refresh) */}
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
             <select
               value={selectedProductId || 'all'}
               onChange={(e) => {
@@ -243,7 +267,7 @@ function AnalyticsContent() {
                   router.push(`/dashboard/analytics?productId=${val}`);
                 }
               }}
-              className="bg-[#161616] border border-[#2a2a2a] hover:border-zinc-500 rounded-lg px-3 py-1.5 text-xs text-zinc-200 focus:outline-none transition"
+              className="bg-[#141414] border border-[#262626] hover:border-zinc-500 rounded-lg px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none transition cursor-pointer"
             >
               <option value="all">All Products</option>
               {products.map((p) => (
@@ -253,13 +277,13 @@ function AnalyticsContent() {
               ))}
             </select>
 
-            <div className="flex items-center gap-1 bg-[#161616] border border-[#2a2a2a] p-1 rounded-lg text-xs">
+            <div className="flex items-center bg-[#141414] border border-[#262626] p-0.5 rounded-lg text-xs">
               {['7d', '28d', '90d', 'all'].map((t) => (
                 <button
                   key={t}
                   onClick={() => setTimeRange(t)}
-                  className={`px-2.5 py-1 rounded font-medium transition-colors ${
-                    timeRange === t ? 'bg-[#282828] text-white font-semibold' : 'text-zinc-400 hover:text-white'
+                  className={`px-2.5 py-1 rounded transition-colors ${
+                    timeRange === t ? 'bg-[#262626] text-white font-medium' : 'text-zinc-400 hover:text-white'
                   }`}
                 >
                   {t.toUpperCase()}
@@ -267,69 +291,29 @@ function AnalyticsContent() {
               ))}
             </div>
 
+            {selectedProduct && (
+              <a
+                href={`https://producertoy.com/product/${selectedProduct.slug}`}
+                target="_blank"
+                rel="noreferrer"
+                className="btn-secondary px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 hover:text-white transition"
+                title="View in Live Store"
+              >
+                <span>Live Store</span>
+                <ExternalLink className="w-3 h-3 text-zinc-400" />
+              </a>
+            )}
+
             <button
               onClick={loadAnalytics}
               disabled={loading}
               className="btn-secondary p-1.5 rounded-lg text-xs text-zinc-400 hover:text-white transition"
-              title="Refresh"
+              title="Refresh data"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </div>
-
-        {/* Selected Product Compact Banner */}
-        {selectedProduct && activeProductStats && (
-          <div className="p-3.5 rounded-xl bg-[#161616] border border-[#262626] flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-lg bg-[#121212] border border-[#2a2a2a] overflow-hidden shrink-0 flex items-center justify-center">
-                {selectedProduct.cover_image ? (
-                  <img
-                    src={selectedProduct.cover_image}
-                    alt={selectedProduct.name}
-                    className="w-full h-full object-cover"
-                    onError={(e: any) => {
-                      e.target.src = '/icon.png';
-                    }}
-                  />
-                ) : (
-                  <Package className="w-5 h-5 text-zinc-500" />
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-white text-xs truncate">
-                    {selectedProduct.name}
-                  </span>
-                  <span className="text-[10px] font-mono text-zinc-400 bg-[#202020] px-1.5 py-0.5 rounded border border-zinc-700/50">
-                    v{selectedProduct.version || '1.0.0'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-[11px] text-zinc-400 mt-0.5 font-mono">
-                  <span className="text-white font-bold">
-                    {parseFloat(selectedProduct.price_usd) === 0 ? 'FREE' : `$${parseFloat(selectedProduct.price_usd).toFixed(2)}`}
-                  </span>
-                  <span>•</span>
-                  <span>{activeProductStats.unitsSold} orders</span>
-                  <span>•</span>
-                  <span className="text-zinc-300">${activeProductStats.revenue.toFixed(2)} GMV</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0">
-              <a
-                href={`https://producertoy.com/product/${selectedProduct.slug}`}
-                target="_blank"
-                rel="noreferrer"
-                className="btn-secondary px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5"
-              >
-                <span>Live Store</span>
-                <ExternalLink className="w-3 h-3 text-zinc-400" />
-              </a>
-            </div>
-          </div>
-        )}
 
         {/* 4 Clean Metric Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
