@@ -13,6 +13,8 @@ import {
   Info,
 } from 'lucide-react';
 import { uploadAssetToDriveAction, verifyDriveLinkAction } from '@/actions/driveUploadAction';
+import { uploadImageToSupabaseAction } from '@/actions/storageUploadAction';
+import { optimizeImageToWebP } from '@/lib/imageOptimization';
 
 interface DualAssetUploadInputProps {
   label: string;
@@ -54,6 +56,12 @@ export default function DualAssetUploadInput({
   const [mode, setMode] = useState<'upload' | 'link'>(value ? 'link' : 'upload');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [compressing, setCompressing] = useState(false);
+  const [optimizationInfo, setOptimizationInfo] = useState<{
+    originalSize: string;
+    compressedSize: string;
+    reductionPercent: number;
+  } | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [verifyingDrive, setVerifyingDrive] = useState(false);
@@ -103,12 +111,45 @@ export default function DualAssetUploadInput({
     };
   }, [value, isGoogleDriveLink]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (!file) return;
+
+    setErrorMsg('');
+    setSuccessMsg('');
+    setOptimizationInfo(null);
+
+    // If file is an image (and not vector SVG), automatically compress to WebP
+    if (file.type.startsWith('image/') && file.type !== 'image/svg+xml') {
+      setCompressing(true);
+      try {
+        const result = await optimizeImageToWebP(file, {
+          maxWidth: 1024,
+          maxHeight: 1024,
+          quality: 0.88,
+        });
+
+        setSelectedFile(result.file);
+        setOptimizationInfo({
+          originalSize: formatBytes(result.originalSize),
+          compressedSize: formatBytes(result.compressedSize),
+          reductionPercent: result.reductionPercent,
+        });
+
+        if (onFileSizeDetected) {
+          onFileSizeDetected(formatBytes(result.compressedSize));
+        }
+      } catch (err) {
+        console.warn('WebP optimization fallback to raw file:', err);
+        setSelectedFile(file);
+        if (onFileSizeDetected) {
+          onFileSizeDetected(formatBytes(file.size));
+        }
+      } finally {
+        setCompressing(false);
+      }
+    } else {
       setSelectedFile(file);
-      setErrorMsg('');
-      setSuccessMsg('');
       if (onFileSizeDetected) {
         onFileSizeDetected(formatBytes(file.size));
       }
@@ -123,21 +164,46 @@ export default function DualAssetUploadInput({
     setSuccessMsg('');
 
     try {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-      formData.append('assetCategory', assetCategory);
+      const isImage = selectedFile.type.startsWith('image/') || assetCategory === 'cover';
 
-      const res = await uploadAssetToDriveAction(formData);
+      if (isImage) {
+        // Direct Supabase Storage upload for images (brand-logos or covers)
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('folder', label.toLowerCase().includes('logo') ? 'brand-logos' : 'covers');
 
-      if (res.success && res.fileUrl) {
-        onChange(res.fileUrl);
-        if (res.fileSize && onFileSizeDetected) {
-          onFileSizeDetected(res.fileSize);
+        const res = await uploadImageToSupabaseAction(formData);
+
+        if (res.success && res.url) {
+          onChange(res.url);
+          if (res.size && onFileSizeDetected) {
+            onFileSizeDetected(res.size);
+          }
+          setSuccessMsg(`WebP optimized & stored on Supabase (${res.size || 'Verified'})`);
+          setSelectedFile(null);
+          setOptimizationInfo(null);
+        } else {
+          setErrorMsg(res.error || 'Failed to upload image to Supabase.');
         }
-        setSuccessMsg(`Asset verified (${res.fileSize || 'Saved'})`);
-        setSelectedFile(null);
       } else {
-        setErrorMsg(res.error || 'Failed to upload asset.');
+        // Large archive or audio upload via Google Drive webhook
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('assetCategory', assetCategory);
+
+        const res = await uploadAssetToDriveAction(formData);
+
+        if (res.success && res.fileUrl) {
+          onChange(res.fileUrl);
+          if (res.fileSize && onFileSizeDetected) {
+            onFileSizeDetected(res.fileSize);
+          }
+          setSuccessMsg(`Asset verified (${res.fileSize || 'Saved'})`);
+          setSelectedFile(null);
+          setOptimizationInfo(null);
+        } else {
+          setErrorMsg(res.error || 'Failed to upload asset.');
+        }
       }
     } catch (err: any) {
       console.error('Upload exception:', err);
@@ -290,7 +356,20 @@ export default function DualAssetUploadInput({
                       />
                     </label>
                     <span className="text-[10px] text-zinc-500 block truncate">
-                      {selectedFile ? (
+                      {compressing ? (
+                        <span className="text-zinc-400 font-mono flex items-center gap-1.5">
+                          <Loader2 className="w-3 h-3 animate-spin text-white" />
+                          <span>Optimizing image to WebP...</span>
+                        </span>
+                      ) : optimizationInfo ? (
+                        <span className="text-zinc-300 font-mono flex items-center gap-1.5">
+                          <CheckCircle className="w-3 h-3 text-white" />
+                          <span>WebP: {optimizationInfo.originalSize} &rarr; {optimizationInfo.compressedSize}</span>
+                          <span className="px-1.5 py-0.2 rounded bg-[#202020] text-white border border-[#333] text-[9px] font-bold">
+                            -{optimizationInfo.reductionPercent}%
+                          </span>
+                        </span>
+                      ) : selectedFile ? (
                         selectedFile.size > 50 * 1024 * 1024 ? (
                           <span className="text-amber-400 font-mono">
                             {formatBytes(selectedFile.size)} • Switch to External Link tab for 50MB+
@@ -324,11 +403,16 @@ export default function DualAssetUploadInput({
                     ) : (
                       <button
                         type="button"
-                        disabled={uploading}
+                        disabled={uploading || compressing}
                         onClick={handleUpload}
-                        className="btn-primary px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm"
+                        className="btn-primary px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm disabled:opacity-50"
                       >
-                        {uploading ? (
+                        {compressing ? (
+                          <>
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            <span>Optimizing...</span>
+                          </>
+                        ) : uploading ? (
                           <>
                             <Loader2 className="w-3 h-3 animate-spin" />
                             <span>Uploading...</span>
