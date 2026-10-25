@@ -19,6 +19,12 @@ import {
   Check,
   Copy
 } from 'lucide-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
 interface FaqItem {
   id: string;
@@ -222,17 +228,8 @@ const FAQS: FaqItem[] = [
 export default function CreatorFaqPage() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<string>('all');
-  const [openIds, setOpenIds] = useState<Set<string>>(new Set(['commission', 'calculation-order']));
+  const [openValues, setOpenValues] = useState<string[]>(['commission', 'calculation-order']);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-
-  const toggle = (id: string) => {
-    setOpenIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
 
   const copyLink = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -370,14 +367,14 @@ export default function CreatorFaqPage() {
           <span>{filtered.length} questions</span>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setOpenIds(new Set(filtered.map((f) => f.id)))}
+              onClick={() => setOpenValues(filtered.map((f) => f.id))}
               className="hover:text-zinc-300 transition-colors cursor-pointer"
             >
               Open all
             </button>
             <span>•</span>
             <button
-              onClick={() => setOpenIds(new Set())}
+              onClick={() => setOpenValues([])}
               className="hover:text-zinc-300 transition-colors cursor-pointer"
             >
               Close all
@@ -401,70 +398,56 @@ export default function CreatorFaqPage() {
             </button>
           </div>
         ) : (
-          <div className="space-y-2.5">
+          <Accordion
+            type="multiple"
+            variant="filled"
+            indicator="plus"
+            value={openValues}
+            onValueChange={setOpenValues}
+            className="w-full space-y-2.5"
+          >
             {filtered.map((item) => {
-              const isOpen = openIds.has(item.id);
               const isCopied = copiedId === item.id;
 
               return (
-                <div
+                <AccordionItem
                   key={item.id}
                   id={item.id}
-                  className="rounded-xl bg-[#161616] border border-[#242424] hover:border-[#2f2f2f] transition-colors overflow-hidden"
+                  value={item.id}
+                  className="rounded-xl bg-[#161616] hover:bg-[#1a1a1a] transition-colors border border-[#242424]"
                 >
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    aria-expanded={isOpen}
-                    onClick={() => toggle(item.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        toggle(item.id);
-                      }
-                    }}
-                    className="w-full p-5 text-left flex items-start justify-between gap-4 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-white/30"
-                  >
-                    <span className="text-sm sm:text-base font-bold text-white leading-snug">
-                      {item.q}
-                    </span>
-                    <div className="flex items-center gap-1.5 flex-shrink-0 mt-0.5">
-                      <button
-                        type="button"
-                        onClick={(e) => copyLink(item.id, e)}
-                        title="Copy link"
-                        className="p-1 text-zinc-500 hover:text-white transition-colors cursor-pointer"
-                        aria-label="Copy link to question"
-                      >
-                        {isCopied ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
-                      </button>
-                      <ChevronDown
-                        className={`w-4 h-4 text-zinc-400 transition-transform duration-200 ${
-                          isOpen ? 'rotate-180 text-white' : ''
-                        }`}
-                      />
-                    </div>
+                  <div className="flex items-center justify-between w-full pr-4">
+                    <AccordionTrigger className="w-full p-5 text-left text-sm sm:text-base font-bold text-white leading-snug hover:text-white">
+                      <span className="flex-1 pr-2">{item.q}</span>
+                    </AccordionTrigger>
+                    <button
+                      type="button"
+                      onClick={(e) => copyLink(item.id, e)}
+                      title="Copy link"
+                      className="p-1 text-zinc-500 hover:text-white transition-colors cursor-pointer flex-shrink-0"
+                      aria-label="Copy link to question"
+                    >
+                      {isCopied ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
                   </div>
 
-                  {isOpen && (
-                    <div className="px-5 pb-5 pt-0 text-xs sm:text-sm text-zinc-400 leading-relaxed border-t border-[#202020] mt-1 pt-3.5">
-                      <p className="text-zinc-300">{item.a}</p>
+                  <AccordionContent className="px-5 pb-5 text-xs sm:text-sm text-zinc-400 leading-relaxed border-t border-[#202020] pt-3.5">
+                    <p className="text-zinc-300">{item.a}</p>
 
-                      {item.points && item.points.length > 0 && (
-                        <div className="mt-3 p-3.5 rounded-lg bg-[#111111] border border-[#202020] space-y-1.5 text-xs text-zinc-400">
-                          {item.points.map((pt, pIdx) => (
-                            <p key={pIdx} className="leading-relaxed">
-                              {pt}
-                            </p>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                    {item.points && item.points.length > 0 && (
+                      <div className="mt-3 p-3.5 rounded-lg bg-[#111111] border border-[#202020] space-y-1.5 text-xs text-zinc-400">
+                        {item.points.map((pt, pIdx) => (
+                          <p key={pIdx} className="leading-relaxed">
+                            {pt}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
               );
             })}
-          </div>
+          </Accordion>
         )}
 
         {/* Minimal Bottom CTA Card */}
