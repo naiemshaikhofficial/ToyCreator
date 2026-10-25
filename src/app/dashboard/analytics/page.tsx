@@ -7,8 +7,6 @@ import { useBrand } from '@/context/BrandContext';
 import { getBrandFullAnalyticsAction, BrandAnalyticsData } from '@/actions/analyticsActions';
 import {
   TrendingUp,
-  Laptop,
-  Music,
   Download,
   Package,
   RefreshCw,
@@ -88,8 +86,6 @@ function AnalyticsContent() {
   const products = data?.products || [];
   const purchases = data?.purchases || [];
   const activations = data?.activations || [];
-  const osTelemetry = data?.osTelemetry || [];
-  const dawTelemetry = data?.dawTelemetry || [];
   const analyticsEvents = data?.analyticsEvents || [];
 
   // Active selected product
@@ -434,82 +430,12 @@ function AnalyticsContent() {
           </div>
         </div>
 
-        {/* 2-Column: Interactive Engagement Donut & Hardware Platforms */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-          {/* Interactive Pie Chart */}
-          <ProductTrafficInteractivePie
-            title={selectedProduct ? `${cleanProductName(selectedProduct.name)} Engagement` : 'Cart & Action Breakdown'}
-            subtitle="Cart additions, clicks, views and completed orders"
-            data={trafficPieData}
-          />
-
-          {/* Operating Systems & Hardware Activations */}
-          <div className="toy-card p-5 sm:p-6 space-y-4">
-            <div>
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <Laptop className="w-4 h-4 text-zinc-400" />
-                <span>Operating Systems</span>
-              </h3>
-              <p className="text-xs text-zinc-400 mt-0.5">Customer platforms from license activations</p>
-            </div>
-
-            {osTelemetry.length > 0 ? (
-              <div className="space-y-3 pt-1">
-                {osTelemetry.map((item) => (
-                  <div key={item.os} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-white">{item.os}</span>
-                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#202020] text-zinc-400 border border-[#2b2b2b]">
-                          {item.architecture}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 font-mono">
-                        <span className="text-zinc-400 text-[11px]">{item.count} unit(s)</span>
-                        <span className="font-bold text-white">{item.share_percent}%</span>
-                      </div>
-                    </div>
-                    <div className="w-full h-1.5 rounded-full bg-[#202020] overflow-hidden">
-                      <div
-                        className="h-full bg-zinc-200 rounded-full"
-                        style={{ width: `${item.share_percent}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="p-8 text-center border border-dashed border-[#262626] rounded-xl space-y-1">
-                <Laptop className="w-5 h-5 text-zinc-600 mx-auto" />
-                <p className="text-xs text-zinc-400">No machine activations recorded yet</p>
-              </div>
-            )}
-
-            {/* DAW Host Telemetry */}
-            <div className="pt-3 border-t border-[#242424]">
-              <div className="flex items-center gap-2 mb-2">
-                <Music className="w-3.5 h-3.5 text-zinc-400" />
-                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-300">
-                  DAW Workstations
-                </span>
-              </div>
-              {dawTelemetry.length > 0 ? (
-                <div className="space-y-2 text-xs">
-                  {dawTelemetry.map((d) => (
-                    <div key={d.daw} className="flex items-center justify-between font-mono">
-                      <span className="text-zinc-300">{d.daw}</span>
-                      <span className="text-white font-bold">{d.share_percent}% ({d.count})</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-zinc-500">
-                  No DAW signatures reported yet. DAWs are logged during license activation.
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
+        {/* Interactive Engagement Breakdown */}
+        <ProductTrafficInteractivePie
+          title={selectedProduct ? `${cleanProductName(selectedProduct.name)} Engagement` : 'Cart & Action Breakdown'}
+          subtitle="Cart additions, clicks, views and completed orders"
+          data={trafficPieData}
+        />
 
         {/* Product List Table (When viewing All Products) */}
         {!selectedProduct && (

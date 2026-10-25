@@ -41,7 +41,7 @@ const PAGE_CONFIG: Record<string, { title: string; subtitle: string }> = {
   },
   '/dashboard/analytics': {
     title: 'Analytics & Conversions',
-    subtitle: 'Deep-dive gross merchandise volume, OS metrics, and DAW telemetry',
+    subtitle: 'Deep-dive gross merchandise volume, cart additions, and conversion telemetry',
   },
   '/dashboard/earnings': {
     title: 'Earnings & Royalties',
