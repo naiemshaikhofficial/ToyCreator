@@ -14,6 +14,7 @@ import {
   Edit,
   Key,
   Clock,
+  BarChart3,
 } from 'lucide-react';
 import { RoleGate } from '@/components/RoleGate';
 
@@ -138,12 +139,12 @@ function ProductsListInner() {
           <div className="w-full overflow-hidden">
             <table className="w-full text-left text-xs table-fixed">
               <colgroup>
-                <col className="w-[32%]" />
+                <col className="w-[31%]" />
                 <col className="w-[11%]" />
-                <col className="w-[21%]" />
+                <col className="w-[20%]" />
                 <col className="w-[10%]" />
                 <col className="w-[14%]" />
-                <col className="w-[12%]" />
+                <col className="w-[14%]" />
               </colgroup>
               <thead>
                 <tr className="border-b border-[#2a2a2a] bg-[#1a1a1a]/50 text-zinc-400 uppercase text-[10px] tracking-wider">
@@ -262,6 +263,13 @@ function ProductsListInner() {
                     {/* Actions */}
                     <td className="py-3.5 px-3 text-right">
                       <div className="flex items-center justify-end gap-1">
+                        <Link
+                          href={`/dashboard/analytics?productId=${p.id}`}
+                          className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-[#282828] transition-colors"
+                          title="Product Analytics & Telemetry"
+                        >
+                          <BarChart3 className="w-3.5 h-3.5" />
+                        </Link>
                         <Link
                           href={`/dashboard/products/${p.id}`}
                           className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-[#282828] transition-colors"
