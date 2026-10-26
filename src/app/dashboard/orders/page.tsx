@@ -17,6 +17,7 @@ import {
   CheckCircle,
   AlertCircle,
   FileSpreadsheet,
+  Lock,
 } from 'lucide-react';
 import { RoleGate } from '@/components/RoleGate';
 
@@ -71,13 +72,11 @@ function OrdersPageInner() {
     const q = searchQuery.toLowerCase();
     const id = p.id || p.razorpay_order_id || p.razorpay_payment_id || '';
     const name = p.customer_name || '';
-    const email = p.customer_email || '';
     const prodName = p.products?.name || p.product_name || '';
     const key = p.serial_key || '';
     return (
       id.toLowerCase().includes(q) ||
       name.toLowerCase().includes(q) ||
-      email.toLowerCase().includes(q) ||
       prodName.toLowerCase().includes(q) ||
       key.toLowerCase().includes(q)
     );
@@ -97,19 +96,18 @@ function OrdersPageInner() {
 
   const exportCsv = () => {
     if (purchases.length === 0) return;
-    const headers = 'Order Number,Customer Name,Email,Product,Gross Amount,Net Creator Retain (70%),Currency,Date,License Key\n';
+    const headers = 'Order Number,Customer,Privacy,Product,Gross Amount,Net Creator Retain (70%),Currency,Date,License Key\n';
     const rows = purchases
       .map((p: any) => {
         const gross = parseFloat(p.amount_paid || 0);
         const net = gross * 0.70;
         const ordId = p.razorpay_order_id || p.razorpay_payment_id || p.id;
-        const name = p.customer_name || '';
-        const email = p.customer_email || '';
+        const name = p.customer_name || 'Customer';
         const prod = p.products?.name || p.product_name || 'Audio Product';
         const curr = p.currency || 'USD';
         const date = p.purchased_at || p.created_at;
         const key = p.serial_key || 'Instant Download';
-        return `"${ordId}","${name}","${email}","${prod}",${gross.toFixed(2)},${net.toFixed(2)},"${curr}","${date}","${key}"`;
+        return `"${ordId}","${name}","Protected Buyer","${prod}",${gross.toFixed(2)},${net.toFixed(2)},"${curr}","${date}","${key}"`;
       })
       .join('\n');
     const blob = new Blob([headers + rows], { type: 'text/csv' });
@@ -342,7 +340,10 @@ function OrdersPageInner() {
                       </td>
                       <td className="py-3.5 px-4">
                         <p className="font-semibold text-white">{ord.customer_name || 'Customer'}</p>
-                        <p className="text-[11px] text-zinc-400">{ord.customer_email}</p>
+                        <span className="inline-flex items-center gap-1 text-[10px] text-zinc-500 font-mono">
+                          <Lock className="w-2.5 h-2.5" />
+                          <span>Buyer Protected</span>
+                        </span>
                       </td>
                       <td className="py-3.5 px-4 text-zinc-200">
                         {ord.products?.name || ord.product_name || 'Audio Product'}
