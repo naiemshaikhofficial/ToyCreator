@@ -90,6 +90,14 @@ const STEPS = [
   { id: 5, label: 'Publish', icon: Eye, desc: 'Review & Live' },
 ];
 
+export function isValidYouTubeUrl(url: string): boolean {
+  if (!url || !url.trim()) return false;
+  const trimmed = url.trim();
+  // Validates standard watch URL, embed URL, shorts, and shortlinks (youtu.be)
+  const reg = /^(https?:\/\/)?(www\.|m\.)?(youtube\.com\/(watch\?(.*&)?v=|embed\/|shorts\/|v\/)|youtu\.be\/)[\w-]{11}(.*)?$/;
+  return reg.test(trimmed);
+}
+
 export default function NewProductPage() {
   const router = useRouter();
   const { brand } = useBrand();
@@ -164,6 +172,16 @@ export default function NewProductPage() {
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const clearFieldError = (field: string) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const copy = { ...prev };
+      delete copy[field];
+      return copy;
+    });
+  };
 
   // Prody AI Copilot State
   const [showProdyModal, setShowProdyModal] = useState(false);
@@ -233,6 +251,11 @@ export default function NewProductPage() {
       pricing: '💲 Applied Product Pricing!',
       specs: '🎛️ Applied VST Specs & DAWs!',
     };
+
+    if (mode === 'all') {
+      setFieldErrors({});
+    }
+    setErrorMsg('');
 
     setAiAppliedMsg(modeLabels[mode] || '✨ Prody applied product data!');
     setTimeout(() => setAiAppliedMsg(''), 4000);
@@ -332,22 +355,204 @@ export default function NewProductPage() {
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setName(val);
+    clearFieldError('name');
     const generatedSlug = val
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)+/g, '');
     setSlug(generatedSlug);
+    clearFieldError('slug');
 
     if (brand?.slug) {
       setPluginIdentifier(`com.${brand.slug}.${generatedSlug}`);
+      clearFieldError('pluginIdentifier');
     }
+  };
+
+  const validateStep = (stepNumber: number): { valid: boolean; firstError: string; errors: Record<string, string> } => {
+    const errs: Record<string, string> = {};
+
+    if (stepNumber === 1) {
+      if (!name.trim()) {
+        errs.name = 'Product title is required';
+      }
+      if (!slug.trim()) {
+        errs.slug = 'Storefront URL slug is required';
+      } else if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug.trim())) {
+        errs.slug = 'Slug must only contain lowercase letters, numbers, and hyphens';
+      }
+      if (!categoryId) {
+        errs.categoryId = 'Please select a product category';
+      }
+      const availableSubs = subcategoriesList.filter((s) => !categoryId || s.category_id === categoryId);
+      if (availableSubs.length > 0 && !subcategoryId) {
+        errs.subcategoryId = 'Please select a subcategory';
+      }
+      if (selectedGenres.length === 0) {
+        errs.genres = 'Select at least 1 musical genre or style tag';
+      }
+      if (!priceUsd.trim() || isNaN(Number(priceUsd)) || Number(priceUsd) < 0) {
+        errs.priceUsd = 'Valid selling price (USD) is required';
+      }
+      if (!shortDesc.trim()) {
+        errs.shortDesc = 'Short tagline hook is required';
+      }
+      if (!fullDesc.trim()) {
+        errs.fullDesc = 'Full description is required';
+      }
+      for (let i = 0; i < faqs.length; i++) {
+        if (!faqs[i].question.trim() || !faqs[i].answer.trim()) {
+          errs.faqs = 'Please complete both question and answer for all FAQs, or remove empty items';
+          break;
+        }
+      }
+    } else if (stepNumber === 2) {
+      if (!coverImage.trim()) {
+        errs.coverImage = 'Cover artwork is required';
+      }
+      if (!youtubeUrl.trim()) {
+        errs.youtubeUrl = 'YouTube walkthrough video is required';
+      } else if (!isValidYouTubeUrl(youtubeUrl)) {
+        errs.youtubeUrl = 'Only valid YouTube URLs are accepted (e.g. https://www.youtube.com/watch?v=...)';
+      }
+    } else if (stepNumber === 3) {
+      if (productType === 'plugin') {
+        if (!downloadUrlWin.trim() && !downloadUrlMac.trim()) {
+          errs.installers = 'At least one installer (Windows or macOS) is required';
+        }
+      } else {
+        if (!downloadUrl.trim() && !downloadUrlWin.trim() && !downloadUrlMac.trim()) {
+          errs.installers = 'At least one download file or installer is required';
+        }
+      }
+      if (!operatingSystem.trim()) {
+        errs.operatingSystem = 'Operating system requirement is required';
+      }
+      if (!supportedDaws.trim()) {
+        errs.supportedDaws = 'Supported DAWs list is required';
+      }
+      if (!version.trim()) {
+        errs.version = 'Version number is required';
+      }
+    } else if (stepNumber === 4) {
+      if (productType === 'plugin') {
+        if (!vstFormat.trim()) {
+          errs.vstFormat = 'Plugin format is required (e.g. VST3, AU, AAX)';
+        }
+        if (!pluginIdentifier.trim()) {
+          errs.pluginIdentifier = 'Plugin identifier is required (e.g. com.brand.plugin)';
+        }
+        if (!maxSeats || maxSeats < 1) {
+          errs.maxSeats = 'At least 1 machine seat is required';
+        }
+        if (!offlineGraceDays || offlineGraceDays < 1) {
+          errs.offlineGraceDays = 'Valid offline grace period is required';
+        }
+      }
+    }
+
+    const keys = Object.keys(errs);
+    return {
+      valid: keys.length === 0,
+      firstError: keys.length > 0 ? errs[keys[0]] : '',
+      errors: errs,
+    };
+  };
+
+  const validateAllSteps = (): { valid: boolean; firstInvalidStep: number; firstError: string; errors: Record<string, string> } => {
+    let combinedErrors: Record<string, string> = {};
+    for (let s = 1; s <= 4; s++) {
+      const res = validateStep(s);
+      if (!res.valid) {
+        combinedErrors = { ...combinedErrors, ...res.errors };
+        return {
+          valid: false,
+          firstInvalidStep: s,
+          firstError: res.firstError,
+          errors: combinedErrors,
+        };
+      }
+    }
+    return { valid: true, firstInvalidStep: 0, firstError: '', errors: {} };
+  };
+
+  const stepHasError = (stepId: number) => {
+    if (stepId === 1) {
+      return Boolean(
+        fieldErrors.name ||
+        fieldErrors.slug ||
+        fieldErrors.categoryId ||
+        fieldErrors.subcategoryId ||
+        fieldErrors.genres ||
+        fieldErrors.priceUsd ||
+        fieldErrors.shortDesc ||
+        fieldErrors.fullDesc ||
+        fieldErrors.faqs
+      );
+    }
+    if (stepId === 2) {
+      return Boolean(fieldErrors.coverImage || fieldErrors.youtubeUrl);
+    }
+    if (stepId === 3) {
+      return Boolean(
+        fieldErrors.installers ||
+        fieldErrors.operatingSystem ||
+        fieldErrors.supportedDaws ||
+        fieldErrors.version
+      );
+    }
+    if (stepId === 4) {
+      return Boolean(
+        fieldErrors.vstFormat ||
+        fieldErrors.pluginIdentifier ||
+        fieldErrors.maxSeats ||
+        fieldErrors.offlineGraceDays
+      );
+    }
+    return false;
+  };
+
+  const handleNextStep = () => {
+    const res = validateStep(activeStep);
+    if (!res.valid) {
+      setErrorMsg(res.firstError);
+      setFieldErrors((prev) => ({ ...prev, ...res.errors }));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    setErrorMsg('');
+    setActiveStep((prev) => Math.min(5, prev + 1));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleStepClick = (targetStep: number) => {
+    if (targetStep < activeStep) {
+      setActiveStep(targetStep);
+      return;
+    }
+    for (let s = 1; s < targetStep; s++) {
+      const res = validateStep(s);
+      if (!res.valid) {
+        setErrorMsg(res.firstError);
+        setFieldErrors((prev) => ({ ...prev, ...res.errors }));
+        setActiveStep(s);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+    }
+    setErrorMsg('');
+    setActiveStep(targetStep);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!name.trim()) {
-      setErrorMsg('Product title is required.');
-      setActiveStep(1);
+    const res = validateAllSteps();
+    if (!res.valid) {
+      setErrorMsg(res.firstError);
+      setFieldErrors(res.errors);
+      setActiveStep(res.firstInvalidStep);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     if (!brand?.id) {
@@ -419,12 +624,12 @@ export default function NewProductPage() {
     { label: 'Product Title', isDone: Boolean(name.trim()), weight: 15 },
     { label: 'URL Identifier', isDone: Boolean(slug.trim()), weight: 10 },
     { label: 'Price (USD)', isDone: Boolean(priceUsd.trim() && !isNaN(Number(priceUsd)) && Number(priceUsd) >= 0), weight: 10 },
-    { label: 'Product Description', isDone: Boolean(shortDesc.trim() || fullDesc.trim()), weight: 15 },
-    { label: 'Category / Genres', isDone: Boolean(categoryId || selectedGenres.length > 0), weight: 10 },
+    { label: 'Short & Full Description', isDone: Boolean(shortDesc.trim() && fullDesc.trim()), weight: 15 },
+    { label: 'Category & Subcategory', isDone: Boolean(categoryId && (subcategoriesList.filter((s) => s.category_id === categoryId).length === 0 || subcategoryId)), weight: 10 },
     { label: 'Cover Artwork', isDone: Boolean(coverImage.trim()), weight: 15 },
-    { label: 'Installers / Download Link', isDone: Boolean(downloadUrl.trim() || downloadUrlWin.trim() || downloadUrlMac.trim()), weight: 15 },
-    { label: 'Demo Audio / Video', isDone: Boolean(demoAudioUrl.trim() || youtubeUrl.trim()), weight: 5 },
-    { label: 'Software Specs & Version', isDone: Boolean(version.trim() || fileSize.trim()), weight: 5 },
+    { label: 'Installers / Download Link', isDone: Boolean(productType === 'plugin' ? (downloadUrlWin.trim() || downloadUrlMac.trim()) : (downloadUrl.trim() || downloadUrlWin.trim() || downloadUrlMac.trim())), weight: 15 },
+    { label: 'YouTube Walkthrough', isDone: isValidYouTubeUrl(youtubeUrl), weight: 5 },
+    { label: 'Software Specs & Version', isDone: Boolean(version.trim()), weight: 5 },
   ];
 
   const completedCount = readinessCriteria.filter((c) => c.isDone).length;
@@ -504,9 +709,19 @@ export default function NewProductPage() {
       )}
 
       {errorMsg && (
-        <div className="bg-[#ff4053] text-black font-bold p-3 rounded-xl text-xs flex items-center gap-2 shadow-sm animate-in fade-in">
-          <AlertCircle className="w-3.5 h-3.5 text-black flex-shrink-0" />
-          <span>{errorMsg}</span>
+        <div className="bg-[#ff4053] text-black font-extrabold px-4 py-3 rounded-xl text-xs flex items-center justify-between shadow-lg animate-in fade-in">
+          <div className="flex items-center gap-2.5">
+            <AlertCircle className="w-4 h-4 text-black flex-shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setErrorMsg('')}
+            className="p-1 text-black/70 hover:text-black transition-colors"
+            title="Dismiss error"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
       )}
 
@@ -516,12 +731,13 @@ export default function NewProductPage() {
           {STEPS.map((step) => {
             const isCurrent = activeStep === step.id;
             const isDone = activeStep > step.id;
+            const hasErr = stepHasError(step.id);
 
             return (
               <button
                 key={step.id}
                 type="button"
-                onClick={() => setActiveStep(step.id)}
+                onClick={() => handleStepClick(step.id)}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0 ${
                   isCurrent
                     ? 'bg-[#222222] text-white font-semibold border border-[#34363d]'
@@ -532,14 +748,16 @@ export default function NewProductPage() {
               >
                 <span
                   className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-mono font-bold shrink-0 ${
-                    isCurrent
+                    hasErr
+                      ? 'bg-[#ff4053] text-black font-extrabold'
+                      : isCurrent
                       ? 'bg-white text-black'
                       : isDone
                       ? 'bg-[#2e2e2e] text-zinc-200'
                       : 'bg-[#181818] text-zinc-600'
                   }`}
                 >
-                  {isDone ? <Check className="w-2.5 h-2.5" /> : step.id}
+                  {hasErr ? '!' : isDone ? <Check className="w-2.5 h-2.5" /> : step.id}
                 </span>
                 <span>{step.label}</span>
               </button>
@@ -585,13 +803,23 @@ export default function NewProductPage() {
                   placeholder="e.g. ProVerb Algorithmic Reverb"
                   value={name}
                   onChange={handleNameChange}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                  className={`w-full bg-[#121212] border rounded-xl px-3.5 py-2.5 text-xs text-white transition-colors ${
+                    fieldErrors.name
+                      ? 'border-[#ff4053] focus:border-[#ff4053] bg-[#ff4053]/5'
+                      : 'border-[#2e2e2e] focus:border-[#42454e]'
+                  }`}
                 />
+                {fieldErrors.name && (
+                  <p className="text-[11px] text-[#ff4053] font-medium flex items-center gap-1 mt-1 animate-in fade-in">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                    <span>{fieldErrors.name}</span>
+                  </p>
+                )}
               </div>
 
               <div>
                 <FormLabel
-                  label="Storefront URL Slug"
+                  label="Storefront URL Slug *"
                   info="Auto-generated URL path on producertoy.com"
                 />
                 <input
@@ -599,9 +827,22 @@ export default function NewProductPage() {
                   required
                   placeholder="e.g. proverb"
                   value={slug}
-                  onChange={(e) => setSlug(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
+                  onChange={(e) => {
+                    setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''));
+                    clearFieldError('slug');
+                  }}
+                  className={`w-full bg-[#121212] border rounded-xl px-3.5 py-2.5 text-xs font-mono text-white transition-colors ${
+                    fieldErrors.slug
+                      ? 'border-[#ff4053] focus:border-[#ff4053] bg-[#ff4053]/5'
+                      : 'border-[#2e2e2e] focus:border-[#42454e]'
+                  }`}
                 />
+                {fieldErrors.slug && (
+                  <p className="text-[11px] text-[#ff4053] font-medium flex items-center gap-1 mt-1 animate-in fade-in">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                    <span>{fieldErrors.slug}</span>
+                  </p>
+                )}
               </div>
             </div>
 
@@ -665,6 +906,8 @@ export default function NewProductPage() {
                         className={`p-2.5 rounded-xl border text-xs font-semibold transition-all text-center flex items-center justify-center gap-1.5 ${
                           isSelected
                             ? 'bg-[#222222] border-white text-white shadow-sm'
+                            : fieldErrors.categoryId
+                            ? 'bg-[#121212] border-[#ff4053]/50 text-zinc-400 hover:text-white hover:bg-[#181818]'
                             : 'bg-[#121212] border-[#2a2a2a] text-zinc-400 hover:text-white hover:bg-[#181818]'
                         }`}
                       >
@@ -674,12 +917,18 @@ export default function NewProductPage() {
                     );
                   })}
                 </div>
+                {fieldErrors.categoryId && (
+                  <p className="text-[11px] text-[#ff4053] font-medium flex items-center gap-1 mt-1 animate-in fade-in">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                    <span>{fieldErrors.categoryId}</span>
+                  </p>
+                )}
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <FormLabel
-                    label="Subcategory"
+                    label="Subcategory *"
                     info="Specific audio instrument, effect, or pack style"
                     icon={Tag}
                   />
@@ -724,10 +973,17 @@ export default function NewProductPage() {
 
                 <select
                   value={subcategoryId}
-                  onChange={(e) => setSubcategoryId(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                  onChange={(e) => {
+                    setSubcategoryId(e.target.value);
+                    clearFieldError('subcategoryId');
+                  }}
+                  className={`w-full bg-[#121212] border rounded-xl px-3.5 py-2.5 text-xs text-white transition-colors ${
+                    fieldErrors.subcategoryId
+                      ? 'border-[#ff4053] focus:border-[#ff4053] bg-[#ff4053]/5'
+                      : 'border-[#2e2e2e] focus:border-[#42454e]'
+                  }`}
                 >
-                  <option value="">Select a subcategory (optional)</option>
+                  <option value="">Select a subcategory</option>
                   {subcategoriesList
                     .filter((s) => !categoryId || s.category_id === categoryId)
                     .map((sub) => (
@@ -736,9 +992,16 @@ export default function NewProductPage() {
                       </option>
                     ))}
                 </select>
-                <p className="text-[10px] text-zinc-500 mt-1">
-                  Helps music producers filter and find your product quickly
-                </p>
+                {fieldErrors.subcategoryId ? (
+                  <p className="text-[11px] text-[#ff4053] font-medium flex items-center gap-1 mt-1 animate-in fade-in">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                    <span>{fieldErrors.subcategoryId}</span>
+                  </p>
+                ) : (
+                  <p className="text-[10px] text-zinc-500 mt-1">
+                    Helps music producers filter and find your product quickly
+                  </p>
+                )}
               </div>
             </div>
 
@@ -746,7 +1009,7 @@ export default function NewProductPage() {
             <div className="space-y-2 pt-2 border-t border-[#222222]">
               <div className="flex items-center justify-between">
                 <FormLabel
-                  label="Genre & Musical Style"
+                  label="Genre & Musical Style *"
                   info="Select all applicable genres or add custom styles (saved in product tags)"
                   icon={Music}
                 />
@@ -763,7 +1026,10 @@ export default function NewProductPage() {
                     <button
                       key={genre}
                       type="button"
-                      onClick={() => toggleGenre(genre)}
+                      onClick={() => {
+                        toggleGenre(genre);
+                        clearFieldError('genres');
+                      }}
                       className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all flex items-center gap-1 ${
                         isSelected
                           ? 'bg-white text-black font-semibold shadow-sm'
@@ -788,13 +1054,17 @@ export default function NewProductPage() {
                     if (e.key === 'Enter') {
                       e.preventDefault();
                       handleAddCustomGenre();
+                      clearFieldError('genres');
                     }
                   }}
                   className="flex-1 bg-[#121212] border border-[#2a2a2a] rounded-lg px-3 py-1.5 text-xs text-white focus:border-zinc-500 transition-colors"
                 />
                 <button
                   type="button"
-                  onClick={handleAddCustomGenre}
+                  onClick={() => {
+                    handleAddCustomGenre();
+                    clearFieldError('genres');
+                  }}
                   disabled={!customGenre.trim()}
                   className="btn-secondary px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 disabled:opacity-40"
                 >
@@ -802,6 +1072,13 @@ export default function NewProductPage() {
                   <span>Add Tag</span>
                 </button>
               </div>
+
+              {fieldErrors.genres && (
+                <p className="text-[11px] text-[#ff4053] font-medium flex items-center gap-1 mt-1 animate-in fade-in">
+                  <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                  <span>{fieldErrors.genres}</span>
+                </p>
+              )}
 
               {/* Active Selected Tags Display */}
               {selectedGenres.length > 0 && (
@@ -836,10 +1113,23 @@ export default function NewProductPage() {
                     step="0.01"
                     required
                     value={priceUsd}
-                    onChange={(e) => setPriceUsd(e.target.value)}
-                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-7 pr-3 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
+                    onChange={(e) => {
+                      setPriceUsd(e.target.value);
+                      clearFieldError('priceUsd');
+                    }}
+                    className={`w-full bg-[#121212] border rounded-xl pl-7 pr-3 py-2.5 text-xs font-mono text-white transition-colors ${
+                      fieldErrors.priceUsd
+                        ? 'border-[#ff4053] focus:border-[#ff4053] bg-[#ff4053]/5'
+                        : 'border-[#2e2e2e] focus:border-[#42454e]'
+                    }`}
                   />
                 </div>
+                {fieldErrors.priceUsd && (
+                  <p className="text-[11px] text-[#ff4053] font-medium flex items-center gap-1 mt-1 animate-in fade-in">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                    <span>{fieldErrors.priceUsd}</span>
+                  </p>
+                )}
               </div>
 
               <div>
@@ -860,33 +1150,58 @@ export default function NewProductPage() {
               </div>
             </div>
 
-
             <div>
               <FormLabel
-                label="Short Tagline"
+                label="Short Tagline *"
                 info="One-sentence hook displayed on cards and catalog search"
               />
               <input
                 type="text"
                 placeholder="Next-gen studio plate and hall reverb"
                 value={shortDesc}
-                onChange={(e) => setShortDesc(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                onChange={(e) => {
+                  setShortDesc(e.target.value);
+                  clearFieldError('shortDesc');
+                }}
+                className={`w-full bg-[#121212] border rounded-xl px-3.5 py-2.5 text-xs text-white transition-colors ${
+                  fieldErrors.shortDesc
+                    ? 'border-[#ff4053] focus:border-[#ff4053] bg-[#ff4053]/5'
+                    : 'border-[#2e2e2e] focus:border-[#42454e]'
+                }`}
               />
+              {fieldErrors.shortDesc && (
+                <p className="text-[11px] text-[#ff4053] font-medium flex items-center gap-1 mt-1 animate-in fade-in">
+                  <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                  <span>{fieldErrors.shortDesc}</span>
+                </p>
+              )}
             </div>
 
             <div>
               <FormLabel
-                label="Full Description"
+                label="Full Description *"
                 info="Detailed DSP algorithms, features, factory presets, and sound character"
               />
               <textarea
                 rows={5}
                 placeholder="Include features, DSP algorithms, factory presets, and sound character..."
                 value={fullDesc}
-                onChange={(e) => setFullDesc(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl p-3.5 text-xs text-white focus:border-[#42454e] transition-colors resize-y leading-relaxed"
+                onChange={(e) => {
+                  setFullDesc(e.target.value);
+                  clearFieldError('fullDesc');
+                }}
+                className={`w-full bg-[#121212] border rounded-xl p-3.5 text-xs text-white transition-colors resize-y leading-relaxed ${
+                  fieldErrors.fullDesc
+                    ? 'border-[#ff4053] focus:border-[#ff4053] bg-[#ff4053]/5'
+                    : 'border-[#2e2e2e] focus:border-[#42454e]'
+                }`}
               />
+              {fieldErrors.fullDesc && (
+                <p className="text-[11px] text-[#ff4053] font-medium flex items-center gap-1 mt-1 animate-in fade-in">
+                  <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                  <span>{fieldErrors.fullDesc}</span>
+                </p>
+              )}
             </div>
 
             {/* Custom Product FAQs */}
@@ -903,7 +1218,10 @@ export default function NewProductPage() {
                   {faqs.length < 5 && (
                     <button
                       type="button"
-                      onClick={handleAddFaq}
+                      onClick={() => {
+                        handleAddFaq();
+                        clearFieldError('faqs');
+                      }}
                       className="btn-secondary px-2.5 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 hover:bg-[#252525] transition-colors"
                     >
                       <Plus className="w-3.5 h-3.5" />
@@ -913,12 +1231,22 @@ export default function NewProductPage() {
                 </div>
               </div>
 
+              {fieldErrors.faqs && (
+                <p className="text-[11px] text-[#ff4053] font-medium flex items-center gap-1 animate-in fade-in">
+                  <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                  <span>{fieldErrors.faqs}</span>
+                </p>
+              )}
+
               {faqs.length === 0 ? (
                 <div className="p-3.5 rounded-lg bg-[#111111] border border-dashed border-[#262626] text-center space-y-1">
                   <p className="text-xs text-zinc-400">No custom FAQs added.</p>
                   <button
                     type="button"
-                    onClick={handleAddFaq}
+                    onClick={() => {
+                      handleAddFaq();
+                      clearFieldError('faqs');
+                    }}
                     className="mt-1 text-xs text-white hover:text-zinc-300 font-medium inline-flex items-center gap-1 underline underline-offset-4"
                   >
                     <Plus className="w-3 h-3" />
@@ -938,7 +1266,10 @@ export default function NewProductPage() {
                         </span>
                         <button
                           type="button"
-                          onClick={() => handleRemoveFaq(idx)}
+                          onClick={() => {
+                            handleRemoveFaq(idx);
+                            clearFieldError('faqs');
+                          }}
                           className="text-zinc-500 hover:text-red-400 text-xs flex items-center gap-1 transition-colors"
                           title="Remove FAQ item"
                         >
@@ -952,7 +1283,10 @@ export default function NewProductPage() {
                           type="text"
                           placeholder="Question (e.g. Does this plugin include dry/wet mix presets?)"
                           value={faq.question}
-                          onChange={(e) => handleFaqChange(idx, 'question', e.target.value)}
+                          onChange={(e) => {
+                            handleFaqChange(idx, 'question', e.target.value);
+                            clearFieldError('faqs');
+                          }}
                           className="w-full bg-[#181818] border border-[#2e2e2e] rounded-lg px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-[#42454e] transition-colors"
                         />
                       </div>
@@ -962,7 +1296,10 @@ export default function NewProductPage() {
                           rows={2}
                           placeholder="Answer (clear, helpful answer for prospective buyers)..."
                           value={faq.answer}
-                          onChange={(e) => handleFaqChange(idx, 'answer', e.target.value)}
+                          onChange={(e) => {
+                            handleFaqChange(idx, 'answer', e.target.value);
+                            clearFieldError('faqs');
+                          }}
                           className="w-full bg-[#181818] border border-[#2e2e2e] rounded-lg p-3 text-xs text-white placeholder-zinc-600 focus:border-[#42454e] transition-colors resize-y leading-relaxed"
                         />
                       </div>
@@ -981,7 +1318,7 @@ export default function NewProductPage() {
               <div className="flex items-center gap-2">
                 <ImageIcon className="w-4 h-4 text-zinc-300" />
                 <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-                  Artwork & Audio/Video Demos
+                  Artwork & Video Walkthrough
                 </h2>
               </div>
               <span className="font-mono text-[10px] text-zinc-400">Step 2 of 5</span>
@@ -990,15 +1327,20 @@ export default function NewProductPage() {
             {/* Cover Artwork Dual Mode with Integrated Live Preview */}
             <div className="w-full min-w-0">
               <DualAssetUploadInput
-                label="Cover Artwork"
-                info="600×600 px square PNG or WebP recommended"
+                label="Cover Artwork *"
+                info="600×600 px square PNG or WebP required"
                 value={coverImage}
-                onChange={setCoverImage}
+                onChange={(val) => {
+                  setCoverImage(val);
+                  clearFieldError('coverImage');
+                }}
                 assetCategory="cover"
                 accept="image/png,image/jpeg,image/webp"
                 placeholder="https://.../cover.png or /products/proverb.png"
                 icon={ImageIcon}
                 thumbnailUrl={coverImage}
+                hasError={Boolean(fieldErrors.coverImage)}
+                errorMessage={fieldErrors.coverImage}
               />
             </div>
 
@@ -1016,18 +1358,40 @@ export default function NewProductPage() {
             </div>
 
             <div className="pt-3 border-t border-[#262626] space-y-2">
-              <FormLabel
-                label="Video Walkthrough"
-                info="YouTube video link embedded on product details page"
-                icon={Video}
-              />
+              <div className="flex items-center justify-between">
+                <FormLabel
+                  label="Video Walkthrough (YouTube Only) *"
+                  info="YouTube video link embedded on product details page"
+                  icon={Video}
+                />
+                <span className="text-[10px] font-mono text-zinc-400 bg-[#161616] border border-[#262626] px-2 py-0.5 rounded">
+                  Required
+                </span>
+              </div>
               <input
                 type="url"
                 placeholder="https://www.youtube.com/watch?v=..."
                 value={youtubeUrl}
-                onChange={(e) => setYoutubeUrl(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                onChange={(e) => {
+                  setYoutubeUrl(e.target.value);
+                  clearFieldError('youtubeUrl');
+                }}
+                className={`w-full bg-[#121212] border rounded-xl px-3.5 py-2.5 text-xs text-white transition-colors font-mono ${
+                  fieldErrors.youtubeUrl
+                    ? 'border-[#ff4053] focus:border-[#ff4053] bg-[#ff4053]/5'
+                    : 'border-[#2e2e2e] focus:border-[#42454e]'
+                }`}
               />
+              {fieldErrors.youtubeUrl ? (
+                <p className="text-[11px] text-[#ff4053] font-medium flex items-center gap-1 mt-1 animate-in fade-in">
+                  <AlertCircle className="w-3 h-3 flex-shrink-0 text-[#ff4053]" />
+                  <span>{fieldErrors.youtubeUrl}</span>
+                </p>
+              ) : (
+                <p className="text-[10px] text-zinc-500">
+                  Only YouTube URLs are accepted (e.g. https://www.youtube.com/watch?v=... or https://youtu.be/...)
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -1046,33 +1410,59 @@ export default function NewProductPage() {
             </div>
 
             {/* OS Specific Binary Installers with Dual Mode */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0 w-full">
-              <div className="min-w-0 w-full overflow-hidden">
-                <DualAssetUploadInput
-                  label="Windows Installer"
-                  info="64-bit VST3 installer or archive (.exe / .zip)"
-                  value={downloadUrlWin}
-                  onChange={setDownloadUrlWin}
-                  onFileSizeDetected={setFileSize}
-                  assetCategory="win_installer"
-                  accept=".exe,.zip,.msi"
-                  placeholder="https://.../Setup-Win-x64.exe"
-                  icon={Monitor}
-                />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+                  Product Installers *
+                </span>
+                <span className="text-[10px] font-mono text-zinc-400 bg-[#161616] border border-[#262626] px-2 py-0.5 rounded">
+                  {productType === 'plugin' ? 'At least 1 installer required (Win or Mac)' : 'Download package required'}
+                </span>
               </div>
 
-              <div className="min-w-0 w-full overflow-hidden">
-                <DualAssetUploadInput
-                  label="macOS Installer"
-                  info="Universal package (.pkg / .dmg) for Apple Silicon & Intel"
-                  value={downloadUrlMac}
-                  onChange={setDownloadUrlMac}
-                  onFileSizeDetected={setFileSize}
-                  assetCategory="mac_installer"
-                  accept=".pkg,.dmg,.zip"
-                  placeholder="https://.../Universal-macOS.pkg"
-                  icon={Download}
-                />
+              {fieldErrors.installers && (
+                <div className="p-2.5 rounded-xl bg-[#ff4053]/10 border border-[#ff4053]/30 text-[#ff4053] text-xs flex items-center gap-2 animate-in fade-in">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 text-[#ff4053]" />
+                  <span>{fieldErrors.installers}</span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0 w-full pt-1">
+                <div className="min-w-0 w-full overflow-hidden">
+                  <DualAssetUploadInput
+                    label="Windows Installer"
+                    info="64-bit VST3 installer or archive (.exe / .zip)"
+                    value={downloadUrlWin}
+                    onChange={(val) => {
+                      setDownloadUrlWin(val);
+                      clearFieldError('installers');
+                    }}
+                    onFileSizeDetected={setFileSize}
+                    assetCategory="win_installer"
+                    accept=".exe,.zip,.msi"
+                    placeholder="https://.../Setup-Win-x64.exe"
+                    icon={Monitor}
+                    hasError={Boolean(fieldErrors.installers && !downloadUrlWin && !downloadUrlMac)}
+                  />
+                </div>
+
+                <div className="min-w-0 w-full overflow-hidden">
+                  <DualAssetUploadInput
+                    label="macOS Installer"
+                    info="Universal package (.pkg / .dmg) for Apple Silicon & Intel"
+                    value={downloadUrlMac}
+                    onChange={(val) => {
+                      setDownloadUrlMac(val);
+                      clearFieldError('installers');
+                    }}
+                    onFileSizeDetected={setFileSize}
+                    assetCategory="mac_installer"
+                    accept=".pkg,.dmg,.zip"
+                    placeholder="https://.../Universal-macOS.pkg"
+                    icon={Download}
+                    hasError={Boolean(fieldErrors.installers && !downloadUrlWin && !downloadUrlMac)}
+                  />
+                </div>
               </div>
             </div>
 
@@ -1083,11 +1473,15 @@ export default function NewProductPage() {
                   label="Universal Archive"
                   info="Cross-platform ZIP containing sample libraries, WAV files, or presets"
                   value={downloadUrl}
-                  onChange={setDownloadUrl}
+                  onChange={(val) => {
+                    setDownloadUrl(val);
+                    clearFieldError('installers');
+                  }}
                   onFileSizeDetected={setFileSize}
                   assetCategory="universal_zip"
                   accept=".zip,.rar,.7z"
                   placeholder="https://.../presets.zip"
+                  hasError={Boolean(fieldErrors.installers && !downloadUrl && !downloadUrlWin && !downloadUrlMac)}
                 />
               </div>
 
@@ -1109,28 +1503,54 @@ export default function NewProductPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-[#262626]">
               <div>
                 <FormLabel
-                  label="Operating System"
+                  label="Operating System *"
                   info="System requirements (e.g. Windows 10/11 64-bit, macOS 12+)"
                 />
                 <input
                   type="text"
                   value={operatingSystem}
-                  onChange={(e) => setOperatingSystem(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                  onChange={(e) => {
+                    setOperatingSystem(e.target.value);
+                    clearFieldError('operatingSystem');
+                  }}
+                  className={`w-full bg-[#121212] border rounded-xl px-3.5 py-2.5 text-xs text-white transition-colors ${
+                    fieldErrors.operatingSystem
+                      ? 'border-[#ff4053] focus:border-[#ff4053] bg-[#ff4053]/5'
+                      : 'border-[#2e2e2e] focus:border-[#42454e]'
+                  }`}
                 />
+                {fieldErrors.operatingSystem && (
+                  <p className="text-[11px] text-[#ff4053] font-medium flex items-center gap-1 mt-1 animate-in fade-in">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                    <span>{fieldErrors.operatingSystem}</span>
+                  </p>
+                )}
               </div>
 
               <div>
                 <FormLabel
-                  label="Supported DAWs"
+                  label="Supported DAWs *"
                   info="Compatible workstations (e.g. Ableton Live, FL Studio, Logic Pro)"
                 />
                 <input
                   type="text"
                   value={supportedDaws}
-                  onChange={(e) => setSupportedDaws(e.target.value)}
-                  className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                  onChange={(e) => {
+                    setSupportedDaws(e.target.value);
+                    clearFieldError('supportedDaws');
+                  }}
+                  className={`w-full bg-[#121212] border rounded-xl px-3.5 py-2.5 text-xs text-white transition-colors ${
+                    fieldErrors.supportedDaws
+                      ? 'border-[#ff4053] focus:border-[#ff4053] bg-[#ff4053]/5'
+                      : 'border-[#2e2e2e] focus:border-[#42454e]'
+                  }`}
                 />
+                {fieldErrors.supportedDaws && (
+                  <p className="text-[11px] text-[#ff4053] font-medium flex items-center gap-1 mt-1 animate-in fade-in">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                    <span>{fieldErrors.supportedDaws}</span>
+                  </p>
+                )}
               </div>
             </div>
 
@@ -1148,16 +1568,29 @@ export default function NewProductPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <FormLabel
-                    label="Version Number"
+                    label="Version Number *"
                     info="Semantic version (SemVer). Updates preserve active buyer licenses automatically"
                   />
                   <input
                     type="text"
                     placeholder="1.0.0"
                     value={version}
-                    onChange={(e) => setVersion(e.target.value)}
-                    className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
+                    onChange={(e) => {
+                      setVersion(e.target.value);
+                      clearFieldError('version');
+                    }}
+                    className={`w-full bg-[#121212] border rounded-xl px-3.5 py-2.5 text-xs font-mono text-white transition-colors ${
+                      fieldErrors.version
+                        ? 'border-[#ff4053] focus:border-[#ff4053] bg-[#ff4053]/5'
+                        : 'border-[#2e2e2e] focus:border-[#42454e]'
+                    }`}
                   />
+                  {fieldErrors.version && (
+                    <p className="text-[11px] text-[#ff4053] font-medium flex items-center gap-1 mt-1 animate-in fade-in">
+                      <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                      <span>{fieldErrors.version}</span>
+                    </p>
+                  )}
                 </div>
 
                 <div className="sm:col-span-2">
@@ -1284,35 +1717,61 @@ export default function NewProductPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <FormLabel
-                      label="Plugin Formats"
+                      label="Plugin Formats *"
                       info="Supported architectures (e.g. VST3, AU, AAX, CLAP 64-bit)"
                     />
                     <input
                       type="text"
                       value={vstFormat}
-                      onChange={(e) => setVstFormat(e.target.value)}
-                      className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
+                      onChange={(e) => {
+                        setVstFormat(e.target.value);
+                        clearFieldError('vstFormat');
+                      }}
+                      className={`w-full bg-[#121212] border rounded-xl px-3.5 py-2.5 text-xs text-white transition-colors ${
+                        fieldErrors.vstFormat
+                          ? 'border-[#ff4053] focus:border-[#ff4053] bg-[#ff4053]/5'
+                          : 'border-[#2e2e2e] focus:border-[#42454e]'
+                      }`}
                     />
+                    {fieldErrors.vstFormat && (
+                      <p className="text-[11px] text-[#ff4053] font-medium flex items-center gap-1 mt-1 animate-in fade-in">
+                        <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                        <span>{fieldErrors.vstFormat}</span>
+                      </p>
+                    )}
                   </div>
 
                   <div>
                     <FormLabel
-                      label="Identifier"
+                      label="Identifier *"
                       info="Unique reverse-domain identifier (e.g. com.brand.plugin)"
                     />
                     <input
                       type="text"
                       value={pluginIdentifier}
-                      onChange={(e) => setPluginIdentifier(e.target.value)}
-                      className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
+                      onChange={(e) => {
+                        setPluginIdentifier(e.target.value);
+                        clearFieldError('pluginIdentifier');
+                      }}
+                      className={`w-full bg-[#121212] border rounded-xl px-3.5 py-2.5 text-xs font-mono text-white transition-colors ${
+                        fieldErrors.pluginIdentifier
+                          ? 'border-[#ff4053] focus:border-[#ff4053] bg-[#ff4053]/5'
+                          : 'border-[#2e2e2e] focus:border-[#42454e]'
+                      }`}
                     />
+                    {fieldErrors.pluginIdentifier && (
+                      <p className="text-[11px] text-[#ff4053] font-medium flex items-center gap-1 mt-1 animate-in fade-in">
+                        <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                        <span>{fieldErrors.pluginIdentifier}</span>
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <FormLabel
-                      label="Machine Seats"
+                      label="Machine Seats *"
                       info="Maximum concurrent device activations permitted per purchase"
                     />
                     <input
@@ -1320,14 +1779,27 @@ export default function NewProductPage() {
                       min="1"
                       max="10"
                       value={maxSeats}
-                      onChange={(e) => setMaxSeats(parseInt(e.target.value) || 3)}
-                      className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
+                      onChange={(e) => {
+                        setMaxSeats(parseInt(e.target.value) || 1);
+                        clearFieldError('maxSeats');
+                      }}
+                      className={`w-full bg-[#121212] border rounded-xl px-3.5 py-2.5 text-xs font-mono text-white transition-colors ${
+                        fieldErrors.maxSeats
+                          ? 'border-[#ff4053] focus:border-[#ff4053] bg-[#ff4053]/5'
+                          : 'border-[#2e2e2e] focus:border-[#42454e]'
+                      }`}
                     />
+                    {fieldErrors.maxSeats && (
+                      <p className="text-[11px] text-[#ff4053] font-medium flex items-center gap-1 mt-1 animate-in fade-in">
+                        <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                        <span>{fieldErrors.maxSeats}</span>
+                      </p>
+                    )}
                   </div>
 
                   <div>
                     <FormLabel
-                      label="Offline Grace"
+                      label="Offline Grace *"
                       info="Number of days the plugin can operate offline before periodic ping"
                     />
                     <input
@@ -1335,9 +1807,22 @@ export default function NewProductPage() {
                       min="1"
                       max="90"
                       value={offlineGraceDays}
-                      onChange={(e) => setOfflineGraceDays(parseInt(e.target.value) || 14)}
-                      className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:border-[#42454e] transition-colors"
+                      onChange={(e) => {
+                        setOfflineGraceDays(parseInt(e.target.value) || 1);
+                        clearFieldError('offlineGraceDays');
+                      }}
+                      className={`w-full bg-[#121212] border rounded-xl px-3.5 py-2.5 text-xs font-mono text-white transition-colors ${
+                        fieldErrors.offlineGraceDays
+                          ? 'border-[#ff4053] focus:border-[#ff4053] bg-[#ff4053]/5'
+                          : 'border-[#2e2e2e] focus:border-[#42454e]'
+                      }`}
                     />
+                    {fieldErrors.offlineGraceDays && (
+                      <p className="text-[11px] text-[#ff4053] font-medium flex items-center gap-1 mt-1 animate-in fade-in">
+                        <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                        <span>{fieldErrors.offlineGraceDays}</span>
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -1413,7 +1898,11 @@ export default function NewProductPage() {
             {activeStep > 1 && (
               <button
                 type="button"
-                onClick={() => setActiveStep((prev) => Math.max(1, prev - 1))}
+                onClick={() => {
+                  setErrorMsg('');
+                  setActiveStep((prev) => Math.max(1, prev - 1));
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
                 className="btn-secondary px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
@@ -1426,7 +1915,7 @@ export default function NewProductPage() {
             {activeStep < 5 ? (
               <button
                 type="button"
-                onClick={() => setActiveStep((prev) => Math.min(5, prev + 1))}
+                onClick={handleNextStep}
                 className="btn-secondary px-5 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5"
               >
                 <span>Continue: {STEPS[activeStep]?.label}</span>
@@ -1435,7 +1924,8 @@ export default function NewProductPage() {
             ) : null}
 
             <button
-              type="submit"
+              type="button"
+              onClick={() => handleSubmit()}
               disabled={loading}
               className="btn-primary px-6 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-lg uppercase tracking-wider"
             >

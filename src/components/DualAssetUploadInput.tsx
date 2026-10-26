@@ -28,6 +28,8 @@ interface DualAssetUploadInputProps {
   hint?: string;
   icon?: React.ComponentType<{ className?: string }>;
   thumbnailUrl?: string;
+  hasError?: boolean;
+  errorMessage?: string;
 }
 
 function formatBytes(bytes: number): string {
@@ -51,6 +53,8 @@ export default function DualAssetUploadInput({
   hint,
   icon: IconComponent,
   thumbnailUrl,
+  hasError = false,
+  errorMessage,
 }: DualAssetUploadInputProps) {
   // Determine initial mode: if value exists and is NOT a cloud upload or is external, user can still toggle freely
   const [mode, setMode] = useState<'upload' | 'link'>(value ? 'link' : 'upload');
@@ -342,7 +346,11 @@ export default function DualAssetUploadInput({
             </div>
           ) : (
             /* Minimal Upload Dropzone */
-            <div className="bg-[#121212] border border-dashed border-[#2e2e2e] hover:border-[#42454e] rounded-xl p-3 transition-colors w-full min-w-0 overflow-hidden">
+            <div className={`bg-[#121212] border rounded-xl p-3 transition-colors w-full min-w-0 overflow-hidden ${
+              hasError
+                ? 'border-[#ff4053] bg-[#ff4053]/5'
+                : 'border-dashed border-[#2e2e2e] hover:border-[#42454e]'
+            }`}>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 min-w-0">
                 <div className="flex items-center gap-2.5 w-full sm:w-auto min-w-0 flex-1">
                   <div className="w-7 h-7 rounded-lg bg-[#181818] border border-[#2a2a2a] flex items-center justify-center flex-shrink-0 text-zinc-400">
@@ -428,8 +436,8 @@ export default function DualAssetUploadInput({
           )}
 
           {errorMsg && (
-            <div className="text-[11px] text-red-400 flex items-center gap-1.5 pt-0.5">
-              <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 text-red-400" />
+            <div className="text-[11px] text-[#ff4053] flex items-center gap-1.5 pt-0.5">
+              <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 text-[#ff4053]" />
               <span>{errorMsg}</span>
             </div>
           )}
@@ -461,7 +469,11 @@ export default function DualAssetUploadInput({
                 placeholder={placeholder}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl pl-9 pr-3.5 py-2 text-xs text-white focus:border-[#42454e] transition-colors font-mono"
+                className={`w-full bg-[#121212] border rounded-xl pl-9 pr-3.5 py-2 text-xs text-white transition-colors font-mono ${
+                  hasError
+                    ? 'border-[#ff4053] focus:border-[#ff4053] bg-[#ff4053]/5'
+                    : 'border-[#2e2e2e] focus:border-[#42454e]'
+                }`}
               />
             </div>
           </div>
@@ -496,6 +508,13 @@ export default function DualAssetUploadInput({
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {errorMessage && (
+        <div className="text-[11px] text-[#ff4053] font-medium flex items-center gap-1.5 pt-0.5 animate-in fade-in">
+          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 text-[#ff4053]" />
+          <span>{errorMessage}</span>
         </div>
       )}
     </div>
