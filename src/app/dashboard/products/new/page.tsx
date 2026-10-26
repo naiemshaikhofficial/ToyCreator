@@ -36,7 +36,10 @@ import {
   FolderPlus,
   HelpCircle,
 } from 'lucide-react';
-import DualAssetUploadInput from '@/components/DualAssetUploadInput';
+import DualAssetUploadInput, {
+  isGoogleDriveUrl,
+  isDirectUploadUrl,
+} from '@/components/DualAssetUploadInput';
 import { RoleGate } from '@/components/RoleGate';
 import { ProductReleaseScheduler } from '@/components/products/ProductReleaseScheduler';
 
@@ -409,6 +412,11 @@ export default function NewProductPage() {
     } else if (stepNumber === 2) {
       if (!coverImage.trim()) {
         errs.coverImage = 'Cover artwork is required';
+      } else if (!isDirectUploadUrl(coverImage) && !isGoogleDriveUrl(coverImage)) {
+        errs.coverImage = 'Cover artwork link must be a Google Drive link';
+      }
+      if (demoAudioUrl.trim() && !isDirectUploadUrl(demoAudioUrl) && !isGoogleDriveUrl(demoAudioUrl)) {
+        errs.demoAudioUrl = 'Audio preview link must be a Google Drive link';
       }
       if (!youtubeUrl.trim()) {
         errs.youtubeUrl = 'YouTube walkthrough video is required';
@@ -425,6 +433,18 @@ export default function NewProductPage() {
           errs.installers = 'At least one download file or installer is required';
         }
       }
+
+      // External links must strictly be Google Drive links
+      if (downloadUrlWin.trim() && !isDirectUploadUrl(downloadUrlWin) && !isGoogleDriveUrl(downloadUrlWin)) {
+        errs.downloadUrlWin = 'Windows installer link must be a Google Drive link';
+      }
+      if (downloadUrlMac.trim() && !isDirectUploadUrl(downloadUrlMac) && !isGoogleDriveUrl(downloadUrlMac)) {
+        errs.downloadUrlMac = 'macOS installer link must be a Google Drive link';
+      }
+      if (downloadUrl.trim() && !isDirectUploadUrl(downloadUrl) && !isGoogleDriveUrl(downloadUrl)) {
+        errs.downloadUrl = 'Universal archive link must be a Google Drive link';
+      }
+
       if (!operatingSystem.trim()) {
         errs.operatingSystem = 'Operating system requirement is required';
       }
@@ -491,11 +511,14 @@ export default function NewProductPage() {
       );
     }
     if (stepId === 2) {
-      return Boolean(fieldErrors.coverImage || fieldErrors.youtubeUrl);
+      return Boolean(fieldErrors.coverImage || fieldErrors.youtubeUrl || fieldErrors.demoAudioUrl);
     }
     if (stepId === 3) {
       return Boolean(
         fieldErrors.installers ||
+        fieldErrors.downloadUrlWin ||
+        fieldErrors.downloadUrlMac ||
+        fieldErrors.downloadUrl ||
         fieldErrors.operatingSystem ||
         fieldErrors.supportedDaws ||
         fieldErrors.version
@@ -1350,10 +1373,15 @@ export default function NewProductPage() {
                 label="Audio Preview"
                 info="Direct MP3 or WAV audio stream for the storefront player"
                 value={demoAudioUrl}
-                onChange={setDemoAudioUrl}
+                onChange={(val) => {
+                  setDemoAudioUrl(val);
+                  clearFieldError('demoAudioUrl');
+                }}
                 assetCategory="demo_audio"
                 accept="audio/mp3,audio/mpeg,audio/wav"
-                placeholder="https://.../audio/demo-track.mp3"
+                placeholder="https://drive.google.com/file/d/..."
+                hasError={Boolean(fieldErrors.demoAudioUrl)}
+                errorMessage={fieldErrors.demoAudioUrl}
               />
             </div>
 
@@ -1436,13 +1464,18 @@ export default function NewProductPage() {
                     onChange={(val) => {
                       setDownloadUrlWin(val);
                       clearFieldError('installers');
+                      clearFieldError('downloadUrlWin');
                     }}
                     onFileSizeDetected={setFileSize}
                     assetCategory="win_installer"
                     accept=".exe,.zip,.msi"
-                    placeholder="https://.../Setup-Win-x64.exe"
+                    placeholder="https://drive.google.com/file/d/..."
                     icon={Monitor}
-                    hasError={Boolean(fieldErrors.installers && !downloadUrlWin && !downloadUrlMac)}
+                    hasError={Boolean(
+                      (fieldErrors.installers && !downloadUrlWin && !downloadUrlMac) ||
+                      fieldErrors.downloadUrlWin
+                    )}
+                    errorMessage={fieldErrors.downloadUrlWin}
                   />
                 </div>
 
@@ -1454,13 +1487,18 @@ export default function NewProductPage() {
                     onChange={(val) => {
                       setDownloadUrlMac(val);
                       clearFieldError('installers');
+                      clearFieldError('downloadUrlMac');
                     }}
                     onFileSizeDetected={setFileSize}
                     assetCategory="mac_installer"
                     accept=".pkg,.dmg,.zip"
-                    placeholder="https://.../Universal-macOS.pkg"
+                    placeholder="https://drive.google.com/file/d/..."
                     icon={Download}
-                    hasError={Boolean(fieldErrors.installers && !downloadUrlWin && !downloadUrlMac)}
+                    hasError={Boolean(
+                      (fieldErrors.installers && !downloadUrlWin && !downloadUrlMac) ||
+                      fieldErrors.downloadUrlMac
+                    )}
+                    errorMessage={fieldErrors.downloadUrlMac}
                   />
                 </div>
               </div>
@@ -1476,12 +1514,17 @@ export default function NewProductPage() {
                   onChange={(val) => {
                     setDownloadUrl(val);
                     clearFieldError('installers');
+                    clearFieldError('downloadUrl');
                   }}
                   onFileSizeDetected={setFileSize}
                   assetCategory="universal_zip"
                   accept=".zip,.rar,.7z"
-                  placeholder="https://.../presets.zip"
-                  hasError={Boolean(fieldErrors.installers && !downloadUrl && !downloadUrlWin && !downloadUrlMac)}
+                  placeholder="https://drive.google.com/file/d/..."
+                  hasError={Boolean(
+                    (fieldErrors.installers && !downloadUrl && !downloadUrlWin && !downloadUrlMac) ||
+                    fieldErrors.downloadUrl
+                  )}
+                  errorMessage={fieldErrors.downloadUrl}
                 />
               </div>
 
