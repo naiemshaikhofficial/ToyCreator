@@ -27,6 +27,7 @@ import {
   EyeOff,
   Code,
   Terminal,
+  Cpu,
 } from 'lucide-react';
 import {
   getProductSerialStatsAction,
@@ -60,8 +61,8 @@ export default function SerialKeyPoolManager({
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  // Webhook / Live API Configuration State
-  const [deliveryType, setDeliveryType] = useState<'pool' | 'external_api'>('pool');
+  // Webhook / Live API / Dedicated Server Configuration State
+  const [deliveryType, setDeliveryType] = useState<'pool' | 'external_api' | 'dedicated_licensing_server'>('pool');
   const [apiUrl, setApiUrl] = useState('');
   const [apiSecret, setApiSecret] = useState('');
   const [timeoutMs, setTimeoutMs] = useState(3000);
@@ -90,7 +91,13 @@ export default function SerialKeyPoolManager({
         setStats(res.data);
         if (res.data.licenseConfig) {
           const cfg = res.data.licenseConfig;
-          setDeliveryType(cfg.license_delivery_type === 'external_api' ? 'external_api' : 'pool');
+          if (cfg.license_delivery_type === 'external_api') {
+            setDeliveryType('external_api');
+          } else if (cfg.license_delivery_type === 'dedicated_licensing_server') {
+            setDeliveryType('dedicated_licensing_server');
+          } else {
+            setDeliveryType('pool');
+          }
           setApiUrl(cfg.license_api_url || '');
           setApiSecret(cfg.license_api_secret || '');
           setTimeoutMs(cfg.license_api_timeout_ms || 3000);
@@ -352,7 +359,11 @@ export default function SerialKeyPoolManager({
             <span className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400">
               Available Pool
             </span>
-            {availableCount === 0 ? (
+            {deliveryType === 'dedicated_licensing_server' ? (
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-white text-black border border-white">
+                Auto-Generated
+              </span>
+            ) : availableCount === 0 ? (
               <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30">
                 Depleted • Out of Stock
               </span>
@@ -369,12 +380,20 @@ export default function SerialKeyPoolManager({
           <div className="mt-1 flex items-baseline gap-2">
             <span
               className={`text-2xl font-extrabold font-mono ${
-                availableCount === 0 ? 'text-red-400' : 'text-white'
+                deliveryType === 'dedicated_licensing_server'
+                  ? 'text-white'
+                  : availableCount === 0
+                  ? 'text-red-400'
+                  : 'text-white'
               }`}
             >
-              {availableCount}
+              {deliveryType === 'dedicated_licensing_server' ? '∞' : availableCount}
             </span>
-            <span className="text-[10px] text-zinc-400">Ready for automated checkout</span>
+            <span className="text-[10px] text-zinc-400">
+              {deliveryType === 'dedicated_licensing_server'
+                ? 'Unlimited dynamic keys on checkout'
+                : 'Ready for automated checkout'}
+            </span>
           </div>
         </div>
 
@@ -413,15 +432,29 @@ export default function SerialKeyPoolManager({
           </div>
           <div className="mt-1 flex items-baseline gap-2">
             <span className="text-2xl font-extrabold font-mono text-zinc-400">
-              {totalCount}
+              {deliveryType === 'dedicated_licensing_server' ? 'Dynamic' : totalCount}
             </span>
-            <span className="text-[10px] text-zinc-400">Lifetime loaded keys</span>
+            <span className="text-[10px] text-zinc-400">
+              {deliveryType === 'dedicated_licensing_server' ? 'Managed by ProducerToy' : 'Lifetime loaded keys'}
+            </span>
           </div>
         </div>
       </div>
 
       {/* Threshold Warnings */}
-      {availableCount === 0 && deliveryType !== 'external_api' && (
+      {deliveryType === 'dedicated_licensing_server' ? (
+        <div className="p-3.5 bg-[#141414] border border-[#2a2a2a] rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-zinc-300">
+          <div className="flex items-center gap-2.5">
+            <Cpu className="w-4 h-4 text-white flex-shrink-0" />
+            <span>
+              <strong className="text-white">Machine Seat Auth (Dynamic Licensing):</strong> ProducerToy dynamically generates genuine cryptographic serial keys on checkout and manages machine-bound workstation seat activations. No manual pool upload is required.
+            </span>
+          </div>
+          <span className="px-2.5 py-1 bg-white text-black font-semibold text-[10px] rounded-lg tracking-wide uppercase shrink-0">
+            Auto-Gen Active
+          </span>
+        </div>
+      ) : availableCount === 0 && deliveryType !== 'external_api' && (
         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-red-300">
           <div className="flex items-center gap-2.5">
             <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />

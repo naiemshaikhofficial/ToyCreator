@@ -166,7 +166,9 @@ export default function ProductDetailPage() {
   // Licensing & Machine Seats
   const [maxSeats, setMaxSeats] = useState(3);
   const [offlineGraceDays, setOfflineGraceDays] = useState(14);
-  const [licenseDeliveryType, setLicenseDeliveryType] = useState<'pool' | 'direct_download'>('pool');
+  const [licenseDeliveryType, setLicenseDeliveryType] = useState<
+    'pool' | 'direct_download' | 'dedicated_licensing_server' | 'external_api'
+  >('pool');
   const [deliveryMethod, setDeliveryMethod] = useState<'direct_download' | 'serial_key' | 'dedicated_licensing_server'>('serial_key');
 
   // Visibility & Referral
@@ -1356,7 +1358,10 @@ export default function ProductDetailPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <button
                   type="button"
-                  onClick={() => setDeliveryMethod('direct_download')}
+                  onClick={() => {
+                    setDeliveryMethod('direct_download');
+                    setLicenseDeliveryType('direct_download');
+                  }}
                   className={`p-3.5 rounded-xl border text-left transition-all ${
                     deliveryMethod === 'direct_download'
                       ? 'bg-[#181818] border-white text-white shadow-sm'
@@ -1374,7 +1379,10 @@ export default function ProductDetailPage() {
 
                 <button
                   type="button"
-                  onClick={() => setDeliveryMethod('serial_key')}
+                  onClick={() => {
+                    setDeliveryMethod('serial_key');
+                    setLicenseDeliveryType('pool');
+                  }}
                   className={`p-3.5 rounded-xl border text-left transition-all ${
                     deliveryMethod === 'serial_key'
                       ? 'bg-[#181818] border-white text-white shadow-sm'
@@ -1392,7 +1400,10 @@ export default function ProductDetailPage() {
 
                 <button
                   type="button"
-                  onClick={() => setDeliveryMethod('dedicated_licensing_server')}
+                  onClick={() => {
+                    setDeliveryMethod('dedicated_licensing_server');
+                    setLicenseDeliveryType('dedicated_licensing_server');
+                  }}
                   className={`p-3.5 rounded-xl border text-left transition-all ${
                     deliveryMethod === 'dedicated_licensing_server'
                       ? 'bg-[#181818] border-white text-white shadow-sm'
