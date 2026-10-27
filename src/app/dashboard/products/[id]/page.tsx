@@ -1415,7 +1415,7 @@ export default function ProductDetailPage() {
                     {deliveryMethod === 'dedicated_licensing_server' && <Check className="w-3.5 h-3.5 text-white" />}
                   </div>
                   <p className="text-[10px] text-zinc-400 mt-1 leading-relaxed">
-                    Cryptographic machine-bound seat challenge activation server (ProVerb model).
+                    Cryptographic machine-bound seat challenge activation server (Dynamic for any VST/AU plugin).
                   </p>
                 </button>
               </div>
