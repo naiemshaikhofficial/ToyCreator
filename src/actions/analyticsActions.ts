@@ -79,7 +79,7 @@ export async function getBrandFullAnalyticsAction(brandId: string): Promise<{
         purchases = (purchData || []).map((p: any) => {
           return {
             ...p,
-            customer_email: null, // Zero-trust privacy: customer email is strictly redacted on server
+            customer_email: p.seller_data_sharing_consented ? p.customer_email : null,
             customer_name: maskCustomerPii(p.customer_name, false, 'name'),
             customer_phone: null,
             billing_address: null,

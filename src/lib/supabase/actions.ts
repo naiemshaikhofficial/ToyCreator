@@ -282,7 +282,7 @@ export async function getBrandPurchases(brandId: string) {
   return (data || []).map((p: any) => {
     return {
       ...p,
-      customer_email: null, // Zero-trust buyer privacy
+      customer_email: p.seller_data_sharing_consented ? p.customer_email : null,
       customer_name: maskCustomerPii(p.customer_name, false, 'name'),
       customer_phone: null,
       billing_address: null,

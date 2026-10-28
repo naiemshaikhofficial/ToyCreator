@@ -60,7 +60,7 @@ export async function getProductSerialStatsAction(productId: string): Promise<{
         is_used: Boolean(k.is_used || match),
         assigned_to_user_id: k.assigned_to_user_id,
         created_at: k.created_at,
-        customer_email: null, // Zero-trust buyer privacy
+        customer_email: match?.seller_data_sharing_consented ? match.customer_email : null,
         customer_name: match ? maskCustomerPii(match.customer_name, false, 'name') : null,
         order_id: match?.razorpay_order_id || match?.razorpay_payment_id || match?.id || null,
         purchased_at: match?.purchased_at || null,
@@ -78,7 +78,7 @@ export async function getProductSerialStatsAction(productId: string): Promise<{
         serial_key: p.serial_key.trim(),
         is_used: true,
         created_at: p.purchased_at || new Date().toISOString(),
-        customer_email: null, // Zero-trust buyer privacy
+        customer_email: p.seller_data_sharing_consented ? p.customer_email : null,
         customer_name: maskCustomerPii(p.customer_name, false, 'name'),
         order_id: p.razorpay_order_id || p.razorpay_payment_id || p.id || null,
         purchased_at: p.purchased_at || null,
