@@ -694,12 +694,9 @@ export default function ProductDetailPage() {
 
                 {/* Minimalist Beta Version Note */}
                 {isBeta && (
-                  <div className="flex items-center gap-2 mt-2 px-3 py-2 rounded-lg bg-[#141414] border border-[#262626] text-xs text-zinc-300 animate-in fade-in">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
-                    <span className="font-semibold text-white">Beta Version:</span>
-                    <span className="text-zinc-400">
-                      Product marked as beta build. &quot;(Beta)&quot; is shown with the title on the storefront.
-                    </span>
+                  <div className="flex items-center gap-2 mt-2 text-xs text-zinc-400 animate-in fade-in">
+                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 shrink-0" />
+                    <span>This toy is still in development and testing</span>
                   </div>
                 )}
               </div>
