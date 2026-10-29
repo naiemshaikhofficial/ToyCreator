@@ -113,6 +113,21 @@ export function ProductReleaseScheduler({
 
   const [isComingSoon, setIsComingSoon] = useState(initialIsComingSoon);
 
+  useEffect(() => {
+    if (initialIsComingSoon !== undefined) {
+      setIsComingSoon(Boolean(initialIsComingSoon));
+    }
+  }, [initialIsComingSoon]);
+
+  useEffect(() => {
+    if (initialReleaseDate !== undefined && initialReleaseDate) {
+      const parsed = new Date(initialReleaseDate);
+      if (!isNaN(parsed.getTime()) && parsed.getTime() > Date.now()) {
+        setIsScheduled(true);
+      }
+    }
+  }, [initialReleaseDate]);
+
   const [wheelValue, setWheelValue] = useState<Record<string, string>>(() => {
     const hours24 = initialDateObj.getHours();
     const isPm = hours24 >= 12;
@@ -156,7 +171,7 @@ export function ProductReleaseScheduler({
   useEffect(() => {
     const payload = {
       releaseDate: isScheduled ? selectedDate.toISOString() : "",
-      isComingSoon: isScheduled ? isComingSoon : false,
+      isComingSoon: Boolean(isComingSoon),
       isActive: true,
       isScheduled,
     };
@@ -352,6 +367,43 @@ export function ProductReleaseScheduler({
           Product goes live on the ProducerToy storefront immediately upon clicking Publish.
         </p>
       )}
+
+      {/* Don't have a fixed date? Mark as Coming Soon */}
+      <div className="pt-4 border-t border-[#222222] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-white">
+              Don&apos;t have a fixed date? Mark as Coming Soon
+            </span>
+            {isComingSoon && (
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#202020] text-zinc-300 border border-zinc-700/60 font-medium">
+                Coming Soon Active
+              </span>
+            )}
+          </div>
+          <p className="text-[11px] text-zinc-400">
+            Show &quot;Coming Soon&quot; on the storefront without setting a specific scheduled launch date.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsComingSoon(!isComingSoon)}
+          className={cn(
+            "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none self-start sm:self-auto",
+            isComingSoon ? "bg-white" : "bg-[#282828]"
+          )}
+          role="switch"
+          aria-checked={isComingSoon}
+        >
+          <span
+            className={cn(
+              "pointer-events-none inline-block h-5 w-5 rounded-full shadow-md transition duration-200 ease-in-out",
+              isComingSoon ? "translate-x-5 bg-black" : "translate-x-0 bg-zinc-400"
+            )}
+          />
+        </button>
+      </div>
     </div>
   );
 }

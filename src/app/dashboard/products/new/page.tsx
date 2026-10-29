@@ -172,6 +172,7 @@ export default function NewProductPage() {
   const [isActive, setIsActive] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
   const [isComingSoon, setIsComingSoon] = useState(false);
+  const [isBeta, setIsBeta] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -355,11 +356,39 @@ export default function NewProductPage() {
     setSelectedGenres((prev) => prev.filter((g) => g !== genre));
   };
 
+  const handleToggleBeta = () => {
+    const nextBeta = !isBeta;
+    setIsBeta(nextBeta);
+
+    if (nextBeta) {
+      if (name.trim() && !/\(Beta\)/i.test(name)) {
+        setName(`${name.trim()} (Beta)`);
+      }
+    } else {
+      const cleaned = name.replace(/\s*\(Beta\)/gi, '').trim();
+      setName(cleaned);
+      const cleanSlug = cleaned
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '');
+      setSlug(cleanSlug);
+      if (brand?.slug) {
+        setPluginIdentifier(`com.${brand.slug}.${cleanSlug}`);
+      }
+    }
+  };
+
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setName(val);
     clearFieldError('name');
-    const generatedSlug = val
+
+    if (/\(Beta\)/i.test(val)) {
+      if (!isBeta) setIsBeta(true);
+    }
+
+    const slugBase = val.replace(/\s*\(Beta\)/gi, '').trim();
+    const generatedSlug = slugBase
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)+/g, '');
@@ -625,6 +654,7 @@ export default function NewProductPage() {
         is_active: isActive,
         is_featured: isFeatured,
         is_coming_soon: isComingSoon,
+        is_beta: isBeta,
         faqs: faqs.filter((f) => f.question.trim() && f.answer.trim()).slice(0, 5),
       };
 
@@ -819,7 +849,21 @@ export default function NewProductPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <FormLabel label="Product Title *" />
+                <div className="flex items-center justify-between mb-1.5">
+                  <FormLabel label="Product Title *" />
+                  <button
+                    type="button"
+                    onClick={handleToggleBeta}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors border ${
+                      isBeta
+                        ? 'bg-white text-black border-white font-semibold shadow-xs'
+                        : 'bg-[#181818] border-[#2e2e2e] text-zinc-400 hover:text-white hover:border-zinc-700'
+                    }`}
+                  >
+                    <span>Beta Version</span>
+                    {isBeta && <span className="font-mono text-[10px] opacity-75">(Beta)</span>}
+                  </button>
+                </div>
                 <input
                   type="text"
                   required
@@ -837,6 +881,17 @@ export default function NewProductPage() {
                     <AlertCircle className="w-3 h-3 flex-shrink-0" />
                     <span>{fieldErrors.name}</span>
                   </p>
+                )}
+
+                {/* Minimalist Beta Version Note */}
+                {isBeta && (
+                  <div className="flex items-center gap-2 mt-2 px-3 py-2 rounded-lg bg-[#141414] border border-[#262626] text-xs text-zinc-300 animate-in fade-in">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
+                    <span className="font-semibold text-white">Beta Version:</span>
+                    <span className="text-zinc-400">
+                      Product marked as beta build. &quot;(Beta)&quot; is shown with the title on the storefront.
+                    </span>
+                  </div>
                 )}
               </div>
 
@@ -1916,7 +1971,14 @@ export default function NewProductPage() {
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div>
                   <span className="text-zinc-500 block">Title:</span>
-                  <span className="text-white font-medium">{name || 'Untitled'}</span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-white font-medium">{name || 'Untitled'}</span>
+                    {isBeta && (
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#202020] text-zinc-300 border border-zinc-700/60 font-medium">
+                        Beta
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <span className="text-zinc-500 block">Selling Price:</span>
@@ -1929,6 +1991,19 @@ export default function NewProductPage() {
                 <div>
                   <span className="text-zinc-500 block">Brand:</span>
                   <span className="text-zinc-300">{brand?.name || 'Registered Brand'}</span>
+                </div>
+                <div>
+                  <span className="text-zinc-500 block">Visibility / Status:</span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-zinc-300">
+                      {isComingSoon ? 'Coming Soon' : (releaseDate ? 'Scheduled' : 'Immediate')}
+                    </span>
+                    {isComingSoon && (
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#202020] text-zinc-300 border border-zinc-700/60 font-medium">
+                        Coming Soon
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

@@ -175,6 +175,7 @@ export default function ProductDetailPage() {
   const [isActive, setIsActive] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
   const [isComingSoon, setIsComingSoon] = useState(false);
+  const [isBeta, setIsBeta] = useState(false);
   const [externalUrl, setExternalUrl] = useState('');
   const [buttonText, setButtonText] = useState('');
 
@@ -283,6 +284,28 @@ export default function ProductDetailPage() {
     }
   };
 
+  const handleToggleBeta = () => {
+    const nextBeta = !isBeta;
+    setIsBeta(nextBeta);
+
+    if (nextBeta) {
+      if (name.trim() && !/\(Beta\)/i.test(name)) {
+        setName(`${name.trim()} (Beta)`);
+      }
+    } else {
+      const cleaned = name.replace(/\s*\(Beta\)/gi, '').trim();
+      setName(cleaned);
+    }
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setName(val);
+    if (/\(Beta\)/i.test(val)) {
+      if (!isBeta) setIsBeta(true);
+    }
+  };
+
   useEffect(() => {
     async function loadCatalog() {
       const { categories, subcategories } = await getCatalogCategories();
@@ -332,6 +355,8 @@ export default function ProductDetailPage() {
           setOfflineGraceDays(data.offline_grace_days || 14);
           setIsActive(data.is_active ?? true);
           setIsFeatured(data.is_featured ?? false);
+          setIsComingSoon(Boolean(data.is_coming_soon));
+          setIsBeta(Boolean(data.is_beta || (data.name && /\(Beta\)/i.test(data.name))));
           const initialDelivery = data.delivery_method || (data.product_type === 'sample_pack' || data.product_type === 'preset' ? 'direct_download' : 'serial_key');
           setDeliveryMethod(initialDelivery as any);
 
@@ -426,6 +451,7 @@ export default function ProductDetailPage() {
         is_active: isActive,
         is_featured: isFeatured,
         is_coming_soon: isComingSoon,
+        is_beta: isBeta,
         faqs: faqs.filter((f) => f.question.trim() && f.answer.trim()).slice(0, 5),
       });
 
@@ -643,14 +669,39 @@ export default function ProductDetailPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <FormLabel label="Product Title" />
+                <div className="flex items-center justify-between mb-1.5">
+                  <FormLabel label="Product Title" />
+                  <button
+                    type="button"
+                    onClick={handleToggleBeta}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors border ${
+                      isBeta
+                        ? 'bg-white text-black border-white font-semibold shadow-xs'
+                        : 'bg-[#181818] border-[#2e2e2e] text-zinc-400 hover:text-white hover:border-zinc-700'
+                    }`}
+                  >
+                    <span>Beta Version</span>
+                    {isBeta && <span className="font-mono text-[10px] opacity-75">(Beta)</span>}
+                  </button>
+                </div>
                 <input
                   type="text"
                   required
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={handleNameChange}
                   className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#42454e] transition-colors"
                 />
+
+                {/* Minimalist Beta Version Note */}
+                {isBeta && (
+                  <div className="flex items-center gap-2 mt-2 px-3 py-2 rounded-lg bg-[#141414] border border-[#262626] text-xs text-zinc-300 animate-in fade-in">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
+                    <span className="font-semibold text-white">Beta Version:</span>
+                    <span className="text-zinc-400">
+                      Product marked as beta build. &quot;(Beta)&quot; is shown with the title on the storefront.
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div>

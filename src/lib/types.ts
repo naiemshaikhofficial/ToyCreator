@@ -30,6 +30,9 @@ export interface CreatorProduct {
   offline_grace_days?: number;
   is_active: boolean;
   is_featured?: boolean;
+  is_coming_soon?: boolean;
+  is_beta?: boolean;
+  release_date?: string | null;
   license_delivery_type?: 'pool' | 'external_api' | 'dedicated_licensing_server' | 'direct_download';
   license_api_url?: string | null;
   license_api_secret?: string | null;

@@ -185,6 +185,11 @@ function ProductsListInner() {
                             >
                               {cleanProductName(p.name)}
                             </Link>
+                            {(p.is_beta || p.name?.includes('(Beta)')) && (
+                              <span className="text-[9px] font-mono text-zinc-300 bg-[#1f1f1f] px-1.5 py-0.5 rounded border border-zinc-700/50 shrink-0 font-medium">
+                                Beta
+                              </span>
+                            )}
                             <span className="text-[10px] font-mono text-zinc-400 bg-[#202020] px-1.5 py-0.5 rounded border border-zinc-700/40 shrink-0">
                               v{p.version || '1.0.0'}
                             </span>
@@ -246,6 +251,11 @@ function ProductsListInner() {
                         >
                           {p.is_active ? 'Active' : 'Draft'}
                         </button>
+                        {p.is_coming_soon && (
+                          <span className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-[#202020] text-zinc-300 border border-zinc-700/60 truncate max-w-full">
+                            Coming Soon
+                          </span>
+                        )}
                         {p.release_date && new Date(p.release_date).getTime() > Date.now() && (
                           <span className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-[#202020] text-zinc-300 border border-zinc-700/60 truncate max-w-full flex items-center gap-1">
                             <Clock className="w-2.5 h-2.5 text-zinc-400 shrink-0" />
