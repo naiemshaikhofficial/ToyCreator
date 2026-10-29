@@ -506,6 +506,15 @@ export default function ProductDetailPage() {
   );
   const nextMissing = readinessCriteria.find((c) => !c.isDone)?.label;
 
+  // Check if product is currently in pre-release (coming soon or future scheduled launch)
+  const isScheduledFuture = Boolean(
+    releaseDate &&
+      !isNaN(new Date(releaseDate).getTime()) &&
+      new Date(releaseDate).getTime() > Date.now()
+  );
+  const isUnreleased = Boolean(isComingSoon || isScheduledFuture);
+  const isPublished = Boolean(product?.id && !isUnreleased);
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 font-sans">
       {/* Top Header */}
@@ -1561,18 +1570,107 @@ export default function ProductDetailPage() {
               </span>
             </div>
 
-            {/* Active Toggle Box */}
-            {/* 3D WheelPicker Product Release Scheduler */}
-            <ProductReleaseScheduler
-              initialReleaseDate={releaseDate}
-              initialIsComingSoon={isComingSoon}
-              initialIsActive={isActive}
-              onChange={({ releaseDate: newRelDate, isComingSoon: newCs, isActive: newAct }) => {
-                setReleaseDate(newRelDate);
-                setIsComingSoon(newCs);
-                setIsActive(newAct);
-              }}
-            />
+            {/* Catalog Visibility Management */}
+            {isPublished ? (
+              <div className="p-5 rounded-xl border border-[#2a2a2a] bg-[#141414] space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#222222]">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`w-2 h-2 rounded-full ${
+                          isActive
+                            ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]'
+                            : 'bg-zinc-600'
+                        }`}
+                      />
+                      <span className="text-xs font-bold text-white">
+                        Catalog Status: {isActive ? 'Live on Storefront' : 'Draft Mode (Hidden)'}
+                      </span>
+                      <span
+                        className={`toy-badge text-[10px] ${
+                          isActive ? 'toy-badge-charcoal' : 'bg-zinc-800 text-zinc-500'
+                        }`}
+                      >
+                        {isActive ? 'Live' : 'Draft'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400">
+                      {isActive
+                        ? 'This audio product is live and discoverable by music producers on the ProducerToy storefront.'
+                        : 'This product is currently unlisted and hidden from public search and catalog listings.'}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setIsActive(!isActive)}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        isActive ? 'bg-white' : 'bg-[#282828]'
+                      }`}
+                      role="switch"
+                      aria-checked={isActive}
+                      title={isActive ? 'Click to unpublish / hide from store' : 'Click to publish / make live'}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 rounded-full shadow-md transition duration-200 ease-in-out ${
+                          isActive ? 'translate-x-5 bg-black' : 'translate-x-0 bg-zinc-400'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs pt-1">
+                  <div className="flex items-center gap-2 text-zinc-400 text-[11px]">
+                    <span>Storefront Link:</span>
+                    <a
+                      href={`https://producertoy.com/product/${product?.slug}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-zinc-200 hover:text-white flex items-center gap-1 font-mono text-[11px] underline underline-offset-2 transition-colors"
+                    >
+                      <span>producertoy.com/product/{product?.slug}</span>
+                      <ExternalLink className="w-3 h-3 text-zinc-400" />
+                    </a>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsComingSoon(true)}
+                    className="text-[11px] text-zinc-500 hover:text-zinc-300 underline underline-offset-2 transition-colors self-start sm:self-auto cursor-pointer"
+                  >
+                    Switch to Pre-Release / Coming Soon schedule
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <ProductReleaseScheduler
+                  initialReleaseDate={releaseDate}
+                  initialIsComingSoon={isComingSoon}
+                  initialIsActive={isActive}
+                  onChange={({ releaseDate: newRelDate, isComingSoon: newCs, isActive: newAct }) => {
+                    setReleaseDate(newRelDate);
+                    setIsComingSoon(newCs);
+                    setIsActive(newAct);
+                  }}
+                />
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsComingSoon(false);
+                      setReleaseDate(new Date().toISOString());
+                      setIsActive(true);
+                    }}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#1a1a1a] hover:bg-[#222222] border border-[#2e2e2e] text-zinc-200 hover:text-white transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span>Launch & Make Live Immediately</span>
+                  </button>
+                </div>
+              </div>
+            )}
 
 
 
