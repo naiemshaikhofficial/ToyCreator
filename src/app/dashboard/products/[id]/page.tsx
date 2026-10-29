@@ -178,6 +178,7 @@ export default function ProductDetailPage() {
   const [isBeta, setIsBeta] = useState(false);
   const [externalUrl, setExternalUrl] = useState('');
   const [buttonText, setButtonText] = useState('');
+  const [affiliateDisclosure, setAffiliateDisclosure] = useState(false);
 
   // Prody AI Copilot State
   const [showProdyModal, setShowProdyModal] = useState(false);
@@ -332,6 +333,7 @@ export default function ProductDetailPage() {
           setOriginalPriceUsd(data.original_price_usd?.toString() || '');
           setExternalUrl(data.external_url || '');
           setButtonText(data.button_text || '');
+          setAffiliateDisclosure(Boolean(data.affiliate_disclosure));
           setShortDesc(data.short_description || '');
           setFullDesc(data.full_description || '');
           setCoverImage(data.cover_image || '');
@@ -426,6 +428,7 @@ export default function ProductDetailPage() {
         original_price_usd: originalPriceUsd ? parseFloat(originalPriceUsd) : null,
         external_url: externalUrl.trim() || null,
         button_text: buttonText.trim() || null,
+        affiliate_disclosure: affiliateDisclosure,
         short_description: shortDesc.trim() || null,
         full_description: fullDesc.trim() || null,
         cover_image: coverImage.trim() || null,
@@ -1011,6 +1014,23 @@ export default function ProductDetailPage() {
                       className="w-full bg-[#121212] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-[#42454e] transition-colors"
                     />
                   </div>
+                </div>
+
+                {/* Affiliate Disclosure Tick Mark */}
+                <div className="pt-2 border-t border-[#222222] flex items-start gap-2.5">
+                  <input
+                    type="checkbox"
+                    id="affiliateDisclosure"
+                    checked={affiliateDisclosure}
+                    onChange={(e) => setAffiliateDisclosure(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded bg-[#121212] border-[#2e2e2e] text-[#42454e] focus:ring-0 cursor-pointer accent-[#42454e]"
+                  />
+                  <label htmlFor="affiliateDisclosure" className="text-xs text-zinc-300 cursor-pointer select-none">
+                    <span className="font-medium text-white block">Affiliate Disclosure</span>
+                    <span className="text-[11px] text-zinc-400 block mt-0.5 leading-relaxed">
+                      ProducerToy may earn a commission if you purchase {name.trim() || 'Groove Console'} through this link. This does not increase the price you pay.
+                    </span>
+                  </label>
                 </div>
               </div>
             )}

@@ -11,6 +11,9 @@ export interface CreatorProduct {
   cover_image?: string;
   demo_audio_url?: string;
   external_url?: string;
+  button_text?: string;
+  allow_external_url?: boolean;
+  affiliate_disclosure?: boolean;
   download_url?: string;
   download_url_win?: string;
   download_url_mac?: string;
